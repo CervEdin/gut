@@ -5,4 +5,4 @@ TARGET=$(git parents | head -1)
 echo "Rebasing onto: $TARGET"
 
 git arch &&\
-  git rebase -i -r --autosquash "$TARGET"
+  git -c sequence.editor='git rebase-retag.sh' rebase -i -r --autosquash "$TARGET"
