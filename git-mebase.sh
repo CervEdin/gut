@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 TARGET=$(git parents | head -1)
 echo "Rebasing onto: $TARGET"
