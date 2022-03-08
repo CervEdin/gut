@@ -17,15 +17,20 @@ done
 
 shift $(($OPTIND - 1))
 
-TARGET="$1"
-
-if [ -z "$1" ]; then
-	TARGET=$(git symbolic-ref --short HEAD)
+if [ $# -ne 0  ]; then
+	TARGET="$1"
+else
+	TARGET=HEAD
 fi
+
+NAME=$(
+	git symbolic-ref -q --short "$TARGET"
+)
+STEM="archive/${NAME}/"
 
 if [ "$LISTMODE" == true ] ; then
 	printf "list mode: ($TARGET)\n" >&2
-	git tag | grep "archive/$TARGET"
+	git tag --list "$STEM*"
 else
-	git tag archive/"$TARGET"-$(date --utc +'%Y-%m-%dT%H.%M.%S') "$TARGET"
+	git tag "$STEM$(date --utc +'%Y-%m-%dT%H.%M.%S')" "$TARGET"
 fi
