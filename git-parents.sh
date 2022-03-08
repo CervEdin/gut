@@ -5,4 +5,5 @@ set -euo pipefail
 git for-each-ref --merged HEAD --no-contains HEAD \
 	--sort="-committerdate" \
 	--format="%(refname:short)" \
-  -- 'refs/heads/' 'refs/tags/'
+  -- 'refs/heads/' 'refs/tags/' |\
+  grep -v 'archive/*'
