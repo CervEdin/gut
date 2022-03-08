@@ -37,5 +37,11 @@ if [ "$LISTMODE" == true ] ; then
 	printf "list mode: ($TARGET)\n" >&2
 	git tag --list "$STEM*"
 else
-	git tag "$STEM$(date --utc +'%Y-%m-%dT%H.%M.%S')" "$TARGET"
+	TAG=$(git tag --list "$STEM*" --points-at HEAD)
+	if [[ -z "$TAG" ]]; then
+		TAG="${STEM}$(date --utc +'%Y-%m-%dT%H.%M.%S')"
+		git tag "$TAG" "$TARGET"
+	fi
+	printf "Created tag: $TAG" >&2
+	printf "$TAG"
 fi
