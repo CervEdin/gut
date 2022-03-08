@@ -27,4 +27,4 @@ fi
 PARENT=$(sed "${N_PARENT}q;d" <<< "$PARENTS")
 
 git arch &&\
-  git -c sequence.editor='git rebase-retag.sh' rebase -i -r --autosquash "$PARENT"
+  git -c sequence.editor='git rebase-retag' rebase -i -r --autosquash "$PARENT"
