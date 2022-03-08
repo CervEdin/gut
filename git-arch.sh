@@ -24,7 +24,12 @@ else
 fi
 
 NAME=$(
-	git symbolic-ref -q --short "$TARGET"
+	git symbolic-ref -q --short "$TARGET" ||
+		# if in detached head, assume rebase
+		head "$(git rev-parse --show-toplevel \
+		'.git/rebase-merge/head-name' |\
+		sed 'N ; s@\n@\\@')" |\
+		sed 's@refs/heads/@@'
 )
 STEM="archive/${NAME}/"
 
