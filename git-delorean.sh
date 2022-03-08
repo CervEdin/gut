@@ -34,4 +34,5 @@ for FILE in $STAGED; do
 		PARENT=$(git rev-list --no-walk $COMMITS | head -1)
 	git commit --fixup $PARENT -- "$FILE"
 done
+
 git stash pop
