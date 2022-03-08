@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 die () {
   echo "ERROR: $*. Aborting" >&2
