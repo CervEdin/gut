@@ -23,9 +23,9 @@ for arg; do
   esac
 done
 
-printf 'args before update : '; printf '%q ' "$@"; echo
+printf 'args before update : %q\n' "$@" >&2
 set -- "${args[@]}"
-printf 'args after update  : '; printf '%q ' "$@"; echo
+printf 'args after update  : %q\n' "$@" >&2
 
 ours=false
 theirs=false
@@ -43,6 +43,8 @@ while getopts ":otb" opt; do
     * ) die "Unimplemented option: -$OPTARG. Abort" ;;
   esac
 done
+printf 'args after getopts  : %q\n' "$@" >&2
+printf 'FILES (a pathspec) after getopts  : %q\n' "$FILES" >&2
 
 if [ "$ours" == false ] && [ "$theirs" == false ] && [ "$both" == false ]; then
  die "You need to specify --ours, --theirs or --both"
