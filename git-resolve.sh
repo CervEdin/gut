@@ -52,22 +52,15 @@ fi
 
 cd "$(git rev-parse --show-toplevel)"
 
-# echo "$@"
-# files="$(git ls-files -u | cut -f 2 | uniq)"
-#echo "$files"
-#xargs -d '\n' stat <<< "$files"
-#echo "printf"
-
-ffiles() { git ls-files -u | cut -f 2 | uniq; }
-ffiles | xargs -d '\n'  stat -- || die "error"
+ffiles() { git ls-files -u -- $@ | cut -f 2 | uniq; }
 
 if [ "$both" = true ]; then
-  ffiles | xargs -d '\n' sed -i -e '/^<<<<<<</d' -e '/^=======/d' -e '/^>>>>>>>/d' --
+  ffiles $FILES | xargs -d '\n' sed -i -e '/^<<<<<<</d' -e '/^=======/d' -e '/^>>>>>>>/d' --
 elif [ "$ours" = true ]; then
-  ffiles | xargs -d '\n' sed -i -e '/^<<<<<<</d' -e '/^=======/,/^>>>>>>>/d' --
+  ffiles $FILES | xargs -d '\n' sed -i -e '/^<<<<<<</d' -e '/^=======/,/^>>>>>>>/d' --
 elif [ "$theirs" = true ]; then
-  ffiles | xargs -d '\n' sed -i -e '/^<<<<<<</,/^=======/d' -e '/^>>>>>>>/d' --
+  ffiles $FILES | xargs -d '\n' sed -i -e '/^<<<<<<</,/^=======/d' -e '/^>>>>>>>/d' --
 fi
 
-ffiles | xargs -d '\n' git add --
+ffiles $FILES | xargs -d '\n' git add --
 
