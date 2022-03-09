@@ -43,6 +43,7 @@ while getopts ":otb" opt; do
     * ) die "Unimplemented option: -$OPTARG. Abort" ;;
   esac
 done
+FILES=${@:$OPTIND}
 printf 'args after getopts  : %q\n' "$@" >&2
 printf 'FILES (a pathspec) after getopts  : %q\n' "$FILES" >&2
 
