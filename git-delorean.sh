@@ -30,8 +30,7 @@ for FILE in $STAGED; do
 			sed -n '/^[a-f,0-9]\{40\} /{s@ .*@@;p}' |\
 			awk '{ a[$1]++ } END { for (b in a) { print b }}'
 		)
-		# TODO: Verify the order of rev-list is the order we want (we may want to reverse?)
-		PARENT=$(git rev-list --no-walk $COMMITS | head -1)
-	git commit --fixup $PARENT -- "$FILE"
+		FIRST_PARENT=$(git rev-list --topo-order HEAD | grep $COMMITS | head -1)
+		git commit --fixup $FIRST_PARENT -- "$FILE"
 done
 git stash pop
