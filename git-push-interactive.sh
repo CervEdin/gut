@@ -12,11 +12,15 @@ printf '\n'
 git diff @{upstream} HEAD
 
 while [ -z ${REPLY-} ]; do
-	read -p "Push? [Yy/*]" -r
+	read -p "Push? [Yy/Ff/*]" -r
 	printf '\n'
 done
 
-if [[ $REPLY =~ ^[Yy]$ ]]; then
+if [[ $REPLY =~ ^[YyFf]$ ]]; then
+	if [[ $REPLY =~ ^[Ff]$ ]]; then
+		git push --force-with-lease
+		exit $?
+	fi
 	unset REPLY
 	git push &&
 		exit 0 ||
