@@ -30,7 +30,7 @@ for FILE in $STAGED; do
 			sed -n '/^[a-f,0-9]\{40\} /{s@ .*@@;p}' |\
 			awk '{ a[$1]++ } END { for (b in a) { print b }}'
 		)
-		FIRST_PARENT=$(git rev-list --topo-order HEAD | grep $COMMITS | head -1)
+		FIRST_PARENT=$(git rev-list --topo-order HEAD | grep "$COMMITS" | head -1)
 		git commit --fixup $FIRST_PARENT -- "$FILE"
 done
 
