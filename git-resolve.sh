@@ -18,6 +18,8 @@ for arg; do
       args+=( -t ) ;;
     --both|-b)
       args+=( -b ) ;;
+    --add|-a)
+      args+=( -a ) ;;
     *)
       args+=( "$arg" ) ;;
   esac
@@ -30,14 +32,16 @@ printf 'args after update  : %q\n' "$@" >&2
 ours=false
 theirs=false
 both=false
+add=false
 
-while getopts ":otb" opt; do
+while getopts ":otba" opt; do
     case $opt in
     o ) if [ "$theirs" = true ]; then die "Cannot specify ours and theirs" ;fi
       ours=true ;;
     t ) if [ "$ours" = true ]; then die "Cannot specify ours and theirs" ;fi
       theirs=true ;;
     b ) both=true ;;
+    a ) add=true ;;
     \?) die "Unknown option: -$OPTARG. Abort" ;;
     : ) die "Missing option: -$OPTARG. Abort" ;;
     * ) die "Unimplemented option: -$OPTARG. Abort" ;;
@@ -63,5 +67,6 @@ elif [ "$theirs" = true ]; then
   ffiles $FILES | xargs -d '\n' sed -i -e '/^<<<<<<</,/^=======/d' -e '/^>>>>>>>/d' --
 fi
 
-ffiles $FILES | xargs -d '\n' git add --
-
+if [ "$add" = true ]; then
+	ffiles $FILES | xargs -d '\n' git add --
+fi
