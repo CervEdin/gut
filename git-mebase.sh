@@ -1,8 +1,30 @@
 #!/bin/bash
 set -euo pipefail
 
-TARGET=$(git parents | head -1)
-echo "Rebasing onto: $TARGET"
+INTERACTIVE=false
+
+while getopts ":i" opt; do
+	case $opt in
+		i)
+			INTERACTIVE=true
+			;;
+		\?)
+			printf "Invalid option: -$OPTARG\n"
+			exit 1
+			;;
+	esac
+done
+
+PARENTS=$(git parents)
+
+if [ "$INTERACTIVE" == true ] ; then
+	nl <<< "$PARENTS"
+	read -p "Pick parent: " N_PARENT
+else
+	N_PARENT=1
+fi
+
+PARENT=$(sed "${N_PARENT}q;d" <<< "$PARENTS")
 
 git arch &&\
-  git rebase -i -r --autosquash "$TARGET"
+  git -c sequence.editor='git rebase-retag.sh' rebase -i -r --autosquash "$PARENT"
