@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+set -x
 
 die () {
   echo "ERROR: $*. Aborting" >&2
@@ -48,6 +49,10 @@ while getopts ":otba" opt; do
   esac
 done
 FILES=${@:$OPTIND}
+if [ -z "$FILES" ]; then
+  FILES='.'
+fi
+
 printf 'args after getopts  : %q\n' "$@" >&2
 printf 'FILES (a pathspec) after getopts  : %q\n' "$FILES" >&2
 
@@ -57,14 +62,18 @@ fi
 
 cd "$(git rev-parse --show-toplevel)"
 
-ffiles() { git ls-files -u -- $@ | cut -f 2 | uniq; }
+ffiles() { git ls-files --unmerged -- $@ | cut -f 2 | uniq; }
+ffiles "$FILES" | xargs -d '\n'  stat -- || die "Files not found"
 
 if [ "$both" = true ]; then
-  ffiles $FILES | xargs -d '\n' sed -i -e '/^<<<<<<</d' -e '/^=======/d' -e '/^>>>>>>>/d' --
+  ffiles "$FILES" |\
+    xargs -d '\n' sed -i -e '/^<\{7\}/d' -e '/^=\{7\}/d' -e '/^>\{7\}/d' --
 elif [ "$ours" = true ]; then
-  ffiles $FILES | xargs -d '\n' sed -i -e '/^<<<<<<</d' -e '/^=======/,/^>>>>>>>/d' --
+  ffiles "$FILES" |\
+    xargs -d '\n' sed -i -e '/^<\{7\}/d' -e '/^=\{7\}/,/^>\{7\}/d' --
 elif [ "$theirs" = true ]; then
-  ffiles $FILES | xargs -d '\n' sed -i -e '/^<<<<<<</,/^=======/d' -e '/^>>>>>>>/d' --
+  ffiles "$FILES" |\
+    xargs -d '\n' sed -i -e '/^<\{7\}/,/^=\{7\}/d' -e '/^>\{7\}/d' --
 fi
 
 if [ "$add" = true ]; then
