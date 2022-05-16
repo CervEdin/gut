@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+set -x
 
 die () {
   echo "ERROR: $*. Aborting" >&2
@@ -18,6 +19,8 @@ for arg; do
       args+=( -t ) ;;
     --both|-b)
       args+=( -b ) ;;
+    --add|-a)
+      args+=( -a ) ;;
     *)
       args+=( "$arg" ) ;;
   esac
@@ -30,19 +33,26 @@ printf 'args after update  : %q\n' "$@" >&2
 ours=false
 theirs=false
 both=false
+add=false
 
-while getopts ":otb" opt; do
+while getopts ":otba" opt; do
     case $opt in
     o ) if [ "$theirs" = true ]; then die "Cannot specify ours and theirs" ;fi
       ours=true ;;
     t ) if [ "$ours" = true ]; then die "Cannot specify ours and theirs" ;fi
       theirs=true ;;
     b ) both=true ;;
+    a ) add=true ;;
     \?) die "Unknown option: -$OPTARG. Abort" ;;
     : ) die "Missing option: -$OPTARG. Abort" ;;
     * ) die "Unimplemented option: -$OPTARG. Abort" ;;
   esac
 done
+FILES=${@:$OPTIND}
+if [ -z "$FILES" ]; then
+  FILES='.'
+fi
+
 printf 'args after getopts  : %q\n' "$@" >&2
 printf 'FILES (a pathspec) after getopts  : %q\n' "$FILES" >&2
 
@@ -52,22 +62,20 @@ fi
 
 cd "$(git rev-parse --show-toplevel)"
 
-# echo "$@"
-# files="$(git ls-files -u | cut -f 2 | uniq)"
-#echo "$files"
-#xargs -d '\n' stat <<< "$files"
-#echo "printf"
-
-ffiles() { git ls-files -u | cut -f 2 | uniq; }
-ffiles | xargs -d '\n'  stat -- || die "error"
+ffiles() { git ls-files --unmerged -- $@ | cut -f 2 | uniq; }
+ffiles "$FILES" | xargs -d '\n'  stat -- || die "Files not found"
 
 if [ "$both" = true ]; then
-  ffiles | xargs -d '\n' sed -i -e '/<<<<<<</d' -e '/=======/d' -e '/>>>>>>>/d' --
+  ffiles "$FILES" |\
+    xargs -d '\n' sed -i -e '/^<\{7\}/d' -e '/^=\{7\}/d' -e '/^>\{7\}/d' --
 elif [ "$ours" = true ]; then
-  ffiles | xargs -d '\n' sed -i -e '/<<<<<<</d' -e '/=======/,/>>>>>>>/d' --
+  ffiles "$FILES" |\
+    xargs -d '\n' sed -i -e '/^<\{7\}/d' -e '/^=\{7\}/,/^>\{7\}/d' --
 elif [ "$theirs" = true ]; then
-  ffiles | xargs -d '\n' sed -i -e '/<<<<<<</,/=======/d' -e '/>>>>>>>/d' --
+  ffiles "$FILES" |\
+    xargs -d '\n' sed -i -e '/^<\{7\}/,/^=\{7\}/d' -e '/^>\{7\}/d' --
 fi
 
-ffiles | xargs -d '\n' git add --
-
+if [ "$add" = true ]; then
+	ffiles $FILES | xargs -d '\n' git add --sparse --
+fi
