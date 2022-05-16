@@ -68,5 +68,5 @@ elif [ "$theirs" = true ]; then
 fi
 
 if [ "$add" = true ]; then
-	ffiles $FILES | xargs -d '\n' git add --
+	ffiles $FILES | xargs -d '\n' git add --sparse --
 fi
