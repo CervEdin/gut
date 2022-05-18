@@ -4,6 +4,8 @@ set -euo pipefail
 git_root=$(git rev-parse --show-toplevel)
 cd "$git_root"
 staged=$(git diff --name-only --cached)
+working_tree_sha=$(git stash create)
+#TODO: replace with git restore?
 git stash --keep-index
 
 IFS=$'\n'
@@ -33,4 +35,4 @@ for file in $staged; do
 	first_parent=$(git rev-list --topo-order HEAD | grep "$commits" | head -1)
 	git commit --fixup $first_parent -- "$file"
 done
-git stash pop
+git stash apply $working_tree_sha --index
