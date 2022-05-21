@@ -10,7 +10,9 @@ PRs are welcome.
 
 # Installation
 
-1. Put files somewhere in path. Like `~/bin/`.
+1. Put files somewhere in path.
+Like `~/bin/` or run `make INSTALL_DIR=/bin/ all`,
+which copies them into `/bin/` or whichever `INSTALL_DIR` you specify.
 2. Run command like so: `git arch`
 3. 💲💲💲
 
