@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euox pipefail
+set -euo pipefail
 
 git_root=$(git rev-parse --show-toplevel)
 cd "$git_root"
