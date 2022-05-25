@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo
 
 if [ "$GIT_ENV" == true ] ; then
 	echo "Exiting git enviroment"
