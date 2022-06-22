@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 
 printf '%s\n' $@ |\
 	cat .gitignore - |\
