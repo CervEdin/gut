@@ -1,0 +1,80 @@
+alias]
+	a = add --patch -- .
+	aa = add .
+	aaa = add :/
+	ap = add --patch
+	br = branch
+	brd = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
+	brl = for-each-ref --format='%(refname:short)' refs/heads/
+	ck = checkout
+	ckp = checkout --patch
+	cm = commit
+	cma = commit --amend --no-edit
+	cmp = commit --patch
+	cp = cherry-pick
+	d = diff -- .
+	dh = diff HEAD
+	diffe = ! git diff-index HEAD --name-only | sed -e 's/.*\\.\\([A-z,1-9]*\\)$/.\\1/' | sort | uniq -c | sort
+	diffm = diff $(git merge-base main)
+	do = diff ORIG_HEAD
+	ds = diff --staged
+	ds = diff --staged
+	du = diff @{upstream}
+	h = !git --no-pager lg -10
+	last = log -1 HEAD
+	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%ar) %C(bold blue)<%an>%Creset%n%N' --abbrev-commit
+	lgg = log --oneline
+	ls-branch = branch --format='%(refname:short)'
+	mb = merge-base
+	mbh = merge-base HEAD
+	mbm = merge-base HEAD main
+	mf = merge --no-ff --no-edit -
+	mg = merge --no-ff
+	ms = mergetool
+	mt = mergetool
+	pl = pull
+	prm = pull-request-message
+	ps = push
+	puc = -c push.default=current push
+	r = restore --patch -- .
+	rb = rebase
+	rbc = rebase --continue
+	root = rev-parse --show-toplevel
+	rp = restore --patch
+	rr = restore .
+	rrr = restore :/
+	rs = restore --staged --patch -- .
+	rsa = restore --staged :/
+	rss = restore --staged
+	s = status --untracked-files=all -- .
+	sh = show
+	ss = status
+	st = stash
+	sw = switch
+[pager]
+	diff = less -FRSX
+	log = less -FRSX
+	show = less -FRSX
+	std = git-ls-files -m | sed -e 's/\\/.*//' | uniq -c
+	lg = git-lgf | less -FRSX
+[commit]
+	verbose = true
+[core]
+	autocrlf = input
+	editor = vim
+	pager = less -FRSX
+[merge]
+	tool = vimdiff
+[mergetool]
+	keepBackup = false
+[notes]
+	rewriteRef = refs/notes/*
+[pull]
+	rebase = true
+[push]
+	default = current
+[rebase]
+	abbreviateCommands = true
+	autosquash = true
+	autoStash = true
+	instructionFormat = %as%x09%s
