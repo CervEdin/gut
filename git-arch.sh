@@ -18,30 +18,29 @@ done
 shift $(($OPTIND - 1))
 
 if [ $# -ne 0  ]; then
-	TARGET="$1"
+	refname="$1"
 else
-	TARGET=HEAD
+	refname=$(
+		git symbolic-ref -q --short HEAD ||
+			# if in detached head, assume rebase
+			head "$(git rev-parse --show-toplevel \
+			'.git/rebase-merge/head-name' |\
+			sed 'N ; s@\n@\\@')" |\
+			sed 's@refs/heads/@@'
+	)
 fi
 
-NAME=$(
-	git symbolic-ref -q --short "$TARGET" ||
-		# if in detached head, assume rebase
-		head "$(git rev-parse --show-toplevel \
-		'.git/rebase-merge/head-name' |\
-		sed 'N ; s@\n@\\@')" |\
-		sed 's@refs/heads/@@'
-)
-STEM="archive/${NAME}/"
+STEM="archive/${refname}/"
 
 if [ "$LISTMODE" == true ] ; then
-	printf "list mode: ($TARGET)\n" >&2
+	printf "list mode: ($refname\n" >&2
 	git tag --list "$STEM*"
 else
 	TAG=$(git tag --list "$STEM*" --points-at HEAD)
 	if [[ -z "$TAG" ]]; then
 		TAG="${STEM}$(date --utc +'%Y-%m-%dT%H.%M.%S')"
-		git tag "$TAG" "$TARGET"
+		git tag "$TAG" "$refname"
 	fi
-	printf "Created tag: $TAG" >&2
-	printf "$TAG"
+	printf "Created tag: $TAG\n" >&2
+	printf "$TAG\n"
 fi
