@@ -48,6 +48,8 @@ clean:
 	rm bin/*
 
 debug: $(programs)
-	sed -i '2 { /^set -euox$$/{p;d;} ; /^\(set -euo\)\([^x]\)/{ s@@\1x\2@;p;d } ; s@^@set -euox\n@ }' $?
+	sed -i -e '2 { /^set -[eu]*xo\{0,1\} pipefail$$/{p;d;}' \
+		-e '/^\(set -eu\)\(o\)\{0,1\}/{ s@@\1x\2@;p;d }' \
+		-e 's@^@set -euxo pipefail\n@ }' $?
 
 debug_all: debug all
