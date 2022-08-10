@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu
+set -euo pipefail
 
 git rev-parse HEAD @{upstream} |\
  uniq |\
