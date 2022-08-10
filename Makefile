@@ -1,7 +1,9 @@
 NAME=gut
 VERSION=0.0.1
 files=$(wildcard *.sh *.sed)
+shell_files=$(wildcard *.sh)
 programs=$(addprefix bin/, $(files))
+shell_programs=$(addprefix bin/, $(shell_files))
 INSTALL_DIR=$${HOME}/bin/
 installed_programs=$(addprefix $(INSTALL_DIR), $(notdir $(programs)))
 installed_links=$(basename $(installed_programs))
@@ -47,7 +49,7 @@ uninstall:
 clean:
 	rm bin/*
 
-debug: $(programs)
+debug: $(shell_programs)
 	sed -i -e '2 { /^set -[eu]*xo\{0,1\} pipefail$$/{p;d;}' \
 		-e '/^\(set -eu\)\(o\)\{0,1\}/{ s@@\1x\2@;p;d }' \
 		-e 's@^@set -euxo pipefail\n@ }' $?
