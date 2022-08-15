@@ -4,7 +4,7 @@ files=$(wildcard *.sh *.sed)
 shell_files=$(wildcard *.sh)
 programs=$(addprefix bin/, $(files))
 shell_programs=$(addprefix bin/, $(shell_files))
-INSTALL_DIR=$${HOME}/bin/
+INSTALL_DIR=${HOME}/bin/
 installed_programs=$(addprefix $(INSTALL_DIR), $(notdir $(programs)))
 installed_links=$(basename $(installed_programs))
 
