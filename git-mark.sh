@@ -8,10 +8,17 @@ fi
 
 add=true
 if [ "${1:0:1}" == "-" ]; then
+	tag_char='+'
 	mark="${1:1}"
 	add=false
 else
-	mark="$1"
+	if [[ "${1:0:1}" =~ [[:punct:]] ]]; then
+		tag_char="${1:0:1}"
+		mark="${1:1}"
+	else
+		tag_char='+'
+		mark="$1"
+	fi
 fi
 shift 1
 
@@ -21,7 +28,6 @@ else
 	branches="$@"
 fi
 
-tag_char='@'
 
 for branch in $branches; do
 	# branch starts with $tag_char
