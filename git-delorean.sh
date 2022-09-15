@@ -1,6 +1,18 @@
 #!/bin/bash
 set -euo pipefail
 
+#TODO: Delorean will introduce a merge conflict if fixing up
+# a chunk "in between" a later chunk.
+# ie:
+#
+#1:commit2 foo
+#2:commit1 x => y
+#3:commit2 bar
+#
+# Running git-delorean on 2:commit1 x => y will create a fixup for
+# commit1 and that fixup will cause a merge-conflict with commit2
+
+
 git_root=$(git rev-parse --show-toplevel)
 cd "$git_root"
 staged=$(git diff --name-only --cached --diff-filter=M)
