@@ -61,7 +61,11 @@ fi
 
 cd "$(git rev-parse --show-toplevel)"
 
-ffiles() { git ls-files --unmerged -- $@ | cut -f 2 | uniq; }
+ffiles() {
+  git ls-files --unmerged -- "$@" |
+    cut -f 2 |
+    uniq
+}
 ffiles "$FILES" | xargs -d '\n'  stat -- || die "Files not found"
 
 if [ "$both" = true ]; then
@@ -76,5 +80,5 @@ elif [ "$theirs" = true ]; then
 fi
 
 if [ "$add" = true ]; then
-	ffiles $FILES | xargs -d '\n' git add --sparse --
+	ffiles "$FILES" | xargs -d '\n' git add --sparse --
 fi
