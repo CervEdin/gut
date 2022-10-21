@@ -3,7 +3,7 @@
 search_for="$1"
 replace_with="$2"
 
-if [ -z "$3" ]; then
+if [ -z "${3}" ]; then
 	path='.'
 else
 	path="$3"
