@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 search_for="$1"
 replace_with="$2"
