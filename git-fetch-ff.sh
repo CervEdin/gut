@@ -9,15 +9,22 @@ git for-each-ref \
 	sed -n '
 / *\[behind [0-9]*\] */{
 	s@@\t@
-	s@\(.*\)\t\(.*\)@\2\t\1:\1@
+	s@\(.*\)\t\([^/]*\)/\(.*\)@\1\t\2\t\3@ # local, remote, upstream
 	p
 }' |
 	awk -F '\t' '
 NR==1 {
-	o[$1] = $2
+	# remote, local, upstream
+	upstream[$2][$1] = $3
 } NR>1 {
-	o[$1] = o[$1] FS $2
+	upstream[$2][$1] = upstream[$2][$1] $3
 } END {
-	for (x in o) print x, o[x]
+	for (r in upstream) {
+		args = r
+		for (l in upstream[r]) {
+			args = args FS upstream[r][l]":"l
+		}
+		print args
+	}
 }' |
-	xargs git fetch
+	xargs -L 1 git fetch
