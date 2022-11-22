@@ -4,7 +4,7 @@ git for-each-ref \
 	--format='%(refname:short)%09'\
 '%(upstream:track)%09'\
 '%(upstream:short)' |
-	'refs/heads/*' |
+	'refs/heads/**/*' |
 	column -t -s $'\t' |
 	sed -n '
 / *\[behind [0-9]*\] */{
