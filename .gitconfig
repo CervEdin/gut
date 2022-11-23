@@ -1,21 +1,25 @@
-alias]
+[alias]
 	a = add --patch -- .
-	aa = add .
+	aa = add --update .
 	aaa = add :/
 	ap = add --patch
 	br = branch
 	brd = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
 	brl = for-each-ref --format='%(refname:short)' refs/heads/
+	bs = branch-status
 	ck = checkout
 	ckp = checkout --patch
 	cm = commit
 	cma = commit --amend --no-edit
+	cmo = commit -C ORIG_HEAD
 	cmp = commit --patch
 	cp = cherry-pick
 	d = diff -- .
+	d- = diff @{1}
 	dh = diff HEAD
 	diffe = ! git diff-index HEAD --name-only | sed -e 's/.*\\.\\([A-z,1-9]*\\)$/.\\1/' | sort | uniq -c | sort
-	diffm = diff $(git merge-base main)
+	diffm = ! git diff $(git merge-base main HEAD)
+	dl = delorean
 	do = diff ORIG_HEAD
 	ds = diff --staged
 	ds = diff --staged
@@ -33,9 +37,10 @@ alias]
 	ms = mergetool
 	mt = mergetool
 	pl = pull
+	ppf = push --force
 	prm = pull-request-message
 	ps = push
-	puc = -c push.default=current push
+	puc = -c push.default=current push -u
 	r = restore --patch -- .
 	rb = rebase
 	rbc = rebase --continue
@@ -50,19 +55,24 @@ alias]
 	sh = show
 	ss = status
 	st = stash
+	sti = stash --keep-index
 	sw = switch
-[pager]
-	diff = less -FRSX
-	log = less -FRSX
-	show = less -FRSX
-	std = git-ls-files -m | sed -e 's/\\/.*//' | uniq -c
-	lg = git-lgf | less -FRSX
+[color]
+	pager = true
 [commit]
 	verbose = true
 [core]
 	autocrlf = input
 	editor = vim
 	pager = less -FRSX
+[gc]
+	reflogExpire = 365.days.ago
+[pager]
+	diff = less -FRSX
+	log = less -FRSX
+	show = less -FRSX
+	std = git-ls-files -m | sed -e 's/\\/.*//' | uniq -c
+	lg = git-lgf | less -FRSX
 [merge]
 	tool = vimdiff
 [mergetool]
@@ -70,11 +80,14 @@ alias]
 [notes]
 	rewriteRef = refs/notes/*
 [pull]
-	rebase = true
+	rebase = merges
 [push]
 	default = current
+	autoSetupRemote = true
 [rebase]
 	abbreviateCommands = true
 	autosquash = true
 	autoStash = true
 	instructionFormat = %as%x09%s
+[rerere]
+	enabled = true
