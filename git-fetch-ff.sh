@@ -1,10 +1,17 @@
 #!/bin/sh
 
-git for-each-ref \
+git for-each-ref --format='%(refname)' 'refs/heads/**/*' |
+	sort |
+	comm -23 - <(
+	git worktree list --porcelain |
+		sed -n '/^branch /{s@@@;p}' |
+		sort
+	) |
+		tr '\n' ' ' |
+		xargs git for-each-ref \
 	--format='%(refname:short)%09'\
 '%(upstream:track)%09'\
 '%(upstream:short)' |
-	'refs/heads/**/*' |
 	column -t -s $'\t' |
 	sed -n '
 / *\[behind [0-9]*\] */{
