@@ -8,6 +8,17 @@ compliance.
 That said, these scripts are very much developed after my needs and personal taste.
 PRs are welcome.
 
+```
+ ______________
+< Gut is good! >
+ --------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+```
 
 # Overview
 - `git arch`\
