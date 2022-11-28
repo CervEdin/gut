@@ -11,12 +11,11 @@ git for-each-ref --format='%(refname)' 'refs/heads/**/*' |
 		xargs git for-each-ref \
 	--format='%(refname:short)%09'\
 '%(upstream:track)%09'\
-'%(upstream:short)' |
-	column -t -s $'\t' |
+'%(upstream:remotename)%09'\
+'%(upstream:remoteref)' |
 	sed -n '
-/ *\[behind [0-9]*\] */{
+/\t*\[behind [0-9]*\]\t*/{
 	s@@\t@
-	s@\(.*\)\t\([^/]*\)/\(.*\)@\1\t\2\t\3@ # local, remote, upstream
 	p
 }' |
 	awk -F '\t' '
