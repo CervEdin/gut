@@ -16,11 +16,13 @@ git for-each-ref --format='%(refname)' 'refs/heads/**/*' |
 '%(upstream:track)%09'\
 '%(upstream:remotename)%09'\
 '%(upstream:remoteref)' |
+	( [ "${-#*x}" != "$-" ] && tee /dev/stderr || cat ) |
 	sed -n '
 /\t*\[behind [0-9]*\]\t*/{
 	s@@\t@
 	p
 }' |
+	( [ "${-#*x}" != "$-" ] && tee /dev/stderr || cat ) |
 	awk -F '\t' '
 NR==1 {
 	# remote, local, upstream
@@ -36,4 +38,5 @@ NR==1 {
 		print args
 	}
 }' |
+	( [ "${-#*x}" != "$-" ] && tee /dev/stderr || cat ) |
 	xargs -L 1 git fetch
