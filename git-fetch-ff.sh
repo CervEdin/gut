@@ -12,7 +12,7 @@ git for-each-ref --format='%(refname)' 'refs/heads/**/*' |
 	--format='%(refname:short)%09'\
 '%(upstream:track)%09'\
 '%(upstream:remotename)%09'\
-'%(upstream)' |
+'%(upstream:remoteref)' |
 	sed -n '
 /\t*\[behind [0-9]*\]\t*/{
 	s@@\t@
