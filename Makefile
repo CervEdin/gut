@@ -50,7 +50,8 @@ clean:
 	rm bin/*
 
 debug: $(shell_programs)
-	sed -i -e '2 { /^set -[eu]*xo\{0,1\} pipefail$$/{p;d;}' \
+	sed -i -e '1 { /^#!\/bin\/bash$$/!q; }' \
+		-e '2 { /^set -[eu]*xo\{0,1\} pipefail$$/{p;d;}' \
 		-e '/^\(set -eu\)\(o\)\{0,1\}/{ s@@\1x\2@;p;d }' \
 		-e 's@^@set -euxo pipefail\n@ }' $?
 
