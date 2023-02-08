@@ -1,6 +1,7 @@
 #!/bin/bash
 
 staged=$(git diff --name-only --relative --cached --diff-filter=M)
+deleted=$(git diff --name-only --relative --cached --diff-filter=D)
 
 revspec="${1:-HEAD}"
 working_tree_sha=$(git stash create)
@@ -8,6 +9,11 @@ working_tree_sha=$(git stash create)
 git stash --keep-index
 
 IFS=$'\n'
+
+for file in $deleted; do
+	git rev-list -n1 "$revspec" -- "$file" |\
+		xargs -d '\n' -I% git commit --fixup % -- "$file" ;
+done
 
 for file in $staged; do
 	# BUG: When there are only adds (@@ -XX,0 +YY,x) the first line will be XX
