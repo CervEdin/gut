@@ -51,6 +51,7 @@ while getopts ":otba" opt; do
 done
 files=("${@:$OPTIND}")
 if [ -z "${files[0]}" ]; then
+	# Default is everything (.) relative to PWD
 	files=('.')
 fi
 
@@ -61,8 +62,6 @@ fi
 if [ "$ours" == false ] && [ "$theirs" == false ] && [ "$both" == false ]; then
  die "You need to specify --ours, --theirs or --both"
 fi
-
-cd "$(git rev-parse --show-toplevel)"
 
 ffiles() {
   git ls-files --unmerged -- "$@" |
