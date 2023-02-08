@@ -47,13 +47,13 @@ while getopts ":otba" opt; do
     * ) die "Unimplemented option: -$OPTARG. Abort" ;;
   esac
 done
-FILES=${@:$OPTIND}
-if [ -z "$FILES" ]; then
-  FILES='.'
+files=${@:$OPTIND}
+if [ -z "$files" ]; then
+  files='.'
 fi
 
 printf 'args after getopts  : %q\n' "$@" >&2
-printf 'FILES (a pathspec) after getopts  : %q\n' "$FILES" >&2
+printf 'files (a pathspec) after getopts  : %q\n' "$files" >&2
 
 if [ "$ours" == false ] && [ "$theirs" == false ] && [ "$both" == false ]; then
  die "You need to specify --ours, --theirs or --both"
@@ -66,19 +66,19 @@ ffiles() {
     cut -f 2 |
     uniq
 }
-ffiles "$FILES" | xargs -d '\n'  stat -- || die "Files not found"
+ffiles "$files" | xargs -d '\n'  stat -- || die "Files not found"
 
 if [ "$both" = true ]; then
-  ffiles "$FILES" |\
+  ffiles "$files" |\
     xargs -d '\n' sed -i -e '/^<\{7\}/d' -e '/^=\{7\}/d' -e '/^>\{7\}/d' --
 elif [ "$ours" = true ]; then
-  ffiles "$FILES" |\
+  ffiles "$files" |\
     xargs -d '\n' sed -i -e '/^<\{7\}/d' -e '/^=\{7\}/,/^>\{7\}/d' --
 elif [ "$theirs" = true ]; then
-  ffiles "$FILES" |\
+  ffiles "$files" |\
     xargs -d '\n' sed -i -e '/^<\{7\}/,/^=\{7\}/d' -e '/^>\{7\}/d' --
 fi
 
 if [ "$add" = true ]; then
-	ffiles "$FILES" | xargs -d '\n' git add --sparse --
+	ffiles "$files" | xargs -d '\n' git add --sparse --
 fi
