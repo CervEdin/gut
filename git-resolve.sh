@@ -49,11 +49,18 @@ while getopts ":otba" opt; do
     * ) die "Unimplemented option: -$OPTARG. Abort" ;;
   esac
 done
+
 files=("${@:$OPTIND}")
-if [ -z "${files[0]}" ]; then
-	# Default is everything (.) relative to PWD
-	files=('.')
-fi
+
+case "${files[@]}" in
+	'')
+		# Default is everything (.) relative to PWD
+		files=('.')
+		;;
+	'-')
+		files=('/dev/stdin')
+		;;
+esac
 
 [[ $- =~ x ]] &&
 	printf 'args after getopts	: %q\n' "$@" >&2 &&
@@ -68,10 +75,6 @@ ffiles() {
     cut -f 2 |
     uniq
 }
-
-ffiles "${files[@]}" |
-  xargs -d '\n'  stat -- ||
-  die "Files not found"
 
 if [ "$both" = true ]; then
 	sed_script='
@@ -93,9 +96,20 @@ elif [ "$theirs" = true ]; then
 /^>\{7\}/d'
 fi
 
-ffiles "${files[@]}" |\
-	xargs -d '\n' sed -i "$sed_script" --
+case ${files[0]} in
+	- | /dev/stdin )
+		sed "$sed_script" /dev/stdin &&
+			exit 0
 
-if [ "$add" = true ]; then
-	ffiles "${files[@]}" | xargs -d '\n' git add --sparse --
-fi
+		;;
+	*)
+		ffiles "${files[@]}" |
+			xargs -d '\n' -I%  find % |
+			xargs -d '\n' -I% sed -i "$sed_script" % ||
+			die "Files not found"
+
+		if [ "$add" = true ]; then
+			ffiles "${files[@]}" | xargs -d '\n' git add --sparse --
+		fi
+		;;
+esac
