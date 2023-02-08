@@ -25,9 +25,11 @@ for arg; do
   esac
 done
 
-printf 'args before update : %q\n' "$@" >&2
+[[ $- =~ x ]] &&
+	printf 'args before update : %q\n' "$@" >&2
 set -- "${args[@]}"
-printf 'args after update  : %q\n' "$@" >&2
+[[ $- =~ x ]] &&
+	printf 'args after update  : %q\n' "$@" >&2
 
 ours=false
 theirs=false
@@ -52,8 +54,9 @@ if [ -z "$files" ]; then
   files='.'
 fi
 
-printf 'args after getopts  : %q\n' "$@" >&2
-printf 'files (a pathspec) after getopts  : %q\n' "$files" >&2
+[[ $- =~ x ]] &&
+	printf 'args after getopts	: %q\n' "$@" >&2 &&
+	printf 'files (a pathspec) after getopts	: %q\n' "$files" >&2
 
 if [ "$ours" == false ] && [ "$theirs" == false ] && [ "$both" == false ]; then
  die "You need to specify --ours, --theirs or --both"
