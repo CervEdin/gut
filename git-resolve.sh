@@ -66,18 +66,32 @@ ffiles() {
     cut -f 2 |
     uniq
 }
-ffiles "$files" | xargs -d '\n'  stat -- || die "Files not found"
+ffiles "$files" |
+  xargs -d '\n'  stat -- ||
+  die "Files not found"
 
 if [ "$both" = true ]; then
-  ffiles "$files" |\
-    xargs -d '\n' sed -i -e '/^<\{7\}/d' -e '/^=\{7\}/d' -e '/^>\{7\}/d' --
+	sed_script='
+# Just delete all conflict markers
+/^<\{7\}/d
+/^=\{7\}/d
+/^>\{7\}/d'
 elif [ "$ours" = true ]; then
-  ffiles "$files" |\
-    xargs -d '\n' sed -i -e '/^<\{7\}/d' -e '/^=\{7\}/,/^>\{7\}/d' --
+	sed_script='
+# Delete "our" markers
+/^<\{7\}/d
+# Delete everything in "their" conflicts
+/^=\{7\}/,/^>\{7\}/d'
 elif [ "$theirs" = true ]; then
-  ffiles "$files" |\
-    xargs -d '\n' sed -i -e '/^<\{7\}/,/^=\{7\}/d' -e '/^>\{7\}/d' --
+	sed_script='
+# Delete everything in "our" conflicts
+/^<\{7\}/,/^=\{7\}/d
+# Delete "their" markers
+/^>\{7\}/d'
 fi
+
+ffiles "$files" |\
+	xargs -d '\n' sed -i "$sed_script" --
 
 if [ "$add" = true ]; then
 	ffiles "$files" | xargs -d '\n' git add --sparse --
