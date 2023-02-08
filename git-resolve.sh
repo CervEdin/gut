@@ -25,9 +25,11 @@ for arg; do
   esac
 done
 
-printf 'args before update : %q\n' "$@" >&2
+[[ $- =~ x ]] &&
+	printf 'args before update : %q\n' "$@" >&2
 set -- "${args[@]}"
-printf 'args after update  : %q\n' "$@" >&2
+[[ $- =~ x ]] &&
+	printf 'args after update  : %q\n' "$@" >&2
 
 ours=false
 theirs=false
@@ -47,38 +49,67 @@ while getopts ":otba" opt; do
     * ) die "Unimplemented option: -$OPTARG. Abort" ;;
   esac
 done
-FILES=${@:$OPTIND}
-if [ -z "$FILES" ]; then
-  FILES='.'
-fi
 
-printf 'args after getopts  : %q\n' "$@" >&2
-printf 'FILES (a pathspec) after getopts  : %q\n' "$FILES" >&2
+files=("${@:$OPTIND}")
+
+case "${files[@]}" in
+	'')
+		# Default is everything (.) relative to PWD
+		files=('.')
+		;;
+	'-')
+		files=('/dev/stdin')
+		;;
+esac
+
+[[ $- =~ x ]] &&
+	printf 'args after getopts	: %q\n' "$@" >&2 &&
+	printf 'files (a pathspec) after getopts	: %q\n' "${files[@]}" >&2
 
 if [ "$ours" == false ] && [ "$theirs" == false ] && [ "$both" == false ]; then
  die "You need to specify --ours, --theirs or --both"
 fi
-
-cd "$(git rev-parse --show-toplevel)"
 
 ffiles() {
   git ls-files --unmerged -- "$@" |
     cut -f 2 |
     uniq
 }
-ffiles "$FILES" | xargs -d '\n'  stat -- || die "Files not found"
 
 if [ "$both" = true ]; then
-  ffiles "$FILES" |\
-    xargs -d '\n' sed -i -e '/^<\{7\}/d' -e '/^=\{7\}/d' -e '/^>\{7\}/d' --
+	sed_script='
+# Just delete all conflict markers
+/^<\{7\}/d
+/^=\{7\}/d
+/^>\{7\}/d'
 elif [ "$ours" = true ]; then
-  ffiles "$FILES" |\
-    xargs -d '\n' sed -i -e '/^<\{7\}/d' -e '/^=\{7\}/,/^>\{7\}/d' --
+	sed_script='
+# Delete "our" markers
+/^<\{7\}/d
+# Delete everything in "their" conflicts
+/^=\{7\}/,/^>\{7\}/d'
 elif [ "$theirs" = true ]; then
-  ffiles "$FILES" |\
-    xargs -d '\n' sed -i -e '/^<\{7\}/,/^=\{7\}/d' -e '/^>\{7\}/d' --
+	sed_script='
+# Delete everything in "our" conflicts
+/^<\{7\}/,/^=\{7\}/d
+# Delete "their" markers
+/^>\{7\}/d'
 fi
 
-if [ "$add" = true ]; then
-	ffiles "$FILES" | xargs -d '\n' git add --sparse --
-fi
+case ${files[0]} in
+	- | /dev/stdin )
+		sed "$sed_script" /dev/stdin &&
+			exit 0
+
+		;;
+	*)
+		ffiles "${files[@]}" |
+			xargs -d '\n' -I%  find % |
+			xargs -d '\n' -I% sed -i "$sed_script" % ||
+			die "Files not found"
+
+		if [ "$add" = true ]; then
+			ffiles "${files[@]}" | xargs -d '\n' git add --sparse --
+		fi
+		;;
+esac
