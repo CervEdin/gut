@@ -49,14 +49,14 @@ while getopts ":otba" opt; do
     * ) die "Unimplemented option: -$OPTARG. Abort" ;;
   esac
 done
-files=${@:$OPTIND}
-if [ -z "$files" ]; then
-  files='.'
+files=("${@:$OPTIND}")
+if [ -z "${files[0]}" ]; then
+	files=('.')
 fi
 
 [[ $- =~ x ]] &&
 	printf 'args after getopts	: %q\n' "$@" >&2 &&
-	printf 'files (a pathspec) after getopts	: %q\n' "$files" >&2
+	printf 'files (a pathspec) after getopts	: %q\n' "${files[@]}" >&2
 
 if [ "$ours" == false ] && [ "$theirs" == false ] && [ "$both" == false ]; then
  die "You need to specify --ours, --theirs or --both"
@@ -69,7 +69,8 @@ ffiles() {
     cut -f 2 |
     uniq
 }
-ffiles "$files" |
+
+ffiles "${files[@]}" |
   xargs -d '\n'  stat -- ||
   die "Files not found"
 
@@ -93,9 +94,9 @@ elif [ "$theirs" = true ]; then
 /^>\{7\}/d'
 fi
 
-ffiles "$files" |\
+ffiles "${files[@]}" |\
 	xargs -d '\n' sed -i "$sed_script" --
 
 if [ "$add" = true ]; then
-	ffiles "$files" | xargs -d '\n' git add --sparse --
+	ffiles "${files[@]}" | xargs -d '\n' git add --sparse --
 fi
