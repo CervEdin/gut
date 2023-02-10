@@ -80,14 +80,14 @@ if [ "$both" = true ]; then
 	sed_script='
 # Just delete all conflict markers
 /^<\{7\}/d
-/^=\{7\}/d
+/^[|=]\{7\}/d
 /^>\{7\}/d'
 elif [ "$ours" = true ]; then
 	sed_script='
 # Delete "our" markers
 /^<\{7\}/d
 # Delete everything in "their" conflicts
-/^=\{7\}/,/^>\{7\}/d'
+/^[|=]\{7\}/,/^>\{7\}/d'
 elif [ "$theirs" = true ]; then
 	sed_script='
 # Delete everything in "our" conflicts
