@@ -14,7 +14,7 @@ while getopts ":l" opt; do
 	esac
 done
 
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
 if [ $# -ne 0  ]; then
 	refname="$1"
