@@ -8,7 +8,7 @@ while getopts ":i" opt; do
 			INTERACTIVE=true
 			;;
 		\?)
-			printf "Invalid option: -$OPTARG\n"
+			printf -- 'Invalid option: -%s\n' "$OPTARG"
 			exit 1
 			;;
 	esac
