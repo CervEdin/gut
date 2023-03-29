@@ -17,6 +17,6 @@ else
 	sk () { git rebase --skip; }
 	dff () { git diff ; }
 	sdf () { git diff --staged ; }
-	cm () { git commit -m $1 ; }
+	cm () { git commit -m "$1" ; }
 	export GIT_ENV=true
 fi
