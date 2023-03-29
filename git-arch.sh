@@ -8,7 +8,7 @@ while getopts ":l" opt; do
 			LISTMODE=true
 			;;
 		\?)
-			printf "Invalid option: -$OPTARG\n" >&2
+			printf -- 'Invalid option: -%s\n' "$OPTARG" >&2
 			exit 1
 			;;
 	esac
@@ -32,7 +32,7 @@ fi
 STEM="archive/${refname}/"
 
 if [ "$LISTMODE" == true ] ; then
-	printf "list mode: ($refname\n" >&2
+	printf -- 'list mode: (%s\n' "$refname" >&2
 	git tag --list "$STEM*"
 else
 	TAG=$(git tag --list "$STEM*" --points-at HEAD)
@@ -40,6 +40,6 @@ else
 		TAG="${STEM}$(date --utc +'%Y-%m-%dT%H.%M.%S')"
 		git tag "$TAG" "$refname"
 	fi
-	printf "Created tag: $TAG\n" >&2
-	printf "$TAG\n"
+	printf -- 'Created tag: %s\n' "$TAG" >&2
+	printf -- '%s\n' "$TAG"
 fi
