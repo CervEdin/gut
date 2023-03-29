@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 
 if [ "$GIT_ENV" == true ] ; then
 	echo "Exiting git enviroment"
