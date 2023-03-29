@@ -1,7 +1,7 @@
 #!/bin/bash
 
 git_root=$(git rev-parse --show-toplevel)
-cd "$git_root"
+cd "$git_root" || exit 1
 staged=$(git diff --name-only --cached --diff-filter=M)
 revspec="${1:-HEAD}"
 working_tree_sha=$(git stash create)
