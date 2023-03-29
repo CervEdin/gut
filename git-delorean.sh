@@ -9,6 +9,7 @@ working_tree_sha=$(git stash create)
 git stash --keep-index
 
 IFS=$'\n'
+
 for file in $staged; do
 	# BUG: When there are only adds (@@ -XX,0 +YY,x) the first line will be XX
 	# It should probably be YY + x
@@ -29,14 +30,24 @@ for file in $staged; do
 					}}'
 	)
 	commits=$(
-		xargs --verbose -I% git blame --incremental  -L % $revspec -- "$file" <<< "$lines" |\
+		<<< "$lines" \
+		xargs \
+			--verbose \
+			-I% \
+				git blame \
+					--incremental  \
+					-L \
+					% \
+					"$revspec" \
+					-- \
+					"$file" |\
 			sed -n '/^[a-f,0-9]\{40\} /{s@ .*@@;p}' |\
 			awk '{ a[$1]++ } END { for (b in a) { print b }}'
 	)
-	git rev-list --topo-order $revspec |\
+	git rev-list --topo-order "$revspec" |\
 		{ grep "$commits" || test $? = 1; } |\
 		head -1 |\
 		xargs --replace=first_parent git commit --fixup first_parent -- "$file"
 done
 
-git stash apply $working_tree_sha --index
+git stash apply "$working_tree_sha" --index
