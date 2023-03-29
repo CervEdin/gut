@@ -8,8 +8,8 @@ else
 		xargs git checkout # detach HEAD to enable deletion of checked out branch
 fi
 {
-	read local;
-	read remote;
+	read -r local;
+	read -r remote;
 } < <(git rev-parse --abbrev-ref --symbolic-full-name "$target" "$target"'@{upstream}')
 
 git push --delete "${remote%%/*}" "${remote#*/}" &&
