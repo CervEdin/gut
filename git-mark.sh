@@ -33,9 +33,9 @@ for branch in $branches; do
 	if [[ $branch == $tag_char$mark/* ]]; then
 		[[ $add == true ]] &&
 			continue # already marked
-		git branch -m $branch ${branch#$tag_char$mark/} # remove the mark
+		git branch -m "$branch" ${branch#$tag_char$mark/} # remove the mark
 	elif [[ $add == false ]]; then continue
 	else
-		git branch -m $branch "$tag_char$mark/"${branch#$tag_char*/}
+		git branch -m "$branch" "$tag_char$mark/"${branch#$tag_char*/}
 	fi
 done

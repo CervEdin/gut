@@ -10,7 +10,7 @@ fi
 {
 	read local;
 	read remote;
-} < <(git rev-parse --abbrev-ref --symbolic-full-name $target $target@{upstream})
+} < <(git rev-parse --abbrev-ref --symbolic-full-name "$target" "$target"'@{upstream}')
 
-git push --delete ${remote%%/*} ${remote#*/} &&
-	git branch -D $local
+git push --delete "${remote%%/*}" "${remote#*/}" &&
+	git branch -D "$local"
