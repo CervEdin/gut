@@ -1,16 +1,16 @@
 #!/bin/bash
 
-git rev-parse HEAD @{upstream} |\
+git rev-parse HEAD '@{upstream}' |\
  uniq |\
  sed -n -e '${1p}' -e '2q 1' &&
  printf 'no changes\n' &&
  exit 0
 
-git log --oneline --graph @{upstream}...HEAD
+git log --oneline --graph '@{upstream}...HEAD'
 printf '\n'
-git diff @{upstream} HEAD
+git diff '@{upstream}' HEAD
 
-while [ -z ${REPLY-} ]; do
+while [ -z "${REPLY-}" ]; do
 	read -p "Push? [Yy/Ff/*]" -r
 	printf '\n'
 done
@@ -25,7 +25,7 @@ if [[ $REPLY =~ ^[YyFf]$ ]]; then
 		exit 0 ||
 		[ $? -eq 128 ] &&
 		exit 128 # probably network issue
-	while [ -z ${REPLY-} ]; do
+	while [ -z "${REPLY-}" ]; do
 		read -p "Force push? [Ff/*]" -r
 		printf '\n'
 	done
