@@ -24,7 +24,7 @@ shift 1
 if [ -z "${1:-}" ]; then
 	branches="$(git branch --show-current)"
 else
-	branches="$@"
+	branches=$(printf '%s\n' "$@")
 fi
 
 
