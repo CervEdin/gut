@@ -28,7 +28,7 @@ for TAG in $TAGS; do
 	SED_CMDs="$SED_CMDs;$SED_CMD"
 done
 
-sed -e "`cat $HOME/bin/git-rebase-indent`" \
+sed -e "$(cat "$HOME"/bin/git-rebase-indent)" \
 -e "$SED_CMDs" -i "$TODO"
 
 vim "$1"
