@@ -1,12 +1,15 @@
 #!/bin/sh
 
+worktree_list="$(mktemp)"
+
+git worktree list --porcelain |
+	sed -n '/^branch /{s@@@;p}' |
+	sort > "$worktree_list"
+
+
 git for-each-ref --format='%(refname)' 'refs/heads/**/*' |
 	sort |
-	comm -23 - <(
-	git worktree list --porcelain |
-		sed -n '/^branch /{s@@@;p}' |
-		sort
-	) |
+	comm -23 - "$worktree_list" |
 		tr '\n' ' ' |
 		xargs git for-each-ref \
 	--format='%(refname:short)%09'\
