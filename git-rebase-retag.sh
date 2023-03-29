@@ -12,12 +12,12 @@ fi
 
 SED_CMD='/^p\(ick\)\{0,1\} [0-9a-f]*/{s|^p\(ick\)\{0,1\} \([0-9a-f]*\).*|\2|p;q}'
 FIRST_SHA=$(sed --quiet "$SED_CMD" "$TODO")
-echo $FIRST_SHA
+echo "$FIRST_SHA"
 
 TAGS=$(set +o pipefail; # grep fails w exit 1 on empty
-  git tag --contains $FIRST_SHA |\
-	grep -v '^archive/' |\
-	xargs --no-run-if-empty -n 1 sh -c 'printf "$0\t" && git rev-list -n 1 $0')
+	git tag --contains "$FIRST_SHA" |
+	grep -v '^archive/' |
+	xargs --no-run-if-empty -n 1 sh -c 'printf "$1\t" && git rev-list -n 1 $1' 'tag_and_sha')
 
 IFS=$'\n'
 SED_CMDs=''
