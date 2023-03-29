@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 
 if [[ $# -ne 0 ]]; then
 	TODO="$1"
