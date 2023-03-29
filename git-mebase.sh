@@ -18,7 +18,7 @@ PARENTS=$(git parents)
 
 if [ "$INTERACTIVE" == true ] ; then
 	nl <<< "$PARENTS"
-	read -p "Pick parent: " N_PARENT
+	read -r -p "Pick parent: " N_PARENT
 else
 	N_PARENT=1
 fi
