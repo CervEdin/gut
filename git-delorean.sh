@@ -30,7 +30,17 @@ for file in $staged; do
 					}}'
 	)
 	commits=$(
-		xargs --verbose -I% git blame --incremental  -L % "$revspec" -- "$file" <<< "$lines" |\
+		<<< "$lines" \
+		xargs \
+			--verbose \
+			-I% \
+				git blame \
+					--incremental  \
+					-L \
+					% \
+					"$revspec" \
+					-- \
+					"$file" |\
 			sed -n '/^[a-f,0-9]\{40\} /{s@ .*@@;p}' |\
 			awk '{ a[$1]++ } END { for (b in a) { print b }}'
 	)
