@@ -22,7 +22,7 @@ TAGS=$(set +o pipefail; # grep fails w exit 1 on empty
 IFS=$'\n'
 SED_CMDs=''
 for TAG in $TAGS; do
-	IFS=$'\t' read NAME SHA <<< "$TAG"
+	IFS=$'\t' read -r NAME SHA <<< "$TAG"
 	SHORT_SHA=${SHA::7}
 	SED_CMD="/^[^#].*${SHORT_SHA}/s|\$|\nx git tag -f ${NAME}|"
 	SED_CMDs="$SED_CMDs;$SED_CMD"
