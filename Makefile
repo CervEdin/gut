@@ -8,6 +8,8 @@ INSTALL_DIR=${HOME}/bin/
 installed_programs=$(addprefix $(INSTALL_DIR), $(notdir $(programs)))
 installed_links=$(basename $(installed_programs))
 
+default: all
+
 bin:
 	mkdir bin
 
