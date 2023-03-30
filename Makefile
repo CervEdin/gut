@@ -22,10 +22,11 @@ $(programs): | bin
 $(INSTALL_DIR):
 	mkdir $(INSTALL_DIR)
 
+.PHONY: ls
 ls:
-	echo $(installed_programs)
-	echo $(installed_links)
-	echo $(INSTALL_DIR)
+	$(info installed programs are: $(installed_programs))
+	$(info installed links are:  $(installed_links))
+	$(info installation directory:  $(INSTALL_DIR))
 
 $(INSTALL_DIR)%.sh : bin/%.sh
 	cp $< $@
