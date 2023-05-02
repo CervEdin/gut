@@ -1,5 +1,7 @@
 #!/bin/bash
 
+usage=''
+
 # This script syncs a git repository between a Windows host and its WSL counterpart.
 # WSL is slow at accessing Windows files, so this script is used to keep the Windows and its WSL counterpart in sync.
 

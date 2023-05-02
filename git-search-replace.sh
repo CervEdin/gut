@@ -1,5 +1,7 @@
 #!/bin/bash
 
+usage=''
+
 search_for="$1"
 replace_with="$2"
 

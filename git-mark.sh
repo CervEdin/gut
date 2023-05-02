@@ -1,7 +1,28 @@
 #!/bin/bash
 
+usage="\
+usage: git-mark.sh [-]mark [branch...]
+
+Mark branches with a prefix.
+
+options:
+	[-]mark
+		Mark branches with a prefix.
+		If the mark starts with a dash, remove the mark.
+		If the mark starts with a punctuation, use it as the mark.
+		If the mark starts with a letter, use + as the mark.
+
+Examples:
+  git mark under-review
+changes the current branch name to +under-review/<current-branch-name>
+  git mark -under-review
+removes the mark under-review from the current branch name
+	git mark @reivewed b1 b2 b3
+changes the branch names to @reivewed/b1 @reivewed/b2 @reivewed/b3"
+
 if [ -z "$1" ]; then
-	printf "Fatal: argument needed" >&2 &&
+	printf "Fatal: argument needed\n" >&2 &&
+	printf '%s\n' "$usage" >&2 &&
 	exit 1
 fi
 

@@ -1,5 +1,12 @@
 #!/bin/bash
 
+usage="\
+git delorean
+
+Create fixup commits for each hunk in the index.
+--
+h,help   Show the help"
+
 git_root=$(git rev-parse --show-toplevel)
 cd "$git_root" || exit 1
 staged=$(git diff --name-only --cached --diff-filter=M)

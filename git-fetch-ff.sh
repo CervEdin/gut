@@ -1,5 +1,7 @@
 #!/bin/sh
 
+usage=''
+
 worktree_list="$(mktemp)"
 
 git worktree list --porcelain |

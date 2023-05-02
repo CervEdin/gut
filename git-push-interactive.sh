@@ -1,5 +1,13 @@
 #!/bin/bash
 
+usage="\
+git push-interactive
+
+Interactive push helper script.
+
+Show the diff between HEAD and @{upstream} and confirm wether to push.
+Optionally, force push."
+
 git rev-parse HEAD '@{upstream}' |\
  uniq |\
  sed -n -e '${1p}' -e '2q 1' &&
