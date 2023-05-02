@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 usage="\
 git push-interactive
@@ -23,24 +23,26 @@ while [ -z "${REPLY-}" ]; do
 	printf '\n'
 done
 
-if [[ $REPLY =~ ^[YyFf]$ ]]; then
-	if [[ $REPLY =~ ^[Ff]$ ]]; then
+case "$REPLY" in
+	[Ff])
 		git push --force-with-lease
 		exit $?
-	fi
-	unset REPLY
-	git push &&
-		exit 0 ||
-		[ $? -eq 128 ] &&
-		exit 128 # probably network issue
-	while [ -z "${REPLY-}" ]; do
-		read -p "Force push? [Ff/*]" -r
-		printf '\n'
-	done
-	if [[ $REPLY =~ ^[Ff]$ ]]; then
-		git push --force-with-lease
-		exit $?
-	fi
-fi
-
-exit 1
+		;;
+	[Yy])
+		unset REPLY
+		git push && exit 0 ||
+			[ $? -eq 128 ] && exit 128 # probably network issue
+		while [ -z "${REPLY-}" ]; do
+			read -p "Force push? [Ff/*]" -r
+			printf '\n'
+		done
+		case "$REPLY" in
+			[Ff])
+				git push --force-with-lease
+				exit $?
+				;;
+			*) exit 1;;
+		esac
+		;;
+	*) exit 1;;
+esac
