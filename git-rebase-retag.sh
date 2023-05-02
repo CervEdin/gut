@@ -1,6 +1,16 @@
 #!/bin/bash
 
-if [[ $# -ne 0 ]]; then
+usage="\
+git rebase-retag [<options>] TODO
+
+Retags commits in a rebase todo file.
+
+Tags are not updated in a rebase.
+This script updates tags in a rebase todo file.
+--
+h,help   Show help"
+
+if [ $# -ne 0 ]; then
 	TODO="$1"
 	if [ ! -f "$TODO" ]; then
 		echo "$TODO not a valid file"

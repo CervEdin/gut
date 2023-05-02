@@ -1,5 +1,7 @@
 #!/bin/bash
 
+usage=''
+
 # sort by committerdate, latest first
 git for-each-ref --merged HEAD --no-contains HEAD \
 	--sort="-committerdate" \

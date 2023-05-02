@@ -1,5 +1,10 @@
 #!/bin/bash
 
+usage="\
+Usage: git env
+
+Set'\''s up a git enviroment with easy to use short commands."
+
 if [ "$GIT_ENV" == true ] ; then
 	echo "Exiting git enviroment"
 	unset -f aa

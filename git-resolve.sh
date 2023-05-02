@@ -1,5 +1,27 @@
 #!/bin/bash
 
+usage="\
+  usage: git-resolve.sh [options] [--] [pathspec]
+
+Resolve merge conflicts in files, using one of three strategies.
+Optionally, limit to pathspec.
+
+options:
+  -o, --ours	Resolve using "our" version
+  -t, --theirs	Resolve using "their" version
+  -b, --both	Resolve using both versions
+  -a, --add	Marks resolved files as "resolved" in the index
+  -h, --help	Show this help message
+
+This script intends to be a better, more useful version of
+  git checkout --ours/--theirs
+which resolves conflicts by only taking either one of the conflicting
+versions.
+
+Often, what you really want is to incorporate non-conflicting changes and
+only resolve the conflict in the conflicting parts.
+"
+
 die () {
   echo "ERROR: $*. Aborting" >&2
   exit 1
@@ -37,15 +59,23 @@ add=false
 
 while getopts ":otba" opt; do
     case $opt in
-    o ) if [ "$theirs" = true ]; then die "Cannot specify ours and theirs" ;fi
+    o ) if [ "$theirs" = true ]; then
+      die "Cannot specify ours and theirs" ;fi
       ours=true ;;
-    t ) if [ "$ours" = true ]; then die "Cannot specify ours and theirs" ;fi
+    t ) if [ "$ours" = true ]; then
+      die "Cannot specify ours and theirs" ;fi
       theirs=true ;;
     b ) both=true ;;
     a ) add=true ;;
-    \?) die "Unknown option: -$OPTARG. Abort" ;;
-    : ) die "Missing option: -$OPTARG. Abort" ;;
-    * ) die "Unimplemented option: -$OPTARG. Abort" ;;
+    \?)
+      printf '%s\n' "$usage" >&2
+      die "Unknown option: -$OPTARG. Abort" ;;
+    : )
+      printf '%s\n' "$usage" >&2
+      die "Missing option: -$OPTARG. Abort" ;;
+    * )
+      printf '%s\n' "$usage" >&2
+      die "Unimplemented option: -$OPTARG. Abort" ;;
   esac
 done
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+usage=''
+
 INTERACTIVE=false
 
 while getopts ":i" opt; do

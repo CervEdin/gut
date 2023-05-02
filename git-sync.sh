@@ -1,5 +1,7 @@
 #!/bin/bash
 
+usage=''
+
 # This script is used to "sync" local repositories over a remote.
 # Keeping local repositories in sync on different machines can be a bit arduous.
 # Usually, one uses branches to accomplish the task. You do work locally, it's

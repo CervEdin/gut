@@ -1,5 +1,7 @@
 #!/bin/bash
 
+usage=''
+
 TARGET=$1
 
 if [ -z "$1" ]; then
