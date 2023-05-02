@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 usage="\
 delete-both [<options>] [branch]...
@@ -17,10 +17,17 @@ else
 	git rev-list -1 HEAD |\
 		xargs git checkout # detach HEAD to enable deletion of checked out branch
 fi
+
+local_remote="$(git rev-parse \
+	--abbrev-ref --symbolic-full-name \
+	"$target" "$target"'@{upstream}')"
+
 {
 	read -r local;
 	read -r remote;
-} < <(git rev-parse --abbrev-ref --symbolic-full-name "$target" "$target"'@{upstream}')
+} << EOF
+$local_remote
+EOF
 
 git push --delete "${remote%%/*}" "${remote#*/}" &&
 	git branch -D "$local"

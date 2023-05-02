@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 usage="\
   usage: git-resolve.sh [options] [--] [pathspec]
@@ -133,7 +133,7 @@ case ${files[0]} in
 		;;
 	*)
 		ffiles "${files[@]}" |
-			xargs -d '\n' -I%  find % |
+			xargs -d '\n' -I% find % |
 			xargs -d '\n' -I% sed -i "$sed_script" % ||
 			die "Files not found"
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 usage="\
 git rebase-retag [<options>] TODO
@@ -29,10 +29,11 @@ TAGS=$(set +o pipefail; # grep fails w exit 1 on empty
 	grep -v '^archive/' |
 	xargs --no-run-if-empty -n 1 sh -c 'printf "$1\t" && git rev-list -n 1 $1' 'tag_and_sha')
 
-IFS=$'\n'
+IFS='
+' # IFS=$'\n'
 SED_CMDs=''
 for TAG in $TAGS; do
-	IFS=$'\t' read -r NAME SHA <<< "$TAG"
+	IFS='	' read -r NAME SHA <<< "$TAG"
 	SHORT_SHA=${SHA::7}
 	SED_CMD="/^[^#].*${SHORT_SHA}/s|\$|\nx git tag -f ${NAME}|"
 	SED_CMDs="$SED_CMDs;$SED_CMD"

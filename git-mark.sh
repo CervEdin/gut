@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 usage="\
 usage: git-mark.sh [-]mark [branch...]
@@ -27,12 +27,14 @@ if [ -z "$1" ]; then
 fi
 
 add=true
-if [ "${1:0:1}" == "-" ]; then
+# If the first character is a dash, remove the mark
+if [ "${1:0:1}" = "-" ]; then
 	tag_char='+'
 	mark="${1:1}"
 	add=false
 else
-	if [[ "${1:0:1}" =~ [[:punct:]] ]]; then
+	# If the first character is a punctuation, use it as the mark
+	if [ "${1:0:1}" =~ [[:punct:]] ]; then
 		tag_char="${1:0:1}"
 		mark="${1:1}"
 	else
@@ -51,11 +53,20 @@ fi
 
 for branch in $branches; do
 	# branch starts with $tag_char
-	if [[ $branch == $tag_char$mark/* ]]; then
-		[[ $add == true ]] &&
+	case $branch in
+		$tag_char$mark/*)
+			[ $add = true ] &&
+				continue # already marked
+			;;
+		*) branch="$tag_char$branch";;
+	esac
+
+	# branch starts with $tag_char
+	if [ $branch == $tag_char$mark/* ]; then
+		[ $add == true ] &&
 			continue # already marked
 		git branch -m "$branch" ${branch#$tag_char$mark/} # remove the mark
-	elif [[ $add == false ]]; then continue
+	elif [ $add == false ]; then continue
 	else
 		git branch -m "$branch" "$tag_char$mark/"${branch#$tag_char*/}
 	fi

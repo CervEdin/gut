@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 usage="\
 git delorean
@@ -15,7 +15,8 @@ working_tree_sha=$(git stash create)
 #TODO: replace with git restore?
 git stash --keep-index
 
-IFS=$'\n'
+IFS='
+'
 for file in $staged; do
 	# BUG: When there are only adds (@@ -XX,0 +YY,x) the first line will be XX
 	# It should probably be YY + x
@@ -36,8 +37,12 @@ for file in $staged; do
 					}}'
 	)
 	commits=$(
-		xargs --verbose -I% git blame --incremental  -L % "$revspec" -- "$file" <<< "$lines" |\
-			sed -n '/^[a-f,0-9]\{40\} /{s@ .*@@;p}' |\
+		(
+			xargs --verbose -I% git blame --incremental  -L % "$revspec" -- "$file" << EOF
+"$lines"
+EOF
+) |
+			sed -n '/^[a-f,0-9]\{40\} /{s@ .*@@;p}' |
 			awk '{ a[$1]++ } END { for (b in a) { print b }}'
 	)
 	git rev-list --topo-order "$revspec" |\
