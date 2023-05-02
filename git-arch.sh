@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 LISTMODE=false
 
@@ -31,12 +31,12 @@ fi
 
 STEM="archive/${refname}/"
 
-if [ "$LISTMODE" == true ] ; then
+if [ "$LISTMODE" = true ] ; then
 	printf -- 'list mode: (%s\n' "$refname" >&2
 	git tag --list "$STEM*"
 else
 	TAG=$(git tag --list "$STEM*" --points-at HEAD)
-	if [[ -z "$TAG" ]]; then
+	if [ -z "$TAG" ]; then
 		TAG="${STEM}$(date --utc +'%Y-%m-%dT%H.%M.%S')"
 		git tag "$TAG" "$refname"
 	fi
