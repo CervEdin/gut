@@ -108,8 +108,11 @@ case ${files[0]} in
 			xargs -d '\n' -I% sed -i "$sed_script" % ||
 			die "Files not found"
 
+		ffiles "${files[@]}" |
 		if [ "$add" = true ]; then
-			ffiles "${files[@]}" | xargs -d '\n' git add --sparse --
+			tee >(xargs -d '\n' git add --sparse --)
+		else
+			cat
 		fi
 		;;
 esac
