@@ -1,9 +1,11 @@
 #!/bin/sh
 
-usage=\
-'Usage: git arch [-l] [refname]
 
-Create or list an "archive tag" for refname.
+
+usage="\
+git arch [<options>] <refname>
+
+Create (at most one per 'stem') or list 'archive tags' for refname.
 
 An archive tag is a tag that follows the convention:
 archive/<refname>/<date>
@@ -11,7 +13,14 @@ It is basically a snapshot of a branch, implemented using tags.
 It can be used to archive old branches, or to create a persistant snapshot of a branch.
 
 I mainly used it before I figured out how to use the reflog.
-'
+
+--
+
+h,help                  Show the help
+l,list                  List tags of <refname>
+"
+
+eval "$(echo "$usage" | git rev-parse --parseopt -- "$@" || echo exit $?)"
 
 LISTMODE=false
 
@@ -19,16 +28,6 @@ while getopts ":l" opt; do
 	case $opt in
 		l)
 			LISTMODE=true
-			;;
-		\?)
-			case $opt in h)
-				printf -- '%s\n' "$usage" >&2
-				exit 0
-				;;
-			esac
-			printf -- 'Invalid option: -%s\n\n' "$OPTARG" >&2
-			printf -- '%s\n' "$usage" >&2
-			exit 1
 			;;
 	esac
 done
