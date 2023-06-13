@@ -5,29 +5,46 @@
 usage="\
 git arch [<options>] <refname>
 
-Create (at most one per 'stem') or list 'archive tags' for refname.
+Create (at most one per 'stem') or list 'decorated' tags for refname.
 
-An archive tag is a tag that follows the convention:
-archive/<refname>/<date>
+A 'decorated' tag is a tag that follows the convention:
+<decoration>/<refname>/\$(date)
 It is basically a snapshot of a branch, implemented using tags.
-It can be used to archive old branches, or to create a persistant snapshot of a branch.
 
-I mainly used it before I figured out how to use the reflog.
+A 'stem' is the initial part of the 'decorated' tag:
+<decoration>/<refname>
+
+### Use case
+
+The typical use case are the decorations 'archive' and 'wip'.
+- 'archive' tags represent persistant snapshots of a branch, e.g. for archiving
+old branches, create persistant backup of local branch on upstream or
+milestones in commit/rebase workflow.
+- 'wip' tags represent more ethereal snapshots, e.g. push to send to colleague,
+save a goodish state of tree etc.
 
 --
 
 h,help                  Show the help
 l,list                  List tags of <refname>
+d,decor=decoration      Use <decoration>, default 'archive'
 "
 
 eval "$(echo "$usage" | git rev-parse --parseopt -- "$@" || echo exit $?)"
 
-LISTMODE=false
+listmode=false
+decor=archive
 
-while getopts ":l" opt; do
+while getopts ":d:l" opt; do
 	case $opt in
 		l)
-			LISTMODE=true
+			listmode=true
+			;;
+		d)
+			decor="$OPTARG"
+			;;
+		*)
+			exit 1
 			;;
 	esac
 done
@@ -47,9 +64,9 @@ else
 	)
 fi
 
-STEM="archive/${refname}/"
+STEM="${decor}/${refname}/"
 
-if [ "$LISTMODE" = true ] ; then
+if [ "$listmode" = true ] ; then
 	printf -- 'list mode: (%s\n' "$refname" >&2
 	git tag --list "$STEM*"
 else
