@@ -1,8 +1,7 @@
 #!/bin/bash
 
-git_root=$(git rev-parse --show-toplevel)
-cd "$git_root"
-staged=$(git diff --name-only --cached --diff-filter=M)
+staged=$(git diff --name-only --relative --cached --diff-filter=M)
+
 revspec="${1:-HEAD}"
 working_tree_sha=$(git stash create)
 #TODO: replace with git restore?
