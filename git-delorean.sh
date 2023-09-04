@@ -41,8 +41,9 @@ for file in $staged; do
 					"$revspec" \
 					-- \
 					"$file" |\
-			sed -n '/^[a-f0-9]\{40\} /{s@ .*@@;p}' |\
-			awk '{ a[$1]++ } END { for (b in a) { print b }}'
+			awk \
+			-e '/^[a-f0-9]{40} /{ a[$1]++ }' \
+			-e ' END { for (b in a) { print b }}'
 	)
 	git rev-list --topo-order "$revspec" |\
 		{ grep "$commits" || test $? = 1; } |\
