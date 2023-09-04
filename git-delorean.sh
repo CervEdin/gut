@@ -39,4 +39,5 @@ for file in $staged; do
 		head -1 |\
 		xargs --replace=first_parent git commit --fixup first_parent -- "$file"
 done
+
 git stash apply $working_tree_sha --index
