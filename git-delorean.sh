@@ -46,8 +46,10 @@ for file in $staged; do
 	)
 	git rev-list --topo-order "$revspec" |\
 		{ grep "$commits" || test $? = 1; } |\
-		head -1 |\
-		xargs --replace=first_parent git commit --fixup first_parent -- "$file"
+		head -n 1 |\
+		xargs \
+			--replace=first_parent \
+				git commit --fixup first_parent -- "$file"
 done
 
 git stash apply "$working_tree_sha" --index
