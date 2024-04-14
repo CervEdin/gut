@@ -4,25 +4,21 @@ files=$(wildcard *.sh *.sed)
 shell_files=$(wildcard *.sh)
 programs=$(addprefix bin/, $(files))
 shell_programs=$(addprefix bin/, $(shell_files))
-INSTALL_DIR=${HOME}/bin/
-installed_programs=$(addprefix $(INSTALL_DIR), $(notdir $(programs)))
+INSTALL_DIR=${HOME}/bin
+installed_programs=$(addprefix $(INSTALL_DIR)/, $(notdir $(programs)))
 installed_links=$(basename $(installed_programs))
 
 default: all
 
-bin:
-	mkdir bin
+bin:; mkdir -p $@
 
-bin/%.sh : %.sh
+bin/%.sh : %.sh | bin
 	cp $< $@
 
-bin/%.sed : %.sed
+bin/%.sed : %.sed | bin
 	cp $< $@
 
-$(programs): | bin
-
-$(INSTALL_DIR):
-	mkdir $(INSTALL_DIR)
+$(INSTALL_DIR):; mkdir -p $(INSTALL_DIR)
 
 .PHONY: ls
 ls:
@@ -30,18 +26,18 @@ ls:
 	$(info installed links are:  $(installed_links))
 	$(info installation directory:  $(INSTALL_DIR))
 
-$(INSTALL_DIR)%.sh : bin/%.sh
+$(INSTALL_DIR)/%.sh : bin/%.sh | $(INSTALL_DIR)
 	cp $< $@
 	chmod +x $@
 
-$(INSTALL_DIR)%.sed : bin/%.sed
+$(INSTALL_DIR)/%.sed : bin/%.sed | $(INSTALL_DIR)
 	cp $< $@
 	chmod +x $@
 
-$(INSTALL_DIR)% : $(INSTALL_DIR)%.sh
+$(INSTALL_DIR)/% : $(INSTALL_DIR)/%.sh
 	ln -fs $< $@
 
-$(INSTALL_DIR)% : $(INSTALL_DIR)%.sed
+$(INSTALL_DIR)/% : $(INSTALL_DIR)/%.sed
 	ln -fs $< $@
 
 all: $(installed_programs) $(installed_links)
