@@ -20,11 +20,21 @@ bin/%.sed : %.sed | bin
 
 $(INSTALL_DIR):; mkdir -p $(INSTALL_DIR)
 
-.PHONY: ls
-ls:
+.PHONY: help
+## Display helpful information:
+##   - which gut programs are installed
+##   - the installation directory
+##   - the most relevant targets
+## and other helpful information.
+help:
 	$(info installed programs are: $(installed_programs))
 	$(info installed links are:  $(installed_links))
 	$(info installation directory:  $(INSTALL_DIR))
+	@printf "\n"
+	@printf "A (non-exhaustive and generated) list of available targets:\n\n"
+	@awk -f list-make-targets.awk \
+		$(MAKEFILE_LIST) | sort | sed 's/\r/\n\t\t/g'
+	@echo "for a full list, please consult the make file"
 
 $(INSTALL_DIR)/%.sh : bin/%.sh | $(INSTALL_DIR)
 	cp $< $@
@@ -40,14 +50,20 @@ $(INSTALL_DIR)/% : $(INSTALL_DIR)/%.sh
 $(INSTALL_DIR)/% : $(INSTALL_DIR)/%.sed
 	ln -fs $< $@
 
+## Make all of gut
 all: $(installed_programs) $(installed_links)
 
+## Uninstall all of gut
 uninstall:
 	find $(installed_programs) $(installed_links) -delete
 
 clean:
 	rm bin/*
 
+## Compile all bash scripts with flags to
+##   set -e fail on error
+##   set -u fail on unbound variable
+##   set -o pipefail erros in pipeilines
 debug: $(shell_programs)
 	sed -i -e '1 { /^#!\/bin\/bash$$/!q; }' \
 		-e '2 { /^set -[eu]*xo\{0,1\} pipefail$$/{p;d;}' \
