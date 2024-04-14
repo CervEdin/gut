@@ -29,7 +29,17 @@ for file in $staged; do
 					}}'
 	)
 	commits=$(
-		xargs --verbose -I% git blame --incremental  -L % "$revspec" -- "$file" <<< "$lines" |\
+		<<< "$lines"
+		xargs \
+			--verbose \
+			-I% \
+				git blame \
+					--incremental  \
+					-L \
+					% \
+					"$revspec" \
+					-- \
+					"$file" |\
 			awk \
 			-e '/^[a-f0-9]{40} /{ a[$1]++ }' \
 			-e ' END { for (b in a) { print b }}'
@@ -37,7 +47,9 @@ for file in $staged; do
 	git rev-list --topo-order "$revspec" |\
 		{ grep "$commits" || test $? = 1; } |\
 		head -n 1 |\
-		xargs --replace=first_parent git commit --fixup first_parent -- "$file"
+		xargs \
+			--replace=first_parent \
+				git commit --fixup first_parent -- "$file"
 done
 
 git stash apply "$working_tree_sha" --index
