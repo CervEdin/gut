@@ -71,3 +71,25 @@ debug: $(shell_programs)
 		-e 's@^@set -euxo pipefail\n@ }' $?
 
 debug_all: debug all
+
+.PHONY: lint
+## Run linter on files in project
+lint: \
+	lint-python \
+	lint-shell
+
+.PHONY: lint-python
+## Run autopep8 on python files and fix the following errors:
+## E301 - Add missing blank line.
+## E302 - Add missing 2 blank lines.
+## E303 - Remove extra blank lines.
+## E304 - Remove blank line following function decorator.
+## E305 - Expected 2 blank lines after end of function or class.
+## E306 - Expected 1 blank line before a nested definition.
+lint-python: **/*.py
+	autopep8 -i --select=E301,E302,E303,E304,E305,E306 $^
+
+.PHONY: lint-shell
+## Run shellcheck on all shell scripts.
+lint-shell: **/*.sh
+	shellcheck -f gcc $^
