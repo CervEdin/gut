@@ -1,13 +1,38 @@
 #!/bin/bash
 
-# Check if the user provided a branch name
-if [ -z "$1" ]; then
-  exec "$0" --help
-  exit 1
-fi
+OPTIONS_SPEC="\
+git stash-inspector [options] [<branch-name>]
 
-# Get the branch name from the first argument
+List and show stashes related to a specific branch (default to the current branch if no branch is specified).
+--
+h,help           Show the help
+"
+
+# Parse options using git rev-parse --parseopt
+eval "$(echo "$OPTIONS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit 1)"
+
+VERBOSE=false
+
+while :; do
+  case "$1" in
+    --)
+      shift
+      break
+      ;;
+    *)
+      echo "Unexpected option: $1"
+      exit 1
+      ;;
+  esac
+done
+
+# Get the branch name from the first argument, if provided
 branch_name="$1"
+
+# If no branch name is provided, use the current branch name
+if [ -z "$branch_name" ]; then
+  branch_name=$(git rev-parse --abbrev-ref HEAD)
+fi
 
 # Get the list of stash entries that match the given pattern
 stashes=$(git stash list --grep "WIP on $branch_name")
