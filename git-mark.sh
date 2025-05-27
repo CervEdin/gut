@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-	printf "Fatal: argument needed" >&2 &&
+	printf "Fatal: argument needed (a tag name)" >&2 &&
 	exit 1
 fi
 
