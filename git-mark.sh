@@ -6,16 +6,23 @@ if [ -z "$1" ]; then
 fi
 
 add=true
+# If the first letter of 1st argument is -
 if [ "${1:0:1}" == "-" ]; then
+	# Assume the tag is +
 	tag_char='+'
+	# and that the mark is the rest
 	mark="${1:1}"
 	add=false
 else
+	# Otherwise the first argument is the tag character
 	if [[ "${1:0:1}" =~ [[:punct:]] ]]; then
 		tag_char="${1:0:1}"
+		# and that the mark is the rest
 		mark="${1:1}"
 	else
+		# otherwise, the tag character is +
 		tag_char='+'
+		# and the mark is the first argument
 		mark="$1"
 	fi
 fi
