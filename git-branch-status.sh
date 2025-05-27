@@ -3,6 +3,29 @@
 # Default to refs/heads if no arguments are provided
 if [ "$#" -eq 0 ]; then
     set -- "refs/heads"
+
+# If the last argument doesn't start with refs/
+# treat it as a branch name
+else
+    last=$(
+        for arg; do :; done
+        printf '%s\n' "$arg"
+    )
+    case "$last" in
+        refs/*)
+            # already a ref, do nothing
+            ;;
+        *)
+            # Get everything except the last argument
+            args=$(printf '%s\n' "$@" | sed '$d')
+            set --
+            for arg in $args; do
+                set -- "$@" "$arg"
+            done
+            # Append transformed last argument
+            set -- "$@" "refs/heads/$last"
+            ;;
+    esac
 fi
 
 git for-each-ref \
