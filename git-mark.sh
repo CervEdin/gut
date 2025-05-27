@@ -39,3 +39,5 @@ for branch in $branches; do
 		git branch -m "$branch" "$tag_char$mark/"${branch#$tag_char*/}
 	fi
 done
+
+exit 0
