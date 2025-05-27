@@ -44,6 +44,11 @@ for branch in $branches; do
 	elif [[ $add == false ]]; then continue
 	else
 		git branch -m "$branch" "$tag_char$mark/"${branch#$tag_char*/}
+		ec=$?
+		if [ $ec -ne 0 ]; then
+			printf "Failed to mark branch '%s'\n" "$branch" >&2
+			exit $ec
+		fi
 	fi
 done
 
