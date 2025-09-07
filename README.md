@@ -78,3 +78,9 @@ personal taste. PRs are welcome.
 # Warranty
 
 100% without any sort of warranty/guarantee.
+
+# Good helper scripts by others
+
+- [`git-jump`](https://github.com/git/git/tree/master/contrib/git-jump)
+  available in the git contrib folder
+- [`git-test`](https://github.com/spotify/git-test)
