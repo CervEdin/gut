@@ -109,7 +109,7 @@ case ${files[0]} in
 
 		ffiles "${files[@]}" |
 		if [ "$add" = true ]; then
-			tee >(xargs -d '\n' git add --sparse --)
+			tee >(xargs -d '\n' git add --update --sparse --)
 		else
 			cat
 		fi
