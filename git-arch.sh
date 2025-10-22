@@ -72,7 +72,7 @@ if [ "$listmode" = true ] ; then
 else
 	TAG=$(git tag --list "$STEM*" --points-at HEAD)
 	if [ -z "$TAG" ]; then
-		TAG="${STEM}$(date --utc +'%Y-%m-%dT%H.%M.%S')"
+		TAG="${STEM}$(date -u +'%Y-%m-%dT%H.%M.%S')"
 		git tag "$TAG" "$refname"
 	fi
 	printf -- 'Created tag: %s\n' "$TAG" >&2

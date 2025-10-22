@@ -27,6 +27,6 @@
 # branch the tag belongs too. Easy sorting of tags by time created and low chance
 # of name clashes.
 
-name="sync/$(git rev-parse --abbrev-ref HEAD)/$(date --utc +'%Y-%m-%dT%H.%M.%S')" &&
+name="sync/$(git rev-parse --abbrev-ref HEAD)/$(date -u +'%Y-%m-%dT%H.%M.%S')" &&
 	git tag "$name" &&
 	git push origin "$name"
