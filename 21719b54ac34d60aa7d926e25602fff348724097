@@ -1,0 +1,15 @@
+Added inline comments to clarify git-mark.sh argument parsing logic.
+
+The argument parsing handles three scenarios:
+1. '-mark' syntax: Remove mark (add=false), assumes '+' tag character
+2. '#mark' syntax: Add mark with custom tag character ('#')
+3. 'mark' syntax: Add mark with default '+' tag character
+
+The comments make it easier to understand the string manipulation:
+- ${1:0:1} extracts first character
+- ${1:1} extracts everything after first character
+- [[:punct:]] matches punctuation characters for custom tag chars
+
+This improves code maintainability without changing functionality.
+
+/Claude
