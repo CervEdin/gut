@@ -14,4 +14,4 @@ Work in progress commit that adds/modifies several scripts:
 4. git-week.sh: Filter branches by committer date range, showing work from a
    specific week. Excludes review/release/wip branches by default.
 
-/Claude
+/Claude-haiku@4.5
