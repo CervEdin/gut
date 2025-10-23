@@ -9,4 +9,4 @@ automatically set during 'git clone' and updated with 'git remote set-head'.
 This change means the script will work correctly regardless of the repository's
 default branch naming convention.
 
-/Claude
+/Claude-haiku@4.5
