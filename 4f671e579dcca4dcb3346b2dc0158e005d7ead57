@@ -6,4 +6,4 @@ to 4-space indentation for consistency and improved readability.
 This is a style-only change with no functional impact. Using spaces instead of
 tabs is the modern standard in many codebases for script files.
 
-/Claude
+/Claude-haiku@4.5
