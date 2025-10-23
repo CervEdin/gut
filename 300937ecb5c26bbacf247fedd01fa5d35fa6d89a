@@ -1,0 +1,18 @@
+Redirected diagnostic output to stderr across scripts.
+
+Changed informational and debug messages to print to stderr (>&2) instead of stdout.
+This follows Unix conventions where:
+- stdout: Command output/results (piped to other commands)
+- stderr: Diagnostic info, errors, debug messages (not piped)
+
+Changes in git-arch:
+- Invalid option message
+- List mode confirmation message
+
+Changes in git-resolve:
+- Debug output for argument parsing at multiple stages
+- Makes stdout clean for actual command output/results
+
+This separation allows scripts to be used in pipelines without diagnostic noise.
+
+/Claude-haiku@4.5
