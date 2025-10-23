@@ -1,0 +1,16 @@
+Changed archive tag naming from 'archive/branch-date' to 'archive/branch/date'.
+
+Changes the decorated tag convention for better hierarchical organization:
+
+Old format: archive/branch-2022-03-08T14.17.03
+New format: archive/branch/2022-03-08T14.17.03
+
+Benefits:
+- Hierarchical structure with slashes naturally groups tags
+- Better shell completion: 'git show archive/branch/' shows all archives for branch
+- Cleaner tag listing in git tools that support path-like hierarchy
+- Matches directory structure conventions (branch as directory, dates as files)
+
+This is primarily a UX improvement for shell workflow and tag navigation.
+
+/Claude-haiku@4.5
