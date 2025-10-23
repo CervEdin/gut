@@ -1,0 +1,14 @@
+Added initial README.md documenting the gut project.
+
+The README establishes the project's purpose and philosophy:
+- Collection of git helper scripts for personal workflow
+- Aims for POSIX compliance and git project conventions
+- Scripts designed for specific use cases and personal preferences
+- Open to PRs but reflects author's needs and taste
+
+Also includes basic installation instructions: place scripts in PATH (like ~/bin/)
+and invoke as git subcommands (e.g., 'git arch').
+
+Sets expectations: no warranty or guarantees provided with these tools.
+
+/Claude-haiku@4.5
