@@ -1,0 +1,17 @@
+Added explicit 'exit 0' to ensure script always exits successfully.
+
+The issue: In bash, a script's exit code is the exit code of the last command
+that executed. If the for loop's last iteration:
+- Hits a 'continue' statement (when a branch already has the mark)
+- The test condition evaluates to false
+
+Then the script would exit with status 1 (false) or whatever the last command
+returned, even though nothing actually went wrong.
+
+Adding 'exit 0' ensures the script always exits with success status (0) when
+it completes normally, regardless of the final loop iteration's outcome.
+
+This is a common pattern in scripts where the final command might not indicate
+the overall success of the script.
+
+/Claude
