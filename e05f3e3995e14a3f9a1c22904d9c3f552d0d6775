@@ -1,0 +1,18 @@
+Added the initial set of core git utility scripts.
+
+This commit introduces four fundamental scripts:
+
+1. git-arch: Creates and manages archive tags with naming convention
+   <decoration>/<refname>/$(date) for persistent snapshots
+
+2. git-mebase: Interactive rebase helper that finds the closest parent ref
+   to rebase onto with automatic fixup/squash support
+
+3. git-parents: Lists parent refs of current HEAD sorted by committerdate
+
+4. git-resolve: Resolves merge conflicts in favor of ours/theirs/both
+   while retaining non-conflict changes
+
+These scripts form the core functionality that the gut project is built around.
+
+/Claude-haiku@4.5
