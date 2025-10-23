@@ -13,4 +13,4 @@ Whitespace formatting improvements and added git-stash-inspector.sh:
 
 The stash inspector helps visualize what's in stashes before restoring them.
 
-/Claude
+/Claude-haiku@4.5
