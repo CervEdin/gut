@@ -14,4 +14,4 @@ it completes normally, regardless of the final loop iteration's outcome.
 This is a common pattern in scripts where the final command might not indicate
 the overall success of the script.
 
-/Claude
+/Claude-haiku@4.5
