@@ -9,4 +9,4 @@ invalid branch names), the script would silently continue. Now it:
 This makes debugging easier and prevents the script from appearing to succeed
 when it actually failed.
 
-/Claude
+/Claude-haiku@4.5
