@@ -1,0 +1,19 @@
+Add git-delorean: Automatically creates fixup commits from staged changes.
+
+git-delorean analyzes git blame information to find which commits modified
+the staged lines, then creates fixup commits targeting those commits.
+
+Example:
+ 1.a      (commit 1, not staged)
+~1.b      (commit 1, staged changes)
+~2.c      (commit 2, staged changes)
+ 1.d      (commit 1, not staged)
+
+Results in:
+- fixup! commit for commit 2 with content 'c'
+- fixup! commit for commit 1 with content 'b'
+
+This simplifies the workflow of incrementally fixing prior commits without
+manual fixup commit creation.
+
+/Claude-haiku@4.5
