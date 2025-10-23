@@ -20,4 +20,4 @@ The script tracks all historical names of file(s) by:
 Output shows the current path followed by all historical names it had,
 useful for finding where code moved from or tracking file evolution.
 
-/Claude
+/Claude-haiku@4.5
