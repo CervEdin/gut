@@ -1,0 +1,10 @@
+Add optional file-spec to git-resolve for selective conflict resolution.
+
+git-resolve now accepts a git file-spec argument to control which files
+are processed for conflict resolution, allowing users to resolve conflicts
+in specific files or directories rather than everything.
+
+This makes the script more flexible for handling large repos with conflicts
+across many files - users can resolve them incrementally by path.
+
+/Claude-haiku@4.5
