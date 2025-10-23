@@ -1,0 +1,13 @@
+The two scripts referenced are:
+
+- git-jump: A git contrib tool that integrates with editors to jump to
+  specific locations (like merge conflicts, grep results, or diff hunks).
+  Useful for workflow integration with vim/emacs quickfix lists.
+
+- git-test: Spotify's tool for running tests on a range of commits to find
+  which commit introduced a regression. Similar to git-bisect but for test
+  suites rather than manual verification.
+
+Both complement gut's scripts by providing additional workflow automation.
+
+/Claude
