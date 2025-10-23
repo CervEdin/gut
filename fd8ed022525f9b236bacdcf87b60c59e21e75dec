@@ -1,0 +1,9 @@
+Cleanup: Removed non-.sh versions of git-* files.
+
+Deleted the original versions of git-arch, git-mebase, git-parents, and
+git-resolve that didn't have .sh extensions, keeping only the .sh versions
+for consistency.
+
+This was done because the project standardized on .sh extensions for shell scripts.
+
+/Claude-haiku@4.5
