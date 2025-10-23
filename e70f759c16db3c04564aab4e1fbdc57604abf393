@@ -7,4 +7,4 @@ but aren't in either branch being merged) cannot have conflicts.
 The --update flag prevents accidentally staging untracked files that happen to
 match the pathspec but aren't part of the merge conflict resolution.
 
-/Claude
+/Claude-haiku@4.5
