@@ -1,0 +1,18 @@
+Add git-env: Environment setup script with command shortcuts.
+
+Creates shell functions as convenient shortcuts for common git commands:
+- aa: git add --all
+- ss: git status
+- sk: git rebase --skip
+- dff: git diff
+- sdf: git diff --staged
+- cm: git commit -m
+
+Also enables commit.verbose in git config for detailed commit messaging.
+
+Toggle on/off: running the script again will unset all functions and
+disable the environment. Marks status with GIT_ENV variable.
+
+Useful for streamlining repetitive git commands during active development.
+
+/Claude-haiku@4.5
