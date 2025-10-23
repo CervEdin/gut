@@ -12,4 +12,4 @@ The implementation:
 The TODO suggests making it more sophisticated by validating if the shortform
 is actually a valid ref before transformation.
 
-/Claude
+/Claude-haiku@4.5
