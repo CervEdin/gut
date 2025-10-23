@@ -1,0 +1,8 @@
+Merge branch 'git-mebase': Integrated git-mebase improvements.
+
+Merged the git-mebase feature branch including:
+- Interactive picking of rebase target (-i flag support)
+- 10+ parent branch support resolution
+- Automatic tag retagging during mebase (git-rebase-retag.sh)
+
+/Claude-haiku@4.5
