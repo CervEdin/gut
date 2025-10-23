@@ -14,4 +14,4 @@ Work in progress updates to git-delete-both.sh and git-stash-inspector.sh:
    - Uses git rev-parse --abbrev-ref HEAD as fallback
    - More robust argument handling
 
-/Claude
+/Claude-haiku@4.5
