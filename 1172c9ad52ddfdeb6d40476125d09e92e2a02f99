@@ -12,4 +12,4 @@ across the codebase, following the convention that trailing spaces are undesired
 Note: This script has since been updated to use duck typing for BSD/GNU sed
 compatibility in later commits.
 
-/Claude
+/Claude-haiku@4.5
