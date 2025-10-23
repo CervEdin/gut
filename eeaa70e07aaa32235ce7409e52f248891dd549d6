@@ -12,4 +12,4 @@ This enables useful workflows like:
 The "$@" passes all arguments to git for-each-ref, supporting multiple
 patterns and full for-each-ref flexibility.
 
-/Claude
+/Claude-haiku@4.5
