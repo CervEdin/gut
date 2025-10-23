@@ -1,0 +1,13 @@
+Fixed merge conflict when git-delorean has unstaged changes.
+
+Problem: When running git-delorean on a file with both staged and unstaged
+changes, the stash pop reintroduces a merge conflict.
+
+Root cause: 'git commit --pathspec' commits all changes (staged + unstaged),
+so the stash must save the working tree, then only keep staged changes.
+When stash is popped later, the unstaged changes reintroduce conflicts.
+
+Solution: Use 'git stash pop --index' to properly restore both staged and
+unstaged changes to their respective stages without conflicts.
+
+/Claude-haiku@4.5
