@@ -1,0 +1,17 @@
+Work in progress updates to git-delete-both.sh and git-stash-inspector.sh:
+
+1. git-delete-both.sh improvements:
+   - Added TODO: handle missing upstream
+   - Added upstream existence check before attempting deletion
+   - Cleaner error handling when upstream doesn't exist
+   - Renamed variables for clarity (local/remote -> local_ref/remote_ref)
+   - Better separation of logic with comments
+
+2. git-stash-inspector.sh improvements:
+   - Added proper OPTIONS_SPEC for git rev-parse --parseopt
+   - Implemented standard option parsing (--help support)
+   - Made branch name optional (defaults to current branch)
+   - Uses git rev-parse --abbrev-ref HEAD as fallback
+   - More robust argument handling
+
+/Claude
