@@ -11,4 +11,4 @@ Output now shows: branch name | commit date | tracking status | remote name
 This complements the existing --sort='committerdate' to display branches in
 chronological order with their dates visible, making branch management easier.
 
-/Claude
+/Claude-haiku@4.5
