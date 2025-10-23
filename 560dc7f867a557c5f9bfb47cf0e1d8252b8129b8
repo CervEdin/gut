@@ -1,0 +1,9 @@
+Merge branch 'git-arch': Integrated git-arch improvements into main.
+
+Merged the git-arch feature branch which included multiple enhancements:
+- Archive tag functionality
+- Detached HEAD handling during rebase
+- Idempotent tag creation
+- Tag name output to stdout for piping
+
+/Claude-haiku@4.5
