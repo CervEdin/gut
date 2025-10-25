@@ -1,0 +1,9 @@
+Renamed makefile to Makefile per GNU standards.
+
+Followed GNU conventions by renaming the build file from lowercase 'makefile' to
+uppercase 'Makefile', which is the standard expected by make and build tools.
+
+This is a simple rename (100% similarity) with no functional changes - it allows
+users to run 'make' instead of 'make -f makefile'.
+
+/Claude-haiku@4.5
