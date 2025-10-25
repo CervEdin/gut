@@ -1,0 +1,14 @@
+Enhanced git-mark.sh with bash features, deletion, and multiple branches.
+
+Major improvements to git-mark:
+- Converted to bash (from POSIX sh) for variable substitution features
+- Added support for deletion: 'git mark -mark-name' removes the mark
+- Support for multiple branches: 'git mark name branch1 branch2 ...'
+- Can overwrite existing marks on multiple branches
+
+Mark format: #mark/branchname (e.g., #review/feature-x)
+
+Note: Author comments that reverting to POSIX sh for compatibility may be
+considered in the future.
+
+/Claude-haiku@4.5
