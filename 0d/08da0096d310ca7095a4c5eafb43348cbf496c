@@ -1,0 +1,10 @@
+Changed git-mark tag character from # to @.
+
+Reason: '#' has special meaning in bash (comments), causing issues.
+'@' works more reliably in bash contexts.
+
+This changes the branch marking convention from '#mark/branchname' to
+'@mark/branchname'. Updated all references in git-mark.sh to use the new
+tag_char variable.
+
+/Claude-haiku@4.5
