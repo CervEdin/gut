@@ -1,0 +1,8 @@
+Made Makefile debug recipe only target shell files.
+
+Limited debug recipe to shell scripts (*.sh) since the sed script would break
+on sed scripts (*.sed).
+
+Added shell_files and shell_programs variables to Makefile for targeting.
+
+/Claude-haiku@4.5
