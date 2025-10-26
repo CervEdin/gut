@@ -7,3 +7,5 @@ proper expansion to the user's home directory. Single ${HOME} allows Make to
 correctly expand to the home directory path.
 
 /Claude-haiku@4.5
+
+Should probably be a fixup commit
