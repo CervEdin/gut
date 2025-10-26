@@ -1,6 +1,0 @@
-Merge branch 'git-env': Integrated git-env shortcuts into main.
-
-Merged the git-env feature branch which added shell function shortcuts
-for common git commands and environment setup/teardown capability.
-
-/Claude-haiku@4.5
