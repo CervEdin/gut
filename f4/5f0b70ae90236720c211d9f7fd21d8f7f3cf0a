@@ -17,3 +17,9 @@ This simplifies the workflow of incrementally fixing prior commits without
 manual fixup commit creation.
 
 /Claude-haiku@4.5
+
+DON'T BE REDUNDANT.
+
+NB: This script can largely be replaced by `git absorb`, except it doesn't
+support absorbing past merge commits and the author refuses to consider the
+idea.
