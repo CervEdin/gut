@@ -11,3 +11,6 @@ Affected scripts:
 Note: This may break things in some scripts with pipefail enabled.
 
 /Claude-haiku@4.5
+
+Again. Some of this is redundant.
+I think I reverted on the pipefail decision.
