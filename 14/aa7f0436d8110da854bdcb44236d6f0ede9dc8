@@ -12,3 +12,5 @@ Shows three columns:
 Uses git for-each-ref for efficient querying and column command for formatting.
 
 /Claude-haiku@4.5
+
+A lot (all?) seems redundant.
