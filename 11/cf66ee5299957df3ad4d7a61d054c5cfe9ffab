@@ -12,3 +12,5 @@ and invoke as git subcommands (e.g., 'git arch').
 Sets expectations: no warranty or guarantees provided with these tools.
 
 /Claude-haiku@4.5
+
+TODO: We should retconn 'git utility tools'
