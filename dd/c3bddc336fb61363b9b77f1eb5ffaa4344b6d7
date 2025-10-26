@@ -16,3 +16,10 @@ disable the environment. Marks status with GIT_ENV variable.
 Useful for streamlining repetitive git commands during active development.
 
 /Claude-haiku@4.5
+
+This is actually an interesting script. Sometimes it's nice to skip `git `
+before aliases. But maybe there's a better way, like taking aliases from
+`git config` and using that as aliases in the shell. We may consider checking
+for collisions with already defined functions/aliases/executables. We may also
+considering a `g <alias>`, which would be simpler, while still requiring a few
+more strokes.
