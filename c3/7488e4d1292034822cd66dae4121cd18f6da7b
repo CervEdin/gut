@@ -8,3 +8,7 @@ Also split sed script across multiple lines for better readability.
 Note: Some scripts may have issues with pipefail enabled.
 
 /Claude-haiku@4.5
+
+I may have gotten rid of this at a later stage.
+Bash 'strict mode' has issues. But some of this _is_ useful when _debugging_.
+This should probably enabled in something like `make install-debug` or similar.
