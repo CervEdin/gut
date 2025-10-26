@@ -15,3 +15,5 @@ Future consideration: Author notes this is a hack and suggests reflog might be
 a better long-term solution for detecting rebase state.
 
 /Claude-haiku@4.5
+
+NB: This workaround probably fails when using worktrees.
