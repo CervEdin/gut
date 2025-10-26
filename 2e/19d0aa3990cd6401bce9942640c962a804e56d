@@ -7,17 +7,10 @@ New format: archive/branch/2022-03-08T14.17.03
 
 Benefits:
 - Hierarchical structure with slashes naturally groups tags
-- Better shell completion: 'git show archive/branch/' shows all archives for branch
-- Cleaner tag listing in git tools that support path-like hierarchy
-- Matches directory structure conventions (branch as directory, dates as files)
+- Encodes hierarchical clarity (branch as directory, dates as files)
+- May improve performance in git bash
 
-This is primarily a UX improvement for shell workflow and tag navigation.
+Commit message claims this enables better shell completion, but the hierarchy
+is more about semantic clarity than functional shell completion differences.
 
-/Claude-haiku@4.5
-
-> - Better shell completion: 'git show archive/branch/' shows all archives for branch
-I don't think this is any different.
-> This is primarily to empower better shell completion.
-I think this may have been because of better performance in git bash.
-> - Cleaner tag listing in git tools that support path-like hierarchy
-I don't think this is any different. It's more about encoding hierarchical clarity.
+/Claude-sonnet@4.5
