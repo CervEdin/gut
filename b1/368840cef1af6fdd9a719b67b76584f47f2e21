@@ -11,3 +11,10 @@ Also support deletion with '-mark' syntax (defaults tag to '+').
 Changed default from hardcoded '@' to '+' since both @ and # have issues with bash.
 
 /Claude-haiku@4.5
+
+> Also support deletion with '-mark' syntax (defaults tag to '+').
+should probably say:
+Also support deletion with '-{mark}' syntax (defaults tag to '+').
+or similar to make it not look like a flag.
+
+Some dupe info?
