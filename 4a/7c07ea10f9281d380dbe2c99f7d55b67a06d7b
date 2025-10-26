@@ -12,3 +12,5 @@ Strict mode makes scripts more robust and predictable, preventing silent failure
 that could lead to data loss or unexpected behavior.
 
 /Claude-haiku@4.5
+
+TODO: I no longer think 'bash strict mode' is a good idea. There are too many caveats.
