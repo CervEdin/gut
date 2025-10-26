@@ -14,3 +14,6 @@ This makes mebase more user-friendly by allowing explicit selection rather than
 always rebasing onto the closest parent ref.
 
 /Claude-haiku@4.5
+
+Actually this is possibly interesting. Although these days I pretty much always
+`rebase origin/HEAD *`
