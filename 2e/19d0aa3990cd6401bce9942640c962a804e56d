@@ -14,3 +14,10 @@ Benefits:
 This is primarily a UX improvement for shell workflow and tag navigation.
 
 /Claude-haiku@4.5
+
+> - Better shell completion: 'git show archive/branch/' shows all archives for branch
+I don't think this is any different.
+> This is primarily to empower better shell completion.
+I think this may have been because of better performance in git bash.
+> - Cleaner tag listing in git tools that support path-like hierarchy
+I don't think this is any different. It's more about encoding hierarchical clarity.
