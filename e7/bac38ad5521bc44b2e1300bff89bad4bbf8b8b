@@ -12,3 +12,12 @@ Offers three options:
 Improves UX for workflows where force-pushing is common.
 
 /Claude-haiku@4.5
+
+> Offers three options:
+> - Push normally
+> - Force push immediately
+> - Cancel
+
+> - Cancel
+This is implicit.
+TODO: We should probably explain this behavior if not specified
