@@ -11,3 +11,5 @@ Output can be directly copied into Azure DevOps PR description, providing
 a structured summary of all commits in the PR at a glance.
 
 /Claude-haiku@4.5
+
+Note that none of this is particularly ADO exclusive
