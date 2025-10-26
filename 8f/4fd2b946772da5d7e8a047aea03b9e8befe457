@@ -8,3 +8,5 @@ This makes the script more flexible for handling large repos with conflicts
 across many files - users can resolve them incrementally by path.
 
 /Claude-haiku@4.5
+
+Don't be redundant
