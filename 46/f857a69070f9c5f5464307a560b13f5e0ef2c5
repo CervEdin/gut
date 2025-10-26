@@ -12,7 +12,10 @@ Integration:
 - Modified git-mebase to call git-rebase-retag after rebase completes
 - Preserves tag semantics during rebase workflow
 
-This feature is specifically for mebase (and similar rebases) to keep tags
+This feature is specifically for mebase (and its derivatives) to keep tags
 in sync with the rebased commit history, avoiding orphaned tag references.
 
 /Claude-haiku@4.5
+
+TODO: This should probably be configurable. Not even sure anymore this makes sense.
+Probably better to use branches for this purpose.
