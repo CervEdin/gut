@@ -8,3 +8,5 @@ This changes the branch marking convention from '#mark/branchname' to
 tag_char variable.
 
 /Claude-haiku@4.5
+
+Yes. Probably # was a bad default
