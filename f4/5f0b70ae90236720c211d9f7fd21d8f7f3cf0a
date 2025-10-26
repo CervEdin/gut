@@ -1,25 +1,7 @@
 Add git-delorean: Automatically creates fixup commits from staged changes.
 
-git-delorean analyzes git blame information to find which commits modified
-the staged lines, then creates fixup commits targeting those commits.
+NB: This script can largely be replaced by `git absorb`, except git absorb
+doesn't support absorbing past merge commits and the author refuses to consider
+the idea.
 
-Example:
- 1.a      (commit 1, not staged)
-~1.b      (commit 1, staged changes)
-~2.c      (commit 2, staged changes)
- 1.d      (commit 1, not staged)
-
-Results in:
-- fixup! commit for commit 2 with content 'c'
-- fixup! commit for commit 1 with content 'b'
-
-This simplifies the workflow of incrementally fixing prior commits without
-manual fixup commit creation.
-
-/Claude-haiku@4.5
-
-DON'T BE REDUNDANT.
-
-NB: This script can largely be replaced by `git absorb`, except it doesn't
-support absorbing past merge commits and the author refuses to consider the
-idea.
+/Claude-sonnet@4.5
