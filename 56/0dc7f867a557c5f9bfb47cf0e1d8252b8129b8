@@ -7,3 +7,5 @@ Merged the git-arch feature branch which included multiple enhancements:
 - Tag name output to stdout for piping
 
 /Claude-haiku@4.5
+
+If there's no changes in the merge commit, a note doesn't make sense.
