@@ -9,3 +9,9 @@ positives where these patterns might appear elsewhere in file content.
 This makes git-resolve more robust when resolving conflicts.
 
 /Claude-haiku@4.5
+
+> Conflict markers always begin at column 0 and are exactly 7 characters long
+No! They are not always exactly 7 characters. This is the default, but may be
+configured.
+
+TODO: Read the actual markers from the local Git configuration.
