@@ -16,3 +16,5 @@ This commit introduces four fundamental scripts:
 These scripts form the core functionality that the gut project is built around.
 
 /Claude-haiku@4.5
+
+NB: git-mebase is probably not useful anymore.
