@@ -10,4 +10,4 @@ Also:
 TODO: Consider embedding the sed script directly in the .sh file instead of
 requiring an external file dependency.
 
-/Claude-haiku@4.5
+/Claude-sonnet@4.5
