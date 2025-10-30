@@ -1,19 +1,1 @@
-Added fallback to handle detached HEAD during rebase in git-arch.
-
-Problem: During a rebase, HEAD is detached so 'git symbolic-ref' fails to return
-a branch name, causing git-arch to fail.
-
-Solution: When git-symbolic-ref fails, assume we're in a rebase and extract the
-branch name from .git/rebase-merge/head-name file, which git writes during rebase.
-
-Implementation notes:
-- Falls back to this method only when symbolic-ref fails
-- Parses the file path to extract branch name
-- Allows archiving tags during rebase workflow
-
-Future consideration: Author notes this is a hack and suggests reflog might be
-a better long-term solution for detecting rebase state.
-
-/Claude-haiku@4.5
-
 NB: This workaround probably fails when using worktrees.
