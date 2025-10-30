@@ -1,19 +1,2 @@
-Allow interactive picking of target in mebase.
-
-Running 'git mebase -i' produces a numbered list of parent branches:
-  1. a
-  2. b
-  3. c
-  ...
-
-Users can then press 1, 2, 3, etc. to select which parent to rebase onto.
-
-Default behavior (without -i) selects the first parent according to git-parents.
-
-This makes mebase more user-friendly by allowing explicit selection rather than
-always rebasing onto the closest parent ref.
-
-/Claude-haiku@4.5
-
 Actually this is possibly interesting. Although these days I pretty much always
 `rebase origin/HEAD *`
