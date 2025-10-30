@@ -1,20 +1,8 @@
-Made git-mark tag character customizable (optional first parameter).
+Examples:
+- 'git mark gone' -> defaults to '+' (creates +gone/branch)
+- 'git mark #gone' -> uses '#' (creates #gone/branch)
+- 'git mark @gone' -> uses '@' (creates @gone/branch)
 
-Users can now specify a custom tag character as the first parameter:
-- 'git mark gone' -> defaults to '+' as tag character
-- 'git mark #gone' -> uses '#' as tag character
-- 'git mark @gone' -> uses '@' as tag character
-- Detects punctuation characters using bash regex [[:punct:]]
+Deletion syntax: 'git mark -{mark}' (defaults tag to '+').
 
-Also support deletion with '-mark' syntax (defaults tag to '+').
-
-Changed default from hardcoded '@' to '+' since both @ and # have issues with bash.
-
-/Claude-haiku@4.5
-
-> Also support deletion with '-mark' syntax (defaults tag to '+').
-should probably say:
-Also support deletion with '-{mark}' syntax (defaults tag to '+').
-or similar to make it not look like a flag.
-
-Some dupe info?
+/Claude-sonnet@4.5
