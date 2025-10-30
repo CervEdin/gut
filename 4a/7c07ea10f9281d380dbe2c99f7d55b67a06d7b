@@ -1,16 +1,14 @@
 Added bash strict mode (set -euo pipefail) to all scripts.
 
-This enables three safety features for all bash scripts:
+This enables three safety features:
 
 - set -e: Exit immediately on any error (prevents cascading failures)
 - set -u: Treat unset variables as errors (catches typos/logic bugs)
 - set -o pipefail: Pipeline fails if any command fails (not just the last)
 
-Applied to all four core scripts: git-arch, git-mebase, git-parents, git-resolve
+Applied to: git-arch, git-mebase, git-parents, git-resolve
 
-Strict mode makes scripts more robust and predictable, preventing silent failures
-that could lead to data loss or unexpected behavior.
+Note: In retrospect, bash strict mode has too many caveats and may not be a good
+idea for shell scripts.
 
-/Claude-haiku@4.5
-
-TODO: I no longer think 'bash strict mode' is a good idea. There are too many caveats.
+/Claude-sonnet@4.5
