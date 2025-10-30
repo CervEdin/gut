@@ -1,5 +1,3 @@
-Add git-delorean: Automatically creates fixup commits from staged changes.
-
 NB: This script can largely be replaced by `git absorb`, except git absorb
 doesn't support absorbing past merge commits and the author refuses to consider
 the idea.
