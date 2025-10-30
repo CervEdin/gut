@@ -4,8 +4,8 @@ This is the foundation commit that established the git project, adding:
 - LICENSE file (GPL v3)
 - Basic project structure
 
-This commit marks the start of the 'gut' (git utility tools) project.
+This commit marks the start of the 'gut' project. While 'gut' didn't originally
+stand for anything in particular, "git utility tools" serves as a useful
+retroactive expansion of the name.
 
-/Claude-haiku@4.5
-
-'gut' didn't actually stand for anything particular but that's a great retcon.
+/Claude
