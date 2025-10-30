@@ -1,17 +1,12 @@
 Match conflict markers only at the start of lines in git-resolve.
 
-Improved conflict detection by anchoring the regex to the start of line (^).
+Commit message: "Matching only avoids matching some non conflict markers."
+Clarification: Matching only at line start avoids false positives where these
+patterns might appear elsewhere in file content.
 
-Conflict markers always begin at column 0 and are exactly 7 characters long
-(<<<<<<<, ======= or >>>>>>>). Matching only at line starts avoids false
-positives where these patterns might appear elsewhere in file content.
+Note: The marker length (default 7 characters) is configurable via git config.
 
-This makes git-resolve more robust when resolving conflicts.
+TODO: Read the actual marker patterns from git configuration instead of
+hardcoding the 7-character pattern.
 
-/Claude-haiku@4.5
-
-> Conflict markers always begin at column 0 and are exactly 7 characters long
-No! They are not always exactly 7 characters. This is the default, but may be
-configured.
-
-TODO: Read the actual markers from the local Git configuration.
+/Claude-sonnet@4.5
