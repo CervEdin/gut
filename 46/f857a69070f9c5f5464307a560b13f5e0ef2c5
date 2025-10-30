@@ -1,21 +1,9 @@
-Added automatic tag retagging during mebase (interactive rebase).
-
-Problem: During a normal rebase, tags don't move with the rebased commits, so
-they stay pointing at the old history. This breaks tag references.
-
-Solution: Created git-rebase-retag.sh script that updates tags during mebase:
+Created git-rebase-retag.sh script that updates tags during mebase:
 - Identifies which commits are being rebased
 - Moves tags that were on old commits to their new commit positions
 - Ensures tag references remain valid after rebase
 
-Integration:
-- Modified git-mebase to call git-rebase-retag after rebase completes
-- Preserves tag semantics during rebase workflow
-
-This feature is specifically for mebase (and its derivatives) to keep tags
-in sync with the rebased commit history, avoiding orphaned tag references.
-
-/Claude-haiku@4.5
-
 TODO: This should probably be configurable. Not even sure anymore this makes sense.
 Probably better to use branches for this purpose.
+
+/Claude-sonnet@4.5
