@@ -19,7 +19,9 @@ for file in $staged; do
 					gsub(/^[^0-9]*/, "", $2)
 					r = 0
 					if (substr($3,1,1) != "+") {
-						r = gensub(/([0-9]*).*/, "\\1", "g", $3)
+						# BSD awk compatible: use match and substr instead of gensub
+						match($3, /[0-9]+/)
+						r = substr($3, RSTART, RLENGTH)
 					}
 					if (r != 0) {
 						print $2","$2 + r - 1
@@ -31,7 +33,6 @@ for file in $staged; do
 	commits=$(
 		<<< "$lines" \
 		xargs \
-			--verbose \
 			-I% \
 				git blame \
 					--incremental  \
@@ -41,14 +42,13 @@ for file in $staged; do
 					-- \
 					"$file" |\
 			awk \
-			-e '/^[a-f0-9]{40} /{ a[$1]++ }' \
-			-e ' END { for (b in a) { print b }}'
+			'/^[a-f0-9]{40} /{ a[$1]++ } END { for (b in a) { print b }}'
 	)
 	git rev-list --topo-order "$revspec" |\
 		{ grep "$commits" || test $? = 1; } |\
 		head -n 1 |\
 		xargs \
-			--replace=first_parent \
+			-I first_parent \
 				git commit --fixup first_parent -- "$file"
 done
 
