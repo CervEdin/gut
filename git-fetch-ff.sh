@@ -3,7 +3,7 @@
 worktree_list="$(mktemp)"
 
 git worktree list --porcelain |
-	sed -n '/^branch /{s@@@;p}' |
+	sed -n '/^branch /{s@@@;p;}' |
 	sort > "$worktree_list"
 
 
@@ -19,7 +19,7 @@ git for-each-ref --format='%(refname)' 'refs/heads/**/*' |
 	sed -n '
 /\t*\[behind [0-9]*\]\t*/{
 	s@@\t@
-	p
+	p;
 }' |
 	awk -F '\t' '
 NR==1 {
