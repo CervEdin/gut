@@ -1,6 +1,0 @@
-Added bash strict mode to git-env.sh.
-
-Added 'set -euo pipefail' to git-env.sh to enable strict mode, making the
-script more robust by exiting on errors and treating unset variables as errors.
-
-/Claude-haiku@4.5
