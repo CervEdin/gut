@@ -1,9 +1,0 @@
-Improved clarity of head command in git-delorean.
-
-Changed 'head -1' to 'head -n 1' to make the intent more explicit - selecting
-exactly 1 line of output.
-
-While 'head -1' is valid, 'head -n 1' is clearer and more consistent with other
-line-limiting operations in the script.
-
-/Claude-haiku@4.5
