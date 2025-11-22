@@ -1,8 +1,0 @@
-Background on date --utc vs -u:
-
-GNU date introduced long options like --utc as extensions. BSD date (and POSIX)
-only supports short options. The -u flag has been part of POSIX since early
-versions and is universally supported.
-
-Both commands produce identical output - UTC/GMT timestamps. The only difference
-is the option syntax.
