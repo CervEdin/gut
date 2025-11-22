@@ -1,6 +1,0 @@
-Merge branch 'git-delorean': Integrated git-delorean script.
-
-Merged the git-delorean feature branch which provides automatic fixup commit
-generation from staged changes using git blame analysis.
-
-/Claude-haiku@4.5
