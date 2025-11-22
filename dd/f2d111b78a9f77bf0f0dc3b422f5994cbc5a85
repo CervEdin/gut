@@ -1,0 +1,17 @@
+Fixed git-fetch-ff glob pattern to match nested branches.
+
+Problem: The glob pattern 'refs/heads/*' only matches top-level branches in the
+refs/heads/ namespace. It doesn't match branches at sub-levels like:
+  release/x.y.z
+  wip/nonsense
+  feature/sub-feature/branch
+
+These nested branches failed to be included in the fast-forward operation.
+
+Solution: Changed glob pattern from 'refs/heads/*' to 'refs/heads/**/*' which
+recursively matches all branches at any nesting level under refs/heads.
+
+The ** pattern in git for-each-ref enables recursive matching, ensuring all
+branches regardless of nesting depth are processed.
+
+/Claude-haiku@4.5
