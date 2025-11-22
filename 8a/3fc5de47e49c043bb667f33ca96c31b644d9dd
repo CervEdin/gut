@@ -1,6 +1,0 @@
-Merge branch 'git-fetch-ff': Integrated fast-forward fetch utility.
-
-Merged git-fetch-ff branch containing the new utility for fast-forwarding all
-local tracking branches from their configured remotes.
-
-/Claude-haiku@4.5
