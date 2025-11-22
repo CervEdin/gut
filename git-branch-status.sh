@@ -29,7 +29,14 @@ else
 fi
 
 git for-each-ref \
+    --no-contains origin/HEAD \
     --sort='committerdate' \
-    --format='%(refname:short)%09%(committerdate:short)%09%(upstream:track)%09%(upstream:remotename)' \
+    --format='%(refname:short)%09%(committerdate:short)%09%(upstream:track)%09%(upstream:remotename)%09%(ahead-behind:origin/HEAD)' \
+    "$@" |\
+    column -t -s '	'
+git for-each-ref \
+    --contains origin/HEAD \
+    --sort='committerdate' \
+    --format='%(refname:short)%09%(committerdate:short)%09%(upstream:track)%09%(upstream:remotename)%09%(ahead-behind:origin/HEAD)' \
     "$@" |\
     column -t -s '	'
