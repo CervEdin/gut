@@ -1,6 +1,0 @@
-Merge branch 'fetch-ff': Integrated nested branch glob pattern fix.
-
-Merged fetch-ff branch containing the fix for matching nested branches with
-refs/heads/**/* pattern.
-
-/Claude-haiku@4.5
