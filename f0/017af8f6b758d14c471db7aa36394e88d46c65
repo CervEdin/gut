@@ -1,6 +1,0 @@
-Merge branch 'fetch-ff': Integrated worktree exclusion logic.
-
-Merged fetch-ff branch with worktree exclusion to prevent fast-forward failures
-on checked-out branches.
-
-/Claude-haiku@4.5
