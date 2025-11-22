@@ -1,0 +1,15 @@
+Fixed git-resolve to handle file paths with whitespace.
+
+Problem: The ffiles function and subsequent invocations used unquoted variables
+($@ and $FILES), which breaks when file paths contain spaces or special characters.
+
+Changes:
+- Quoted $@ in git ls-files invocation to preserve path integrity
+- Rewrote ffiles function to use proper quoting for "$@"
+- Quoted "$FILES" variable in the git add command at the end
+
+This ensures merge conflict resolution works correctly with files that have
+spaces in their names. The fix follows proper shell quoting practices for
+handling arbitrary filenames.
+
+/Claude-haiku@4.5

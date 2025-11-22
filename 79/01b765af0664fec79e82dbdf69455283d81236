@@ -1,0 +1,30 @@
+Fixed POSIX shell compatibility in git-branch-status.
+
+Problem: Used ANSI-C quoting syntax $'\t' to specify a tab character. This syntax
+is bash-specific and not POSIX-compliant, causing the script to fail in POSIX
+shells like dash (used on some systems).
+
+Solution: Replaced $'\t' with a literal tab character (quoted as '	') which is
+POSIX-compliant and works in all sh implementations.
+
+This ensures git-branch-status works correctly in POSIX sh environments, not just
+bash systems.
+
+/Claude-haiku@4.5
+
+Whitespace formatting improvements and added git-stash-inspector.sh:
+
+1. git-branch-status.sh: Reformatted for readability
+   - Split long git for-each-ref command across multiple lines
+   - Added tab indentation for continuation lines
+   - Improves code readability and maintainability
+
+2. git-stash-inspector.sh: New script to inspect stashes
+   - Filters stashes related to a specific branch using --grep
+   - Parses stash output to extract branch, commit hash, and title
+   - Shows stash statistics and diffs for selected branch
+   - Useful for managing WIP stashes across multiple branches
+
+The stash inspector helps visualize what's in stashes before restoring them.
+
+/Claude-haiku@4.5

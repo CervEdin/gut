@@ -1,0 +1,8 @@
+Examples:
+- 'git mark gone' -> defaults to '+' (creates +gone/branch)
+- 'git mark #gone' -> uses '#' (creates #gone/branch)
+- 'git mark @gone' -> uses '@' (creates @gone/branch)
+
+Deletion syntax: 'git mark -{mark}' (defaults tag to '+').
+
+/Claude-sonnet@4.5
