@@ -1,0 +1,13 @@
+Fixed git-fetch-ff to only operate on local tracking branches.
+
+Problem: The script was operating on all refs, including remote tracking branches
+(refs/remotes/). Fast-forward is not applicable to remote tracking branches since
+they're read-only mirrors of the remote.
+
+Solution: Added 'refs/heads/*' argument to git for-each-ref to restrict the query
+to local branches only. This excludes remote tracking branches from processing.
+
+This ensures the script only fast-forwards local branches that have configured
+upstream tracking, which is the intended use case.
+
+/Claude-haiku@4.5

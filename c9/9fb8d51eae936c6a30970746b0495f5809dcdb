@@ -1,0 +1,22 @@
+Added git-fetch-ff.sh: Fast-forward all local tracking branches from remote.
+
+Problem: Typical git fetch updates local tracking branches, but requires checking
+out branches to fast-forward the local branch to match remote. This is inefficient
+for updating multiple branches at once.
+
+Solution: Created git-fetch-ff utility that:
+- Lists all local branches and their tracking status relative to remote
+- Filters branches that are behind their remote (using sed on tracking status)
+- Uses awk to consolidate multiple remotes for the same branch
+- Invokes git fetch with appropriate remote references to fast-forward locally
+
+The script uses sophisticated text processing:
+- column -t for formatting reference info
+- sed to extract branches that are behind
+- awk to aggregate branches by remote
+- xargs to invoke git fetch with appropriate refs
+
+This allows fast-forwarding all branches without checking them out, similar to
+`git fetch --all` but operating on already-configured tracking branches.
+
+/Claude-haiku@4.5

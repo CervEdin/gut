@@ -1,0 +1,13 @@
+Fixed SHA pattern regex in git-delorean.
+
+Problem: The sed regex pattern /^[a-f,0-9]\{40\}/ incorrectly included comma (,)
+in the character class, which is not part of valid SHA-1 hashes (only hexadecimal
+a-f and 0-9).
+
+Solution: Changed pattern from [a-f,0-9] to [a-f0-9] to match only valid SHA
+characters.
+
+This ensures the regex correctly identifies SHA lines from git blame output
+without accidentally matching lines with commas.
+
+/Claude-haiku@4.5
