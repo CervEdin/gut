@@ -1,0 +1,68 @@
+TIG BUG REPRODUCTION TEST
+=======================
+
+This is a comprehensive test note to reproduce and document a potential tig bug.
+
+COMMIT MANAGEMENT SECTION
+This note is intentionally large to test how tig renders multi-page notes in the UI.
+The note should contain enough text to span approximately two A4 pages when printed or displayed.
+
+Key aspects being tested:
+- Note rendering in the commit view
+- Scrolling behavior within the note display
+- Text wrapping and line breaks
+- Special characters and formatting
+- Navigation while viewing notes
+
+SECTION 2: DETAILED INFORMATION
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+COMMIT WORKFLOW DETAILS
+1. Basic rendering: The note should display properly in the main commit view
+2. Scrolling: User should be able to scroll through the entire note
+3. Line wrapping: Long lines should wrap appropriately
+4. Navigation: Switching between commits should work smoothly
+5. Search: Note content should be searchable if tig supports it
+
+EXPECTED BEHAVIOR
+When viewing this commit in tig:
+- The commit diff should be visible (test_tig_bug.txt with seq 10)
+- The note should be accessible (likely via 'n' key or similar)
+- The note should render without truncation
+- Text should be readable and properly formatted
+- No UI glitches or rendering artifacts should occur
+
+ACTUAL BEHAVIOR (TO BE FILLED IN DURING TESTING)
+[This section will be filled in when testing with tig]
+
+Observations:
+- Visual glitches noted:
+- Navigation issues:
+- Performance problems:
+- Text rendering problems:
+
+REPRODUCTION STEPS
+1. Navigate to this commit in tig
+2. Press appropriate key to view notes (likely 'n' or similar)
+3. Attempt to scroll through the entire note
+4. Try navigating to other commits and back
+5. Observe any unusual behavior
+
+TECHNICAL DETAILS
+Commit: e107dc5
+Branch: wip/w27
+Test file: test_tig_bug.txt
+Note size: Approximately 2000+ characters
+Content type: Plain text with COMMIT-related content
+
+ADDITIONAL OBSERVATIONS
+This note contains the word COMMIT on multiple lines followed by other text (MANAGEMENT, WORKFLOW) to properly test
+whether tig has any parsing or rendering bugs related to COMMIT keywords in notes.
+
+CONCLUSION
+This test setup should help identify any bugs or issues with how tig handles notes containing COMMIT keywords,
+particularly around rendering, scrolling, and navigation.
+
+Generated for tig bug reproduction testing.

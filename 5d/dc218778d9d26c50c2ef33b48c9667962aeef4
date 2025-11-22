@@ -1,0 +1,12 @@
+Applied safer quoting practices and linting to git-delorean.
+
+Improved code quality and safety:
+- Added proper double quotes around variable expansions ("$revspec", "$working_tree_sha")
+- Split long command lines (xargs and git blame) for readability
+- Added blank line for visual separation
+- Used here-strings properly: <<< "$lines" moved to beginning of pipeline
+
+These changes follow shell best practices for quoting and reduce risk of word
+splitting issues with special characters in variables.
+
+/Claude-haiku@4.5

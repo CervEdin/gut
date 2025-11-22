@@ -1,0 +1,22 @@
+Added optional revspec parameter to git-delorean (defaults to HEAD).
+
+git-delorean can now accept a revspec argument to specify which commit to
+find parents for. If not provided, defaults to HEAD.
+
+Usage examples:
+- git delorean (analyzes HEAD)
+- git delorean my-branch (analyzes my-branch)
+- git delorean abc123 (analyzes specific commit)
+
+Makes the script more flexible for analyzing different commit histories.
+
+/Claude-haiku@4.5
+
+Improved readability of git-delorean xargs invocation.
+
+Split the xargs command arguments across multiple lines with proper indentation
+for better readability in git-delorean's git commit --fixup invocation.
+
+This is a style-only change that makes the pipeline easier to follow.
+
+/Claude-haiku@4.5

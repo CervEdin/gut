@@ -1,0 +1,6 @@
+Merge branch 'git-prune-local': Integrated gone branch listing refactoring.
+
+Merged git-prune-local branch that separated the listing logic from the deletion
+logic by creating git-gone-local as a standalone utility.
+
+/Claude-haiku@4.5

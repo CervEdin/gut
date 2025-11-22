@@ -1,0 +1,15 @@
+Made git-branch-status.sh accept custom ref patterns as arguments.
+
+Previously hardcoded to 'refs/heads', now accepts any ref pattern while
+defaulting to 'refs/heads' when no args provided.
+
+This enables useful workflows like:
+- 'git branch-status refs/remotes/origin/**' - show remote branch status
+- 'git branch-status refs/heads/feature/**' - show only feature branches
+- 'git branch-status refs/tags/**' - show tag information
+- 'git branch-status' - default behavior (local branches)
+
+The "$@" passes all arguments to git for-each-ref, supporting multiple
+patterns and full for-each-ref flexibility.
+
+/Claude-haiku@4.5
