@@ -1,6 +1,0 @@
-Merge branch 'resolve': Integrated git-resolve enhancements.
-
-Merged resolve branch containing stdin support and diff3 conflict marker
-improvements to git-resolve.
-
-/Claude-haiku@4.5
