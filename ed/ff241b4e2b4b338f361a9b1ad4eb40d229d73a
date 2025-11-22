@@ -1,6 +1,0 @@
-Removed debug flag from strict mode in git-delorean.
-
-Changed 'set -euox pipefail' to 'set -euo pipefail', removing the -x debug
-flag that was printing every command executed.
-
-/Claude-haiku@4.5

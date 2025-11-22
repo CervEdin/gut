@@ -1,8 +1,0 @@
-Added git-ignore.sh: Helper for managing .gitignore.
-
-Simple script that adds files to .gitignore and automatically sorts the
-file to maintain consistent ordering.
-
-Useful for quickly ignoring files/patterns without manual editing.
-
-/Claude-haiku@4.5

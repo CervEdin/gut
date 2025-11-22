@@ -1,9 +1,0 @@
-Created git-rebase-retag.sh script that updates tags during mebase:
-- Identifies which commits are being rebased
-- Moves tags that were on old commits to their new commit positions
-- Ensures tag references remain valid after rebase
-
-TODO: This should probably be configurable. Not even sure anymore this makes sense.
-Probably better to use branches for this purpose.
-
-/Claude-sonnet@4.5

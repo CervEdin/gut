@@ -1,9 +1,0 @@
-Added proper quoting to $COMMITS variable in git-delorean.
-
-Changed from single/no quotes to double quotes around the $COMMITS variable
-to properly handle filenames with spaces and special characters.
-
-Follows shell best practices for variable quoting to prevent word splitting
-and glob expansion.
-
-/Claude-haiku@4.5

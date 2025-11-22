@@ -1,6 +1,0 @@
-Added basic Makefile for initial project automation.
-
-Created first version of Makefile to automate script installation to ~/bin/.
-Handles finding git-*.sh files and copying them while removing the .sh extension.
-
-/Claude-haiku@4.5

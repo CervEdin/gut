@@ -1,6 +1,0 @@
-Merge branch 'git-resolve': Integrated resolved file output feature.
-
-Merged git-resolve branch with support for outputting resolved file names for
-pipeline usage.
-
-/Claude-haiku@4.5

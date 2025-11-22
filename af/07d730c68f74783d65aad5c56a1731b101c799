@@ -1,9 +1,0 @@
-Added --sparse flag to git add in git-resolve.
-
-Using the --sparse flag when staging resolved files. This was added to address
-warnings/issues encountered during testing when the flag was omitted.
-
-TODO note: Verify that --sparse is the best approach for this use case and
-ensure there are no side effects from using it.
-
-/Claude-haiku@4.5

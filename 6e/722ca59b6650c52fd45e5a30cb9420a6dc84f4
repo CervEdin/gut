@@ -1,9 +1,0 @@
-Removed strict mode (set -euo pipefail) from git-delorean.
-
-Removed the bash strict mode setting from git-delorean to allow the script to
-continue execution even if intermediate commands fail.
-
-This gives more control over error handling in the complex pipeline that involves
-git blame, rev-list, and xargs operations.
-
-/Claude-haiku@4.5

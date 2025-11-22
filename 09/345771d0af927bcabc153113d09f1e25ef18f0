@@ -1,6 +1,0 @@
-Merge branch 'git-pull-request-message': Integrated PR message generator.
-
-Merged the git-pull-request-message feature branch for generating Azure DevOps
-PR descriptions from commit logs.
-
-/Claude-haiku@4.5

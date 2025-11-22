@@ -1,7 +1,0 @@
-Merge branch 'git-ignore': Integrated case-insensitive sorting and deduplication.
-
-Merged git-ignore branch with --ignore-case and --unique sort flags to improve
-handling of duplicate and case-varied .gitignore entries. Includes conflict
-resolution from parallel development.
-
-/Claude-haiku@4.5

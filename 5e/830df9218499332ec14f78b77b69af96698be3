@@ -1,6 +1,0 @@
-Added 'make import' target for syncing from ~/bin/ to repo.
-
-New Makefile target to import scripts from ~/bin/ back to the repository,
-enabling roundtrip sync after editing installed scripts. Skips .git directory.
-
-/Claude-haiku@4.5

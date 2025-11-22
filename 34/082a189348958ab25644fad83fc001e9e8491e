@@ -1,6 +1,0 @@
-Updated Makefile to include .sed files in install target.
-
-Extended Makefile install logic to also handle .sed script files, not just
-.sh files. Uses pattern matching for any extension (1-4 chars).
-
-/Claude-haiku@4.5
