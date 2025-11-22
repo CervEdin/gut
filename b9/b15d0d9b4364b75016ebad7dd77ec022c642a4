@@ -1,0 +1,9 @@
+Renamed git-resolve to git-resolve.sh for consistency.
+
+Added .sh extension to explicitly mark the script as shell script, making it
+clear which scripts are shell-based vs other types.
+
+This standardizes the naming convention across the project (most scripts now
+have .sh extension).
+
+/Claude-haiku@4.5

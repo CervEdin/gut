@@ -1,0 +1,9 @@
+Merge branch 'git-pp': Integrated git-pp push helper.
+
+Merged the git-pp feature branch with:
+- Interactive push helper with preview
+- Force-push support
+- Immediate force-push option at first prompt
+- Error detection and recovery
+
+/Claude-haiku@4.5
