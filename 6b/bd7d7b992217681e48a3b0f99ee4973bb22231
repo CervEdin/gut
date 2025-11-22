@@ -1,0 +1,14 @@
+Added committerdate to git-branch-status output for better branch visibility.
+
+The committerdate:short format shows when each branch was last committed to,
+helping identify:
+- Stale branches that haven't been updated recently
+- Active branches with recent commits
+- When to clean up old feature branches
+
+Output now shows: branch name | commit date | tracking status | remote name
+
+This complements the existing --sort='committerdate' to display branches in
+chronological order with their dates visible, making branch management easier.
+
+/Claude-haiku@4.5

@@ -13,3 +13,22 @@ This allows git-fetch-ff to handle the edge case of local branches with local
 upstreams, though the author notes these might be worth excluding entirely.
 
 /Claude-haiku@4.5
+
+Fixed git-fetch-ff regression with remote ref formatting.
+
+Problem: Previous commit changed upstream reference format to %(upstream) which
+includes the full refs/remotes/origin/branch format. However, git fetch expects
+just the branch name when the remote is specified explicitly.
+
+For example:
+  Wrong: git fetch origin refs/remotes/origin/branch:branch
+  Right: git fetch origin branch:branch
+
+Solution: Changed format string from %(upstream) to %(upstream:remoteref) which
+provides just the remote branch name without the refs/remotes/ prefix, allowing
+proper git fetch invocations.
+
+This is marked as a fixup commit for commit 0120 that fixes the regression it
+introduced.
+
+/Claude-haiku@4.5
