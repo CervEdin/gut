@@ -19,9 +19,9 @@ fi
 
 # Get the local and remote branch references
 {
-	read -r local;
-	read -r remote;
+	read -r local_ref;
+	read -r remote_ref;
 } < <(git rev-parse --abbrev-ref --symbolic-full-name "$target" "$target"'@{upstream}')
 
-git push --delete "${remote%%/*}" "${remote#*/}" &&
-	git branch -D "$local"
+git push --delete "${remote_ref%%/*}" "${remote_ref#*/}" &&
+	git branch -D "$local_ref"
