@@ -1,6 +1,0 @@
-Merge branch 'git-find-files': Integrated file search across refs utility.
-
-Merged git-find-files branch with the new utility for searching files across
-all git references and sorting by author date.
-
-/Claude-haiku@4.5
