@@ -1,0 +1,16 @@
+Added pipefail to all bash scripts' strict mode.
+
+Updated scripts to use 'set -euo pipefail' instead of 'set -euo' or 'set -eu'.
+
+Affected scripts:
+- git-env.sh
+- git-mark.sh
+- git-pp.sh
+- git-stash-drop-range.sh
+
+Note: This may break things in some scripts with pipefail enabled.
+
+/Claude-haiku@4.5
+
+Again. Some of this is redundant.
+I think I reverted on the pipefail decision.

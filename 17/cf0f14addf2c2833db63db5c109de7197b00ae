@@ -1,0 +1,12 @@
+Fixed shellcheck warnings about read without -r flag (SC2162).
+
+Added -r flag to all read commands in:
+- git-delete-both.sh
+- git-mebase.sh
+- git-rebase-retag.sh
+
+The -r flag prevents read from interpreting backslash escape sequences, which
+can mangle backslashes in input. This is important for handling file paths and
+other data that may contain backslashes.
+
+/Claude-haiku@4.5

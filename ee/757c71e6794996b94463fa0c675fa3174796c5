@@ -1,0 +1,9 @@
+Made git-ignore case-insensitive sorting.
+
+Changed sort flag from -n (numeric) to -n -i (numeric and ignore-case) to ensure
+.gitignore entries are sorted case-insensitively.
+
+This means entries like "Foo" and "foo" are treated as equivalent during sorting,
+preventing duplicates when the same pattern appears with different casing.
+
+/Claude-haiku@4.5
