@@ -1,8 +1,7 @@
 #!/bin/bash
 
-git_root=$(git rev-parse --show-toplevel)
-cd "$git_root"
-staged=$(git diff --name-only --cached --diff-filter=M)
+staged=$(git diff --name-only --relative --cached --diff-filter=M)
+
 revspec="${1:-HEAD}"
 working_tree_sha=$(git stash create)
 #TODO: replace with git restore?
@@ -30,16 +29,27 @@ for file in $staged; do
 					}}'
 	)
 	commits=$(
-		xargs --verbose -I% git blame --incremental  -L % $revspec -- "$file" <<< "$lines" |\
-			sed -n '/^[a-f,0-9]\{40\} /{s@ .*@@;p}' |\
-			awk '{ a[$1]++ } END { for (b in a) { print b }}'
+		<<< "$lines" \
+		xargs \
+			--verbose \
+			-I% \
+				git blame \
+					--incremental  \
+					-L \
+					% \
+					"$revspec" \
+					-- \
+					"$file" |\
+			awk \
+			-e '/^[a-f0-9]{40} /{ a[$1]++ }' \
+			-e ' END { for (b in a) { print b }}'
 	)
-	git rev-list --topo-order $revspec |\
+	git rev-list --topo-order "$revspec" |\
 		{ grep "$commits" || test $? = 1; } |\
-		head -1 |\
+		head -n 1 |\
 		xargs \
 			--replace=first_parent \
 				git commit --fixup first_parent -- "$file"
 done
 
-git stash apply $working_tree_sha --index
+git stash apply "$working_tree_sha" --index
