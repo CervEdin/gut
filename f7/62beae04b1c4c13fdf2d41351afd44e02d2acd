@@ -1,6 +1,0 @@
-Merge branch 'git-fetch-ff': Integrated local upstream handling.
-
-Merged git-fetch-ff branch with fix for branches that have local upstream
-tracking configurations.
-
-/Claude-haiku@4.5
