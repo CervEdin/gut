@@ -13,3 +13,13 @@ The "$@" passes all arguments to git for-each-ref, supporting multiple
 patterns and full for-each-ref flexibility.
 
 /Claude-haiku@4.5
+
+Converted indentation from tabs to spaces in git-branch-status.sh.
+
+Changed continuation lines in the git for-each-ref command from tab indentation
+to 4-space indentation for consistency and improved readability.
+
+This is a style-only change with no functional impact. Using spaces instead of
+tabs is the modern standard in many codebases for script files.
+
+/Claude-haiku@4.5
