@@ -1,6 +1,0 @@
-Merge branch 'search-replace': Integrated parameter expansion and bash compat fixes.
-
-Merged search-replace branch containing the shebang change to /bin/bash for Git
-for Windows compatibility and improved parameter expansion for cleaner code.
-
-/Claude-haiku@4.5
