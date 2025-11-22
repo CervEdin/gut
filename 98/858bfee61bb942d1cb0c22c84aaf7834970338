@@ -1,6 +1,0 @@
-Merge branch 'fetch-ff': Integrated remote/local branch separation logic.
-
-Merged fetch-ff branch with improved handling of multiple local branches tracking
-the same remote branch and nested branch support.
-
-/Claude-haiku@4.5
