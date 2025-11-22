@@ -1,0 +1,8 @@
+Deletion syntax: Use `git mark -{mark-name}` to remove a mark (prefix the mark
+name with `-`).
+
+TODO:
+- What chars are valid? The script help should probably list them. Also, we
+  should probably not allow -, even if supported.
+
+/Claude-sonnet@4.5

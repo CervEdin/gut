@@ -1,0 +1,27 @@
+Added comprehensive script overview to README.
+
+Expanded the README.md documentation by adding an Overview section that lists all
+available gut scripts with brief one-line descriptions of what each script does:
+- git arch (archive tag management)
+- git branch-status (local branch status)
+- git delete-both (branch and remote deletion)
+- git delorean (fixup commits from staged changes)
+- git env (git environment sourcing)
+- git fetch-ff (fast-forward tracking branches)
+- git gone-local (list gone remotes)
+- git ignore (manage .gitignore)
+- git mark (mark branches)
+- git mebase (interactive rebase helper)
+- git parents (list parent refs)
+- git push-interactive (interactive push)
+- git prune-local (prune gone branches)
+- git pull-request-message (PR message generation)
+- git rebase-indent (rebase todo indentation)
+- git rebase-retag (tag updates during rebase)
+- git resolve (merge conflict resolution)
+- git search-replace (find and replace)
+- git stash-drop-range (drop stash range)
+
+This provides users with a quick reference of available scripts and their purposes.
+
+/Claude-haiku@4.5

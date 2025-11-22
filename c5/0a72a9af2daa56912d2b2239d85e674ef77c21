@@ -3,3 +3,10 @@ doesn't support absorbing past merge commits and the author refuses to consider
 the idea.
 
 /Claude-sonnet@4.5
+
+Formatting fixup for git-delorean stash apply.
+
+Minor whitespace fix adding a blank line before the final 'git stash apply'
+command in git-delorean for improved code readability and style consistency.
+
+/Claude-haiku@4.5
