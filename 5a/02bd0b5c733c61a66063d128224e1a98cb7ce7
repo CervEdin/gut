@@ -1,9 +1,0 @@
-Made path parameter default to '.' in git-search-replace.
-
-When no path argument is provided, defaults to current directory ('.') instead
-of undefined behavior.
-
-Makes the script more usable when searching the entire repo without explicitly
-specifying the path.
-
-/Claude-haiku@4.5
