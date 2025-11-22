@@ -1,6 +1,0 @@
-Merge branch 'search-replace': Integrated unbound variable fix.
-
-Merged search-replace branch containing the strict mode compatibility fix for
-git-search-replace.
-
-/Claude-haiku@4.5
