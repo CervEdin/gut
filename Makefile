@@ -1,6 +1,6 @@
 NAME=gut
 VERSION=0.0.1
-files=$(wildcard *.sh *.sed)
+files=$(wildcard *.sh *.sed *.py)
 shell_files=$(wildcard *.sh)
 md_files:=$(shell git ls-files -co --exclude-standard '*.md')
 py_files:=$(shell git ls-files -co --exclude-standard '*.py')
@@ -21,6 +21,9 @@ bin/%.sh : %.sh | bin
 	cp $< $@
 
 bin/%.sed : %.sed | bin
+	cp $< $@
+
+bin/%.py : %.py | bin
 	cp $< $@
 
 $(INSTALL_DIR):; mkdir -p $(INSTALL_DIR)
@@ -46,6 +49,10 @@ $(INSTALL_DIR)/%.sh : bin/%.sh | $(INSTALL_DIR)
 	chmod +x $@
 
 $(INSTALL_DIR)/%.sed : bin/%.sed | $(INSTALL_DIR)
+	cp $< $@
+	chmod +x $@
+
+$(INSTALL_DIR)/%.py : bin/%.py | $(INSTALL_DIR)
 	cp $< $@
 	chmod +x $@
 
