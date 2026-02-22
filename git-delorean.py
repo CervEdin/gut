@@ -14,6 +14,7 @@ import argparse
 import re
 import subprocess
 import sys
+from collections.abc import Iterator
 
 
 def parse_args() -> argparse.Namespace:
@@ -160,9 +161,10 @@ def find_earliest_ancestor(commits: set[str], topo_target: str) -> str:
     raise ValueError(f"none of the given commits are ancestors of {topo_target}")
 
 
-def main(
-    revspec: str, *, staged: bool = False, fixup: bool = False, null: bool = False
-) -> None:
+def resolve_blame_targets(
+    revspec: str, *, staged: bool = False
+) -> Iterator[tuple[str, str, str]]:
+    """Yield (new_path, old_path, target_sha) for each file with a fixup target."""
     blame_target = revspec if staged else f"{revspec}^"
 
     file_pairs = find_modified_files(revspec, staged=staged)
@@ -173,48 +175,64 @@ def main(
             print(f"No file changes found in {revspec}.", file=sys.stderr)
         return
 
-    if fixup:
-        # Stash dance: isolate the index for committing
-        working_tree_sha = run("git", "stash", "create")
-        run("git", "stash", "--keep-index")
+    for new_path, old_path in file_pairs:
+        ranges = parse_diff_line_ranges(new_path, old_path, revspec, staged=staged)
+        if not ranges:
+            continue
 
+        commits = blame_commits(old_path, ranges, blame_target)
+        if not commits:
+            continue
+
+        target = find_earliest_ancestor(commits, blame_target)
+        display = f"{old_path} => {new_path}" if old_path != new_path else new_path
+        if not target:
+            print(
+                f"Warning: no ancestor commit found for {display}, skipping.",
+                file=sys.stderr,
+            )
+            continue
+
+        yield new_path, old_path, target
+
+
+def analyze(revspec: str, *, staged: bool = False, null: bool = False) -> None:
+    """Print fixup targets to stdout."""
+    for new_path, old_path, target in resolve_blame_targets(revspec, staged=staged):
+        display = f"{old_path} => {new_path}" if old_path != new_path else new_path
+        fmt = "%h%x00%s" if null else "%h%x09%s"
+        info = run(
+            "git",
+            "rev-list",
+            "--max-count=1",
+            "--no-commit-header",
+            f"--format={fmt}",
+            target,
+        )
+        sep = "\0" if null else "\t"
+        end = "\0" if null else "\n"
+        sys.stdout.write(f"{display}{sep}{info}{end}")
+
+
+def create_fixups(revspec: str) -> None:
+    """Create fixup commits for staged changes."""
+    working_tree_sha = run("git", "stash", "create")
+    run("git", "stash", "--keep-index")
     try:
-        for new_path, old_path in file_pairs:
-            ranges = parse_diff_line_ranges(new_path, old_path, revspec, staged=staged)
-            if not ranges:
-                continue
-
-            commits = blame_commits(old_path, ranges, blame_target)
-            if not commits:
-                continue
-
-            target = find_earliest_ancestor(commits, blame_target)
-            display = f"{old_path} => {new_path}" if old_path != new_path else new_path
-            if not target:
-                print(
-                    f"Warning: no ancestor commit found for {display}, skipping.",
-                    file=sys.stderr,
-                )
-                continue
-
-            if fixup:
-                run("git", "commit", "--fixup", target, "--", new_path)
-            else:
-                fmt = "%h%x00%s" if null else "%h%x09%s"
-                info = run(
-                    "git",
-                    "rev-list",
-                    "--max-count=1",
-                    "--no-commit-header",
-                    f"--format={fmt}",
-                    target,
-                )
-                sep = "\0" if null else "\t"
-                end = "\0" if null else "\n"
-                sys.stdout.write(f"{display}{sep}{info}{end}")
+        for new_path, _old_path, target in resolve_blame_targets(revspec, staged=True):
+            run("git", "commit", "--fixup", target, "--", new_path)
     finally:
-        if fixup and working_tree_sha:
+        if working_tree_sha:
             run("git", "stash", "apply", working_tree_sha, "--index", check=False)
+
+
+def main(
+    revspec: str, *, staged: bool = False, fixup: bool = False, null: bool = False
+) -> None:
+    if fixup:
+        create_fixups(revspec)
+    else:
+        analyze(revspec, staged=staged, null=null)
 
 
 if __name__ == "__main__":
