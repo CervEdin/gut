@@ -56,28 +56,63 @@ def run(*args: str, check: bool = True) -> str:
     return result.stdout.strip()
 
 
-def find_modified_files(revspec: str, *, staged: bool = False) -> list[str]:
-    """Discover which files were modified in the given revspec."""
+def _parse_name_status_z(raw: str) -> list[tuple[str, str]]:
+    """Parse NUL-separated `git diff --name-status -z` output.
+
+    Format: M\0path\0  or  Rnnn\0old\0new\0
+    """
+    it = iter(raw.split("\0"))
+    result: list[tuple[str, str]] = []
+    for status in it:
+        if status == "M":
+            path = next(it)
+            result.append((path, path))
+        elif status.startswith("R"):
+            old, new = next(it), next(it)
+            result.append((new, old))
+    return result
+
+
+def find_modified_files(revspec: str, *, staged: bool = False) -> list[tuple[str, str]]:
+    """Discover which files were modified or renamed in the given revspec.
+
+    Returns (new_path, old_path) tuples.  For plain modifications both paths
+    are identical; for renames they differ.
+    """
+    args = [
+        "git",
+        "diff",
+        "--name-status",
+        "-z",
+        "--relative",
+        "-M",
+        "--diff-filter=MR",
+    ]
     if staged:
-        output = run(
-            "git", "diff", "--name-only", "--relative", "--cached", "--diff-filter=M"
-        )
+        output = run(*base, "--cached")
     else:
-        output = run(
-            "git", "diff", "--name-only", "--relative", "--diff-filter=M", f"{revspec}^", revspec
-        )
-    return output.splitlines() if output else []
+        output = run(*base, f"{revspec}^", revspec)
+    if not output:
+        return []
+    return _parse_name_status_z(output)
 
 
-def parse_diff_line_ranges(file: str, revspec: str, *, staged: bool = False) -> list[str]:
+def parse_diff_line_ranges(
+    new_path: str, old_path: str, revspec: str, *, staged: bool = False
+) -> list[str]:
     """Parse `git diff` output to extract changed line ranges in the old file.
 
     Returns ranges like ["10,15", "20,20"] for use with `git blame -L`.
     """
+    # Both paths must appear in the pathspec so -M can detect renames.
     if staged:
-        diff_output = run("git", "diff", "-U0", "--cached", revspec, "--", file)
+        diff_output = run(
+            "git", "diff", "-U0", "-M", "--cached", "--", old_path, new_path
+        )
     else:
-        diff_output = run("git", "diff", "-U0", f"{revspec}^", revspec, "--", file)
+        diff_output = run(
+            "git", "diff", "-U0", "-M", f"{revspec}^", revspec, "--", old_path, new_path
+        )
     ranges = []
     for line in diff_output.splitlines():
         m = re.match(r"^@@ -(\d+)(?:,(\d+))? \+", line)
@@ -125,11 +160,13 @@ def find_earliest_ancestor(commits: set[str], topo_target: str) -> str:
     raise ValueError(f"none of the given commits are ancestors of {topo_target}")
 
 
-def main(revspec: str, *, staged: bool = False, fixup: bool = False, null: bool = False) -> None:
+def main(
+    revspec: str, *, staged: bool = False, fixup: bool = False, null: bool = False
+) -> None:
     blame_target = revspec if staged else f"{revspec}^"
 
-    files = find_modified_files(revspec, staged=staged)
-    if not files:
+    file_pairs = find_modified_files(revspec, staged=staged)
+    if not file_pairs:
         if staged:
             print("No fixup targets found in staged changes.", file=sys.stderr)
         else:
@@ -142,31 +179,39 @@ def main(revspec: str, *, staged: bool = False, fixup: bool = False, null: bool 
         run("git", "stash", "--keep-index")
 
     try:
-        for file in files:
-            ranges = parse_diff_line_ranges(file, revspec, staged=staged)
+        for new_path, old_path in file_pairs:
+            ranges = parse_diff_line_ranges(new_path, old_path, revspec, staged=staged)
             if not ranges:
                 continue
 
-            commits = blame_commits(file, ranges, blame_target)
+            commits = blame_commits(old_path, ranges, blame_target)
             if not commits:
                 continue
 
             target = find_earliest_ancestor(commits, blame_target)
+            display = f"{old_path} => {new_path}" if old_path != new_path else new_path
             if not target:
                 print(
-                    f"Warning: no ancestor commit found for {file}, skipping.",
+                    f"Warning: no ancestor commit found for {display}, skipping.",
                     file=sys.stderr,
                 )
                 continue
 
             if fixup:
-                run("git", "commit", "--fixup", target, "--", file)
+                run("git", "commit", "--fixup", target, "--", new_path)
             else:
                 fmt = "%h%x00%s" if null else "%h%x09%s"
-                info = run("git", "rev-list", "--max-count=1", "--no-commit-header", f"--format={fmt}", target)
+                info = run(
+                    "git",
+                    "rev-list",
+                    "--max-count=1",
+                    "--no-commit-header",
+                    f"--format={fmt}",
+                    target,
+                )
                 sep = "\0" if null else "\t"
                 end = "\0" if null else "\n"
-                sys.stdout.write(f"{file}{sep}{info}{end}")
+                sys.stdout.write(f"{display}{sep}{info}{end}")
     finally:
         if fixup and working_tree_sha:
             run("git", "stash", "apply", working_tree_sha, "--index", check=False)

@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# Integration tests for git-delorean.py
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DELOREAN="$SCRIPT_DIR/../git-delorean.py"
+
+TMPDIR_ROOT="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_ROOT"' EXIT
+
+setup_repo() {
+    local dir="$TMPDIR_ROOT/$1"
+    mkdir -p "$dir"
+    git -C "$dir" init -q
+    git -C "$dir" config user.email "test@test.com"
+    git -C "$dir" config user.name "Test"
+    echo "$dir"
+}
+
+fail=0
+
+# --- Test 1: Rename + content change (staged) ---
+echo -n "rename + content change (staged) ... "
+repo="$(setup_repo t1)"
+printf "line one\nline two\nline three\nline four\n" > "$repo/old.txt"
+git -C "$repo" add old.txt
+git -C "$repo" commit -q -m "initial"
+mv "$repo/old.txt" "$repo/new.txt"
+printf "line one\nline two MODIFIED\nline three\nline four\n" > "$repo/new.txt"
+git -C "$repo" add old.txt new.txt
+output="$(cd "$repo" && python3 "$DELOREAN" --staged 2>/dev/null)" || true
+if echo "$output" | grep -q "old.txt => new.txt"; then
+    echo "OK"
+else
+    echo "FAIL: $output"
+    fail=1
+fi
+
+# --- Test 2: Pure modification (staged) ---
+echo -n "pure modification (staged) ... "
+repo="$(setup_repo t2)"
+echo "line one" > "$repo/file.txt"
+git -C "$repo" add file.txt
+git -C "$repo" commit -q -m "initial"
+echo "line one modified" > "$repo/file.txt"
+git -C "$repo" add file.txt
+output="$(cd "$repo" && python3 "$DELOREAN" --staged 2>/dev/null)" || true
+if echo "$output" | grep -q "file.txt" && ! echo "$output" | grep -q "=>"; then
+    echo "OK"
+else
+    echo "FAIL: $output"
+    fail=1
+fi
+
+# --- Test 3: Pure rename, no content change (staged) ---
+echo -n "pure rename, no content (staged) ... "
+repo="$(setup_repo t3)"
+printf "line one\nline two\nline three\nline four\n" > "$repo/old.txt"
+git -C "$repo" add old.txt
+git -C "$repo" commit -q -m "initial"
+git -C "$repo" mv old.txt new.txt
+output="$(cd "$repo" && python3 "$DELOREAN" --staged 2>/dev/null)" || true
+if [ -z "$output" ]; then
+    echo "OK"
+else
+    echo "FAIL: $output"
+    fail=1
+fi
+
+# --- Test 4: Rename + content change (committed) ---
+echo -n "rename + content change (committed) ... "
+repo="$(setup_repo t4)"
+printf "line one\nline two\nline three\nline four\n" > "$repo/old.txt"
+git -C "$repo" add old.txt
+git -C "$repo" commit -q -m "initial"
+mv "$repo/old.txt" "$repo/new.txt"
+printf "line one\nline two MODIFIED\nline three\nline four\n" > "$repo/new.txt"
+git -C "$repo" add old.txt new.txt
+git -C "$repo" commit -q -m "rename with edits"
+output="$(cd "$repo" && python3 "$DELOREAN" HEAD 2>/dev/null)" || true
+if echo "$output" | grep -q "old.txt => new.txt"; then
+    echo "OK"
+else
+    echo "FAIL: $output"
+    fail=1
+fi
+
+exit "$fail"
