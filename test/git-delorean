@@ -85,4 +85,50 @@ else
     fail=1
 fi
 
+# --- Test 5: Range B..C targets B ---
+echo -n "range B..C targets B ... "
+repo="$(setup_repo t5)"
+printf "line one\nline two\nline three\nline four\n" > "$repo/file.txt"
+git -C "$repo" add file.txt
+git -C "$repo" commit -q -m "A: initial"
+printf "line one\nline two MODIFIED\nline three\nline four\n" > "$repo/file.txt"
+git -C "$repo" add file.txt
+git -C "$repo" commit -q -m "B: modify line two"
+B="$(git -C "$repo" rev-parse HEAD)"
+printf "line one\nline two AGAIN\nline three\nline four\n" > "$repo/file.txt"
+git -C "$repo" add file.txt
+git -C "$repo" commit -q -m "C: modify line two again"
+C="$(git -C "$repo" rev-parse HEAD)"
+output="$(cd "$repo" && python3 "$DELOREAN" "$B..$C" 2>/dev/null)" || true
+B_short="$(git -C "$repo" rev-parse --short "$B")"
+if echo "$output" | grep -q "$B_short"; then
+    echo "OK"
+else
+    echo "FAIL: expected target $B_short, got: $output"
+    fail=1
+fi
+
+# --- Test 6: Range A..C targets A ---
+echo -n "range A..C targets A ... "
+repo="$(setup_repo t6)"
+printf "line one\nline two\nline three\nline four\n" > "$repo/file.txt"
+git -C "$repo" add file.txt
+git -C "$repo" commit -q -m "A: initial"
+A="$(git -C "$repo" rev-parse HEAD)"
+printf "line one\nline two MODIFIED\nline three\nline four\n" > "$repo/file.txt"
+git -C "$repo" add file.txt
+git -C "$repo" commit -q -m "B: modify line two"
+printf "line one\nline two AGAIN\nline three\nline four\n" > "$repo/file.txt"
+git -C "$repo" add file.txt
+git -C "$repo" commit -q -m "C: modify line two again"
+C="$(git -C "$repo" rev-parse HEAD)"
+output="$(cd "$repo" && python3 "$DELOREAN" "$A..$C" 2>/dev/null)" || true
+A_short="$(git -C "$repo" rev-parse --short "$A")"
+if echo "$output" | grep -q "$A_short"; then
+    echo "OK"
+else
+    echo "FAIL: expected target $A_short, got: $output"
+    fail=1
+fi
+
 exit "$fail"
