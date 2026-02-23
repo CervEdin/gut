@@ -125,10 +125,10 @@ def find_modified_files(
 
 def parse_diff_line_ranges(
     new_path: str, old_path: str, diff_range: str, *, staged: bool = False
-) -> list[str]:
+) -> list[tuple[int, int]]:
     """Parse `git diff` output to extract changed line ranges in the old file.
 
-    Returns ranges like ["10,15", "20,20"] for use with `git blame -L`.
+    Returns (start, end) tuples for use with `git blame -L`.
     """
     # Both paths must appear in the pathspec so -M can detect renames.
     if staged:
@@ -139,7 +139,7 @@ def parse_diff_line_ranges(
         diff_output = run(
             "git", "diff", "-U0", "-M", diff_range, "--", old_path, new_path
         )
-    ranges = []
+    ranges: list[tuple[int, int]] = []
     for line in diff_output.splitlines():
         m = re.match(r"^@@ -(\d+)(?:,(\d+))? \+", line)
         if not m:
@@ -149,17 +149,19 @@ def parse_diff_line_ranges(
         # BUG (carried over): When there are only adds (@@ -XX,0 +YY,x)
         # the first line will be XX. It should probably be YY + x.
         if count == 0:
-            ranges.append(f"{start},{start}")
+            ranges.append((start, start))
         else:
-            ranges.append(f"{start},{start + count - 1}")
+            ranges.append((start, start + count - 1))
     return ranges
 
 
-def blame_commits(file: str, ranges: list[str], blame_target: str) -> set[str]:
+def blame_commits(
+    file: str, ranges: list[tuple[int, int]], blame_target: str
+) -> set[str]:
     """Run `git blame --incremental` with all ranges and collect unique commit SHAs."""
     cmd = ["git", "blame", "--incremental"]
-    for r in ranges:
-        cmd += ["-L", r]
+    for start, end in ranges:
+        cmd += ["-L", f"{start},{end}"]
     cmd += [blame_target, "--", file]
     output = run(*cmd, check=False)
     commits: set[str] = set()
