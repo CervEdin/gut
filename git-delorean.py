@@ -61,11 +61,12 @@ def run(*args: str, check: bool = True) -> str:
     return result.stdout.strip()
 
 
-def resolve_revspec(revspec: str) -> tuple[str, str]:
-    """Resolve a revspec into (blame_target, diff_range).
+def resolve_revspec(revspec: str) -> tuple[str, str, str]:
+    """Resolve a revspec into (blame_target, diff_base, diff_head).
 
     The blame_target is the left side of the range — the tree state
-    before the changes. The diff_range is passed to git-diff.
+    before the changes. diff_base and diff_head are explicit SHAs
+    passed to plumbing diff commands.
     """
     parsed = run("git", "rev-parse", revspec).splitlines()
     excluded = [line[1:] for line in parsed if line.startswith("^")]
@@ -74,10 +75,11 @@ def resolve_revspec(revspec: str) -> tuple[str, str]:
             f"revspec '{revspec}' resolves to multiple excluded refs (unsupported)"
         )
     if excluded:
-        return excluded[0], revspec
+        included = [line for line in parsed if not line.startswith("^")]
+        return excluded[0], excluded[0], included[0]
     else:
         sha = parsed[0]
-        return f"{sha}^", f"{sha}^..{sha}"
+        return f"{sha}^", f"{sha}^", sha
 
 
 def _parse_name_status_z(raw: str) -> list[tuple[str, str]]:
@@ -98,7 +100,7 @@ def _parse_name_status_z(raw: str) -> list[tuple[str, str]]:
 
 
 def find_modified_files(
-    diff_range: str, *, staged: bool = False
+    diff_base: str, diff_head: str, *, staged: bool = False
 ) -> list[tuple[str, str]]:
     """Discover which files were modified or renamed in the given diff range.
 
@@ -107,7 +109,8 @@ def find_modified_files(
     """
     args = [
         "git",
-        "diff",
+        "diff-index" if staged else "diff-tree",
+        "-r",
         "--name-status",
         "-z",
         "--relative",
@@ -115,30 +118,32 @@ def find_modified_files(
         "--diff-filter=MR",
     ]
     if staged:
-        output = run(*base, "--cached")
+        output = run(*args, "--cached", diff_head)
     else:
-        output = run(*base, diff_range)
+        output = run(*args, diff_base, diff_head)
     if not output:
         return []
     return _parse_name_status_z(output)
 
 
 def parse_diff_line_ranges(
-    new_path: str, old_path: str, diff_range: str, *, staged: bool = False
+    new_path: str,
+    old_path: str,
+    diff_base: str,
+    diff_head: str,
+    *,
+    staged: bool = False,
 ) -> list[tuple[int, int]]:
-    """Parse `git diff` output to extract changed line ranges in the old file.
+    """Parse diff output to extract changed line ranges in the old file.
 
     Returns (start, end) tuples for use with `git blame -L`.
     """
     # Both paths must appear in the pathspec so -M can detect renames.
+    base = ["git", "diff-index" if staged else "diff-tree", "-r", "-U0", "-M"]
     if staged:
-        diff_output = run(
-            "git", "diff", "-U0", "-M", "--cached", "--", old_path, new_path
-        )
+        diff_output = run(*base, "--cached", diff_head, "--", old_path, new_path)
     else:
-        diff_output = run(
-            "git", "diff", "-U0", "-M", diff_range, "--", old_path, new_path
-        )
+        diff_output = run(*base, diff_base, diff_head, "--", old_path, new_path)
     ranges: list[tuple[int, int]] = []
     for line in diff_output.splitlines():
         m = re.match(r"^@@ -(\d+)(?:,(\d+))? \+", line)
@@ -194,11 +199,12 @@ def resolve_blame_targets(
     """Yield (new_path, old_path, target_sha) for each file with a fixup target."""
     if staged:
         blame_target = revspec
-        diff_range = revspec
+        diff_base = revspec
+        diff_head = revspec
     else:
-        blame_target, diff_range = resolve_revspec(revspec)
+        blame_target, diff_base, diff_head = resolve_revspec(revspec)
 
-    file_pairs = find_modified_files(diff_range, staged=staged)
+    file_pairs = find_modified_files(diff_base, diff_head, staged=staged)
     if not file_pairs:
         if staged:
             print("No fixup targets found in staged changes.", file=sys.stderr)
@@ -207,7 +213,9 @@ def resolve_blame_targets(
         return
 
     for new_path, old_path in file_pairs:
-        ranges = parse_diff_line_ranges(new_path, old_path, diff_range, staged=staged)
+        ranges = parse_diff_line_ranges(
+            new_path, old_path, diff_base, diff_head, staged=staged
+        )
         if not ranges:
             continue
 
