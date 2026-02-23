@@ -16,6 +16,9 @@ import subprocess
 import sys
 from collections.abc import Iterator
 
+_RAW_STATUS_RE = re.compile(r":\d{6} \d{6} [a-f0-9]+ [a-f0-9]+ (M|R\d+)")
+_HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+")
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -82,82 +85,83 @@ def resolve_revspec(revspec: str) -> tuple[str, str, str]:
         return f"{sha}^", f"{sha}^", sha
 
 
-def _parse_name_status_z(raw: str) -> list[tuple[str, str]]:
-    """Parse NUL-separated `git diff --name-status -z` output.
-
-    Format: M\0path\0  or  Rnnn\0old\0new\0
-    """
+def _parse_raw_header(raw: str) -> list[tuple[str, str]]:
+    """Parse the raw section of ``--patch-with-raw -z`` output into file pairs."""
     it = iter(raw.split("\0"))
     result: list[tuple[str, str]] = []
-    for status in it:
-        if status == "M":
-            path = next(it)
-            result.append((path, path))
-        elif status.startswith("R"):
-            old, new = next(it), next(it)
-            result.append((new, old))
+    for token in it:
+        m = _RAW_STATUS_RE.match(token)
+        if not m:
+            continue
+        match m.group(1):
+            case "M":
+                path = next(it)
+                result.append((path, path))
+            case s if s.startswith("R"):
+                old, new = next(it), next(it)
+                result.append((new, old))
+            case other:
+                raise ValueError(f"unexpected diff status: {other!r}")
     return result
 
 
-def find_modified_files(
-    diff_base: str, diff_head: str, *, staged: bool = False
-) -> list[tuple[str, str]]:
-    """Discover which files were modified or renamed in the given diff range.
+def _parse_hunk_ranges(diff_chunk: str) -> list[tuple[int, int]]:
+    """Extract ``(start, end)`` line ranges from ``@@`` headers in a diff chunk."""
+    ranges: list[tuple[int, int]] = []
+    for line in diff_chunk.splitlines():
+        m = _HUNK_RE.match(line)
+        if not m:
+            continue
+        start = int(m.group(1))
+        count = int(m.group(2)) if m.group(2) is not None else 1
+        if count == 0:
+            ranges.append((start, start))
+        else:
+            ranges.append((start, start + count - 1))
+    return ranges
 
-    Returns (new_path, old_path) tuples.  For plain modifications both paths
-    are identical; for renames they differ.
+
+def diff_line_ranges(
+    diff_base: str, diff_head: str, *, staged: bool = False
+) -> dict[tuple[str, str], list[tuple[int, int]]]:
+    """Run a single diff and return changed line ranges keyed by file pair.
+
+    Uses ``--patch-with-raw -z`` so the raw section gives us unambiguous
+    NUL-separated paths while the patch section provides ``@@`` hunk headers.
+
+    Returns a dict keyed by ``(new_path, old_path)`` with ``(start, end)``
+    tuples suitable for ``git blame -L``.
     """
     args = [
         "git",
         "diff-index" if staged else "diff-tree",
         "-r",
-        "--name-status",
+        "--patch-with-raw",
         "-z",
         "--relative",
         "-M",
         "--diff-filter=MR",
+        "-U0",
     ]
     if staged:
         output = run(*args, "--cached", diff_head)
     else:
         output = run(*args, diff_base, diff_head)
     if not output:
-        return []
-    return _parse_name_status_z(output)
+        return {}
 
+    parts = output.split("\0\0", 1)
+    if len(parts) != 2:
+        return {}
+    header, patch = parts
 
-def parse_diff_line_ranges(
-    new_path: str,
-    old_path: str,
-    diff_base: str,
-    diff_head: str,
-    *,
-    staged: bool = False,
-) -> list[tuple[int, int]]:
-    """Parse diff output to extract changed line ranges in the old file.
+    file_pairs = _parse_raw_header(header)
+    file_diffs = patch.split("diff --git ")[1:]
 
-    Returns (start, end) tuples for use with `git blame -L`.
-    """
-    # Both paths must appear in the pathspec so -M can detect renames.
-    base = ["git", "diff-index" if staged else "diff-tree", "-r", "-U0", "-M"]
-    if staged:
-        diff_output = run(*base, "--cached", diff_head, "--", old_path, new_path)
-    else:
-        diff_output = run(*base, diff_base, diff_head, "--", old_path, new_path)
-    ranges: list[tuple[int, int]] = []
-    for line in diff_output.splitlines():
-        m = re.match(r"^@@ -(\d+)(?:,(\d+))? \+", line)
-        if not m:
-            continue
-        start = int(m.group(1))
-        count = int(m.group(2)) if m.group(2) is not None else 1
-        # BUG (carried over): When there are only adds (@@ -XX,0 +YY,x)
-        # the first line will be XX. It should probably be YY + x.
-        if count == 0:
-            ranges.append((start, start))
-        else:
-            ranges.append((start, start + count - 1))
-    return ranges
+    return {
+        pair: _parse_hunk_ranges(chunk)
+        for pair, chunk in zip(file_pairs, file_diffs)
+    }
 
 
 def blame_commits(
@@ -204,21 +208,19 @@ def resolve_blame_targets(
     else:
         blame_target, diff_base, diff_head = resolve_revspec(revspec)
 
-    file_pairs = find_modified_files(diff_base, diff_head, staged=staged)
-    if not file_pairs:
+    all_ranges = diff_line_ranges(diff_base, diff_head, staged=staged)
+    if not all_ranges:
         if staged:
             print("No fixup targets found in staged changes.", file=sys.stderr)
         else:
             print(f"No file changes found in {revspec}.", file=sys.stderr)
         return
 
-    for new_path, old_path in file_pairs:
-        ranges = parse_diff_line_ranges(
-            new_path, old_path, diff_base, diff_head, staged=staged
-        )
+    for (new_path, old_path), ranges in all_ranges.items():
         if not ranges:
+            # TODO: pure renames should target the commit that last added/renamed
+            # the file (e.g. git rev-list <target> -- <path> | tail -n 1)
             continue
-
         commits = blame_commits(old_path, ranges, blame_target)
         if not commits:
             continue
