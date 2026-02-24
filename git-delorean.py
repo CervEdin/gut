@@ -260,8 +260,11 @@ def create_fixups(revspec: str) -> None:
     working_tree_sha = run("git", "stash", "create")
     run("git", "stash", "--keep-index")
     try:
+        targets: dict[str, list[str]] = {}
         for new_path, _old_path, target in resolve_blame_targets(revspec, staged=True):
-            run("git", "commit", "--fixup", target, "--", new_path)
+            targets.setdefault(target, []).append(new_path)
+        for target, paths in targets.items():
+            run("git", "commit", "--fixup", target, "--", *paths)
     finally:
         if working_tree_sha:
             run("git", "stash", "apply", working_tree_sha, "--index", check=False)
