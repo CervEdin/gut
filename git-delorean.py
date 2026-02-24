@@ -237,22 +237,21 @@ def resolve_blame_targets(
         yield new_path, old_path, target
 
 
-def analyze(revspec: str, *, staged: bool = False, null: bool = False) -> None:
-    """Print fixup targets to stdout."""
+def analyze(
+    revspec: str, *, staged: bool = False
+) -> Iterator[tuple[str, str, str, str, str]]:
+    """Yield (new_path, old_path, target_sha, short_hash, subject) per fixup target."""
     for new_path, old_path, target in resolve_blame_targets(revspec, staged=staged):
-        display = f"{old_path} => {new_path}" if old_path != new_path else new_path
-        fmt = "%h%x00%s" if null else "%h%x09%s"
         info = run(
             "git",
             "rev-list",
             "--max-count=1",
             "--no-commit-header",
-            f"--format={fmt}",
+            "--format=%h%x00%s",
             target,
         )
-        sep = "\0" if null else "\t"
-        end = "\0" if null else "\n"
-        sys.stdout.write(f"{display}{sep}{info}{end}")
+        short_hash, subject = info.split("\0", 1)
+        yield new_path, old_path, target, short_hash, subject
 
 
 def create_fixups(revspec: str) -> None:
@@ -275,8 +274,14 @@ def main(
 ) -> None:
     if fixup:
         create_fixups(revspec)
-    else:
-        analyze(revspec, staged=staged, null=null)
+        return
+    sep = "\0" if null else "\t"
+    end = "\0" if null else "\n"
+    for new_path, old_path, _target, short_hash, subject in analyze(
+        revspec, staged=staged
+    ):
+        display = f"{old_path} => {new_path}" if old_path != new_path else new_path
+        sys.stdout.write(f"{display}{sep}{short_hash}{sep}{subject}{end}")
 
 
 if __name__ == "__main__":
