@@ -131,4 +131,54 @@ else
     fail=1
 fi
 
+# --- Test 7: --group collapses multi-file targets to first ancestor ---
+echo -n "--group collapses targets ... "
+repo="$(setup_repo t7)"
+printf "aaa\n" > "$repo/a.txt"
+printf "bbb\n" > "$repo/b.txt"
+git -C "$repo" add a.txt b.txt
+git -C "$repo" commit -q -m "A: initial"
+printf "aaa MODIFIED\n" > "$repo/a.txt"
+git -C "$repo" add a.txt
+git -C "$repo" commit -q -m "B: modify a"
+B="$(git -C "$repo" rev-parse HEAD)"
+# Stage changes to both files — a.txt blames B, b.txt blames A
+printf "aaa AGAIN\n" > "$repo/a.txt"
+printf "bbb MODIFIED\n" > "$repo/b.txt"
+git -C "$repo" add a.txt b.txt
+# --staged --group: both files should show B's short hash (first ancestor found)
+B_short="$(git -C "$repo" rev-parse --short "$B")"
+output="$(cd "$repo" && python3 "$DELOREAN" --staged --group 2>/dev/null)" || true
+a_line="$(echo "$output" | grep "^a.txt")"
+b_line="$(echo "$output" | grep "^b.txt")"
+if echo "$a_line" | grep -q "$B_short" && echo "$b_line" | grep -q "$B_short"; then
+    echo "OK"
+else
+    echo "FAIL: expected both targeting $B_short, got: $output"
+    fail=1
+fi
+
+# --- Test 8: --fixup --group creates one fixup commit ---
+echo -n "--fixup --group creates one fixup ... "
+repo="$(setup_repo t8)"
+printf "aaa\n" > "$repo/a.txt"
+printf "bbb\n" > "$repo/b.txt"
+git -C "$repo" add a.txt b.txt
+git -C "$repo" commit -q -m "A: initial"
+printf "aaa MODIFIED\n" > "$repo/a.txt"
+git -C "$repo" add a.txt
+git -C "$repo" commit -q -m "B: modify a"
+B="$(git -C "$repo" rev-parse HEAD)"
+printf "aaa AGAIN\n" > "$repo/a.txt"
+printf "bbb MODIFIED\n" > "$repo/b.txt"
+git -C "$repo" add a.txt b.txt
+(cd "$repo" && python3 "$DELOREAN" --fixup --group 2>/dev/null) || true
+fixup_count="$(git -C "$repo" log --oneline | grep -c "^.*fixup")"
+if [ "$fixup_count" -eq 1 ]; then
+    echo "OK"
+else
+    echo "FAIL: expected 1 fixup commit, got $fixup_count"
+    fail=1
+fi
+
 exit "$fail"
