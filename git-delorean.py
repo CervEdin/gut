@@ -44,6 +44,11 @@ def parse_args() -> argparse.Namespace:
         help="analyze staged changes and create fixup commits",
     )
     parser.add_argument(
+        "--group",
+        action="store_true",
+        help="treat all changes as one unit targeting the first ancestor found",
+    )
+    parser.add_argument(
         "-z",
         action="store_true",
         dest="null",
@@ -196,6 +201,13 @@ def find_earliest_ancestor(commits: set[str], topo_target: str) -> str:
     raise ValueError(f"none of the given commits are ancestors of {topo_target}")
 
 
+def find_grouped_target(targets: set[str], topo_target: str) -> str:
+    """Return the first commit from *targets* found walking from *topo_target*."""
+    if len(targets) == 1:
+        return next(iter(targets))
+    return find_earliest_ancestor(targets, topo_target)
+
+
 def resolve_blame_targets(
     revspec: str, *, staged: bool = False
 ) -> Iterator[tuple[str, str, str]]:
@@ -266,9 +278,20 @@ def create_fixups(targets: dict[str, list[str]]) -> None:
 
 
 def main(
-    revspec: str, *, staged: bool = False, fixup: bool = False, null: bool = False
+    revspec: str,
+    *,
+    staged: bool = False,
+    fixup: bool = False,
+    group: bool = False,
+    null: bool = False,
 ) -> None:
     results = list(resolve_blame_targets(revspec, staged=staged))
+
+    if group and results:
+        all_targets = {target for _, _, target in results}
+        topo_ref = revspec if staged else resolve_revspec(revspec)[0]
+        target = find_grouped_target(all_targets, topo_ref)
+        results = [(new, old, target) for new, old, _ in results]
 
     if fixup:
         targets: dict[str, list[str]] = {}
@@ -295,4 +318,10 @@ def main(
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args.revspec, staged=args.staged, fixup=args.fixup, null=args.null)
+    main(
+        args.revspec,
+        staged=args.staged,
+        fixup=args.fixup,
+        group=args.group,
+        null=args.null,
+    )
