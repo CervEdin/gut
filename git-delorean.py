@@ -38,10 +38,30 @@ def parse_args() -> argparse.Namespace:
         dest="staged",
         help="analyze staged changes instead of a commit",
     )
-    parser.add_argument(
+    action_group = parser.add_mutually_exclusive_group()
+    action_group.add_argument(
         "--fixup",
         action="store_true",
         help="analyze staged changes and create fixup commits",
+    )
+    action_group.add_argument(
+        "--squash",
+        action="store_true",
+        help="analyze staged changes and create squash commits",
+    )
+    parser.add_argument(
+        "-c",
+        "--reedit-message",
+        dest="reedit_message",
+        metavar="commit",
+        help="reuse and edit message from commit (requires --squash)",
+    )
+    parser.add_argument(
+        "-C",
+        "--reuse-message",
+        dest="reuse_message",
+        metavar="commit",
+        help="reuse message from commit (requires --squash)",
     )
     parser.add_argument(
         "--group",
@@ -55,11 +75,13 @@ def parse_args() -> argparse.Namespace:
         help="separate output fields with NUL bytes instead of tabs",
     )
     args = parser.parse_args()
-    if args.fixup and args.revspec is not None:
-        parser.error("--fixup cannot be combined with a revspec")
+    if (args.fixup or args.squash) and args.revspec is not None:
+        parser.error("--fixup/--squash cannot be combined with a revspec")
+    if (args.reedit_message or args.reuse_message) and not args.squash:
+        parser.error("-c/-C requires --squash")
     if args.revspec is None:
         args.revspec = "HEAD"
-    if args.fixup:
+    if args.fixup or args.squash:
         args.staged = True
     return args
 
@@ -265,13 +287,25 @@ def analyze(
         yield new_path, old_path, target, short_hash, subject
 
 
-def create_fixups(targets: dict[str, list[str]]) -> None:
-    """Create fixup commits for staged changes."""
+def create_fixups(
+    targets: dict[str, list[str]],
+    *,
+    mode: str = "fixup",
+    reedit_message: str | None = None,
+    reuse_message: str | None = None,
+) -> None:
+    """Create fixup or squash commits for staged changes."""
     working_tree_sha = run("git", "stash", "create")
     run("git", "stash", "--keep-index")
     try:
         for target, paths in targets.items():
-            run("git", "commit", "--fixup", target, "--", *paths)
+            cmd = ["git", "commit", f"--{mode}", target]
+            if reedit_message:
+                cmd += ["-c", reedit_message]
+            if reuse_message:
+                cmd += ["-C", reuse_message]
+            cmd += ["--", *paths]
+            run(*cmd)
     finally:
         if working_tree_sha:
             run("git", "stash", "apply", working_tree_sha, "--index", check=False)
@@ -282,6 +316,9 @@ def main(
     *,
     staged: bool = False,
     fixup: bool = False,
+    squash: bool = False,
+    reedit_message: str | None = None,
+    reuse_message: str | None = None,
     group: bool = False,
     null: bool = False,
 ) -> None:
@@ -293,11 +330,16 @@ def main(
         target = find_grouped_target(all_targets, topo_ref)
         results = [(new, old, target) for new, old, _ in results]
 
-    if fixup:
+    if fixup or squash:
         targets: dict[str, list[str]] = {}
         for new_path, _old_path, target in results:
             targets.setdefault(target, []).append(new_path)
-        create_fixups(targets)
+        create_fixups(
+            targets,
+            mode="squash" if squash else "fixup",
+            reedit_message=reedit_message,
+            reuse_message=reuse_message,
+        )
         return
 
     sep = "\0" if null else "\t"
@@ -322,6 +364,9 @@ if __name__ == "__main__":
         args.revspec,
         staged=args.staged,
         fixup=args.fixup,
+        squash=args.squash,
+        reedit_message=args.reedit_message,
+        reuse_message=args.reuse_message,
         group=args.group,
         null=args.null,
     )
