@@ -159,8 +159,7 @@ def diff_line_ranges(
     file_diffs = patch.split("diff --git ")[1:]
 
     return {
-        pair: _parse_hunk_ranges(chunk)
-        for pair, chunk in zip(file_pairs, file_diffs)
+        pair: _parse_hunk_ranges(chunk) for pair, chunk in zip(file_pairs, file_diffs)
     }
 
 
@@ -254,14 +253,11 @@ def analyze(
         yield new_path, old_path, target, short_hash, subject
 
 
-def create_fixups(revspec: str) -> None:
+def create_fixups(targets: dict[str, list[str]]) -> None:
     """Create fixup commits for staged changes."""
     working_tree_sha = run("git", "stash", "create")
     run("git", "stash", "--keep-index")
     try:
-        targets: dict[str, list[str]] = {}
-        for new_path, _old_path, target in resolve_blame_targets(revspec, staged=True):
-            targets.setdefault(target, []).append(new_path)
         for target, paths in targets.items():
             run("git", "commit", "--fixup", target, "--", *paths)
     finally:
@@ -272,14 +268,27 @@ def create_fixups(revspec: str) -> None:
 def main(
     revspec: str, *, staged: bool = False, fixup: bool = False, null: bool = False
 ) -> None:
+    results = list(resolve_blame_targets(revspec, staged=staged))
+
     if fixup:
-        create_fixups(revspec)
+        targets: dict[str, list[str]] = {}
+        for new_path, _old_path, target in results:
+            targets.setdefault(target, []).append(new_path)
+        create_fixups(targets)
         return
+
     sep = "\0" if null else "\t"
     end = "\0" if null else "\n"
-    for new_path, old_path, _target, short_hash, subject in analyze(
-        revspec, staged=staged
-    ):
+    for new_path, old_path, target in results:
+        info = run(
+            "git",
+            "rev-list",
+            "--max-count=1",
+            "--no-commit-header",
+            "--format=%h%x00%s",
+            target,
+        )
+        short_hash, subject = info.split("\0", 1)
         display = f"{old_path} => {new_path}" if old_path != new_path else new_path
         sys.stdout.write(f"{display}{sep}{short_hash}{sep}{subject}{end}")
 
