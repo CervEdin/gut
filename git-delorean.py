@@ -11,13 +11,24 @@ Modes:
 """
 
 import argparse
+import dataclasses
 import re
 import subprocess
 import sys
 from collections.abc import Iterator
 
+
+@dataclasses.dataclass
+class BlameTarget:
+    new_path: str
+    old_path: str
+    target: str
+    ranges: list[tuple[int, int]]
+
+
 _RAW_STATUS_RE = re.compile(r":\d{6} \d{6} [a-f0-9]+ [a-f0-9]+ (M|R\d+)")
 _HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+")
+_HUNK_NEW_RE = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
 
 
 def parse_args() -> argparse.Namespace:
@@ -148,6 +159,22 @@ def _parse_hunk_ranges(diff_chunk: str) -> list[tuple[int, int]]:
     return ranges
 
 
+def _parse_new_hunk_ranges(diff_chunk: str) -> list[tuple[int, int]]:
+    """Extract new-side ``(start, end)`` line ranges from ``@@`` headers."""
+    ranges: list[tuple[int, int]] = []
+    for line in diff_chunk.splitlines():
+        m = _HUNK_NEW_RE.match(line)
+        if not m:
+            continue
+        start = int(m.group(1))
+        count = int(m.group(2)) if m.group(2) is not None else 1
+        if count == 0:
+            ranges.append((start, start))
+        else:
+            ranges.append((start, start + count - 1))
+    return ranges
+
+
 def diff_line_ranges(
     diff_base: str, diff_head: str, *, staged: bool = False
 ) -> dict[tuple[str, str], list[tuple[int, int]]]:
@@ -230,10 +257,64 @@ def find_grouped_target(targets: set[str], topo_target: str) -> str:
     return find_earliest_ancestor(targets, topo_target)
 
 
+def _ranges_overlap(
+    a: list[tuple[int, int]], b: list[tuple[int, int]], margin: int = 3
+) -> bool:
+    """Return True if any range from *a* is within *margin* lines of any range from *b*."""
+    for a_start, a_end in a:
+        for b_start, b_end in b:
+            if a_start - margin <= b_end and b_start - margin <= a_end:
+                return True
+    return False
+
+
+def check_commutability(
+    file: str,
+    fixup_ranges: list[tuple[int, int]],
+    target: str,
+    walk_start: str,
+) -> list[tuple[str, str]]:
+    """Return (short_hash, subject) for intermediate commits that overlap fixup ranges."""
+    intermediates = run(
+        "git", "rev-list", f"{target}..{walk_start}", "--", file, check=False
+    )
+    if not intermediates:
+        return []
+    conflicts: list[tuple[str, str]] = []
+    for sha in intermediates.splitlines():
+        diff_output = run(
+            "git", "diff-tree", "-r", "-U0", f"{sha}^", sha, "--", file, check=False
+        )
+        if not diff_output:
+            continue
+        intermediate_ranges = _parse_new_hunk_ranges(diff_output)
+        if not intermediate_ranges:
+            continue
+        if _ranges_overlap(fixup_ranges, intermediate_ranges):
+            info = run(
+                "git",
+                "rev-list",
+                "--max-count=1",
+                "--no-commit-header",
+                "--format=%h%x00%s",
+                sha,
+            )
+            short_hash, subject = info.split("\0", 1)
+            conflicts.append((short_hash, subject))
+    return conflicts
+
+
+def _format_rename(old_path: str, new_path: str) -> str:
+    """Format a file path, showing rename arrow when old and new differ."""
+    if old_path != new_path:
+        return f"{old_path} => {new_path}"
+    return new_path
+
+
 def resolve_blame_targets(
     revspec: str, *, staged: bool = False
-) -> Iterator[tuple[str, str, str]]:
-    """Yield (new_path, old_path, target_sha) for each file with a fixup target."""
+) -> Iterator[BlameTarget]:
+    """Yield a BlameTarget for each file with a fixup target."""
     if staged:
         blame_target = revspec
         diff_base = revspec
@@ -259,32 +340,31 @@ def resolve_blame_targets(
             continue
 
         target = find_earliest_ancestor(commits, blame_target)
-        display = f"{old_path} => {new_path}" if old_path != new_path else new_path
         if not target:
             print(
-                f"Warning: no ancestor commit found for {display}, skipping.",
+                f"Warning: no ancestor commit found for {_format_rename(old_path, new_path)}, skipping.",
                 file=sys.stderr,
             )
             continue
 
-        yield new_path, old_path, target
+        yield BlameTarget(new_path, old_path, target, ranges)
 
 
 def analyze(
     revspec: str, *, staged: bool = False
 ) -> Iterator[tuple[str, str, str, str, str]]:
     """Yield (new_path, old_path, target_sha, short_hash, subject) per fixup target."""
-    for new_path, old_path, target in resolve_blame_targets(revspec, staged=staged):
+    for bt in resolve_blame_targets(revspec, staged=staged):
         info = run(
             "git",
             "rev-list",
             "--max-count=1",
             "--no-commit-header",
             "--format=%h%x00%s",
-            target,
+            bt.target,
         )
         short_hash, subject = info.split("\0", 1)
-        yield new_path, old_path, target, short_hash, subject
+        yield bt.new_path, bt.old_path, bt.target, short_hash, subject
 
 
 def create_fixups(
@@ -325,15 +405,25 @@ def main(
     results = list(resolve_blame_targets(revspec, staged=staged))
 
     if group and results:
-        all_targets = {target for _, _, target in results}
+        all_targets = {bt.target for bt in results}
         topo_ref = revspec if staged else resolve_revspec(revspec)[0]
-        target = find_grouped_target(all_targets, topo_ref)
-        results = [(new, old, target) for new, old, _ in results]
+        grouped = find_grouped_target(all_targets, topo_ref)
+        for bt in results:
+            bt.target = grouped
+
+    head_ref = revspec if staged else resolve_revspec(revspec)[2]
+    for bt in results:
+        conflicts = check_commutability(bt.old_path, bt.ranges, bt.target, head_ref)
+        for short_hash, subject in conflicts:
+            print(
+                f"Warning: {_format_rename(bt.old_path, bt.new_path)}: fixup may not commute past {short_hash} ({subject})",
+                file=sys.stderr,
+            )
 
     if fixup or squash:
         targets: dict[str, list[str]] = {}
-        for new_path, _old_path, target in results:
-            targets.setdefault(target, []).append(new_path)
+        for bt in results:
+            targets.setdefault(bt.target, []).append(bt.new_path)
         create_fixups(
             targets,
             mode="squash" if squash else "fixup",
@@ -344,18 +434,19 @@ def main(
 
     sep = "\0" if null else "\t"
     end = "\0" if null else "\n"
-    for new_path, old_path, target in results:
+    for bt in results:
         info = run(
             "git",
             "rev-list",
             "--max-count=1",
             "--no-commit-header",
             "--format=%h%x00%s",
-            target,
+            bt.target,
         )
         short_hash, subject = info.split("\0", 1)
-        display = f"{old_path} => {new_path}" if old_path != new_path else new_path
-        sys.stdout.write(f"{display}{sep}{short_hash}{sep}{subject}{end}")
+        sys.stdout.write(
+            f"{_format_rename(bt.old_path, bt.new_path)}{sep}{short_hash}{sep}{subject}{end}"
+        )
 
 
 if __name__ == "__main__":
