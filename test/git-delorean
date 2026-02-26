@@ -181,4 +181,31 @@ else
     fail=1
 fi
 
+# --- Test 9: Per-hunk targeting — different hunks target different commits ---
+echo -n "per-hunk targeting (staged) ... "
+repo="$(setup_repo t9)"
+# Commit A: create file with section-1
+printf "sec1-line1\nsec1-line2\nsec1-line3\nsec1-line4\nsec1-line5\n" > "$repo/file.txt"
+git -C "$repo" add file.txt
+git -C "$repo" commit -q -m "A: section-1"
+A="$(git -C "$repo" rev-parse HEAD)"
+# Commit B: append section-2
+printf "sec1-line1\nsec1-line2\nsec1-line3\nsec1-line4\nsec1-line5\nsec2-line1\nsec2-line2\nsec2-line3\nsec2-line4\nsec2-line5\n" > "$repo/file.txt"
+git -C "$repo" add file.txt
+git -C "$repo" commit -q -m "B: section-2"
+B="$(git -C "$repo" rev-parse HEAD)"
+# Stage: modify a line in section-1 AND a line in section-2
+printf "sec1-line1\nsec1-MODIFIED\nsec1-line3\nsec1-line4\nsec1-line5\nsec2-line1\nsec2-line2\nsec2-MODIFIED\nsec2-line4\nsec2-line5\n" > "$repo/file.txt"
+git -C "$repo" add file.txt
+output="$(cd "$repo" && python3 "$DELOREAN" --staged 2>/dev/null)" || true
+A_short="$(git -C "$repo" rev-parse --short "$A")"
+B_short="$(git -C "$repo" rev-parse --short "$B")"
+line_count="$(echo "$output" | grep -c "^file.txt")"
+if [ "$line_count" -eq 2 ] && echo "$output" | grep -q "$A_short" && echo "$output" | grep -q "$B_short"; then
+    echo "OK"
+else
+    echo "FAIL: expected 2 lines targeting $A_short and $B_short, got: $output"
+    fail=1
+fi
+
 exit "$fail"
