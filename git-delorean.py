@@ -240,10 +240,12 @@ def blame_ranges(
                 yield m.group(1), (final_start, block_end)
 
 
-def find_earliest_ancestor(commits: set[str], topo_target: str) -> str:
-    """Walk the topo-ordered rev-list and return the first (earliest) matching commit."""
+def find_first_reachable(commits: set[str], walk_start: str) -> str:
+    """Walk topo-order from *walk_start* and return the first commit in *commits*."""
+    if walk_start in commits:
+        return walk_start
     with subprocess.Popen(
-        ["git", "rev-list", "--topo-order", topo_target],
+        ["git", "rev-list", "--topo-order", walk_start],
         stdout=subprocess.PIPE,
         text=True,
     ) as proc:
@@ -253,14 +255,14 @@ def find_earliest_ancestor(commits: set[str], topo_target: str) -> str:
             if sha in commits:
                 proc.kill()
                 return sha
-    raise ValueError(f"none of the given commits are ancestors of {topo_target}")
+    raise ValueError(f"none of the given commits are reachable from {walk_start}")
 
 
-def find_grouped_target(targets: set[str], topo_target: str) -> str:
-    """Return the first commit from *targets* found walking from *topo_target*."""
+def find_grouped_target(targets: set[str], walk_start: str) -> str:
+    """Return the first commit from *targets* reachable from *walk_start*."""
     if len(targets) == 1:
         return next(iter(targets))
-    return find_earliest_ancestor(targets, topo_target)
+    return find_first_reachable(targets, walk_start)
 
 
 def _ranges_overlap(
