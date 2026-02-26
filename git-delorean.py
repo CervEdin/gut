@@ -15,6 +15,7 @@ import dataclasses
 import re
 import subprocess
 import sys
+from collections import defaultdict
 from collections.abc import Iterator
 
 
@@ -217,21 +218,26 @@ def diff_line_ranges(
     }
 
 
-def blame_commits(
+def blame_ranges(
     file: str, ranges: list[tuple[int, int]], blame_target: str
-) -> set[str]:
-    """Run `git blame --incremental` with all ranges and collect unique commit SHAs."""
+) -> Iterator[tuple[str, tuple[int, int]]]:
+    """Stream ``(commit_sha, (start, end))`` from ``git blame --incremental``.
+
+    Yields one pair per blame block, in line order (top of file first).
+    """
     cmd = ["git", "blame", "--incremental"]
     for start, end in ranges:
         cmd += ["-L", f"{start},{end}"]
     cmd += [blame_target, "--", file]
-    output = run(*cmd, check=False)
-    commits: set[str] = set()
-    for line in output.splitlines():
-        m = re.match(r"^([a-f0-9]{40}) ", line)
-        if m:
-            commits.add(m.group(1))
-    return commits
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True) as proc:
+        assert proc.stdout is not None
+        for line in proc.stdout:
+            m = re.match(r"^([a-f0-9]{40}) \d+ (\d+) (\d+)$", line)
+            if m:
+                final_start = int(m.group(2))
+                num_lines = int(m.group(3))
+                block_end = final_start + num_lines - 1 if num_lines > 0 else final_start
+                yield m.group(1), (final_start, block_end)
 
 
 def find_earliest_ancestor(commits: set[str], topo_target: str) -> str:
@@ -335,9 +341,8 @@ def resolve_blame_targets(
             # TODO: pure renames should target the commit that last added/renamed
             # the file (e.g. git rev-list <target> -- <path> | tail -n 1)
             continue
-        commits = blame_commits(old_path, ranges, blame_target)
-        target = find_earliest_ancestor(commits, blame_target)
-        yield BlameTarget(new_path, old_path, target, ranges)
+        for sha, rng in blame_ranges(old_path, ranges, blame_target):
+            yield BlameTarget(new_path, old_path, sha, [rng])
 
 
 def analyze(
@@ -381,6 +386,40 @@ def create_fixups(
             run("git", "stash", "apply", working_tree_sha, "--index", check=False)
 
 
+def collapse_fixup_targets(
+    results: list[BlameTarget], topo_ref: str
+) -> dict[str, list[str]]:
+    """Collapse per-hunk blame targets to one target per file for fixup creation.
+
+    When hunks in the same file point at different commits, picks the earliest
+    ancestor and warns.
+    """
+    file_targets: dict[str, set[str]] = defaultdict(set)
+    for bt in results:
+        file_targets[bt.new_path].add(bt.target)
+
+    collapsed: dict[str, str] = {}
+    for f, ts in file_targets.items():
+        if len(ts) > 1:
+            chosen = find_grouped_target(ts, topo_ref)
+            collapsed[f] = chosen
+            print(
+                f"Warning: {f} has hunks targeting different commits; "
+                f"collapsing to {run('git', 'rev-parse', '--short', chosen)}.",
+                file=sys.stderr,
+            )
+
+    targets: dict[str, list[str]] = {}
+    seen_files: set[str] = set()
+    for bt in results:
+        if bt.new_path in seen_files:
+            continue
+        target = collapsed.get(bt.new_path, bt.target)
+        targets.setdefault(target, []).append(bt.new_path)
+        seen_files.add(bt.new_path)
+    return targets
+
+
 def main(
     revspec: str,
     *,
@@ -394,26 +433,32 @@ def main(
 ) -> None:
     results = list(resolve_blame_targets(revspec, staged=staged))
 
+    if staged:
+        topo_ref = head_ref = revspec
+    else:
+        resolved = resolve_revspec(revspec)
+        topo_ref, head_ref = resolved[0], resolved[2]
+
     if group and results:
         all_targets = {bt.target for bt in results}
-        topo_ref = revspec if staged else resolve_revspec(revspec)[0]
         grouped = find_grouped_target(all_targets, topo_ref)
         for bt in results:
             bt.target = grouped
 
-    head_ref = revspec if staged else resolve_revspec(revspec)[2]
+    commute_groups: dict[tuple[str, str, str], list[tuple[int, int]]] = {}
     for bt in results:
-        conflicts = check_commutability(bt.old_path, bt.ranges, bt.target, head_ref)
+        key = (bt.old_path, bt.new_path, bt.target)
+        commute_groups.setdefault(key, []).extend(bt.ranges)
+    for (old_path, new_path, target), ranges in commute_groups.items():
+        conflicts = check_commutability(old_path, ranges, target, topo_ref)
         for short_hash, subject in conflicts:
             print(
-                f"Warning: {_format_rename(bt.old_path, bt.new_path)}: fixup may not commute past {short_hash} ({subject})",
+                f"Warning: {_format_rename(old_path, new_path)}: fixup may not commute past {short_hash} ({subject})",
                 file=sys.stderr,
             )
 
     if fixup or squash:
-        targets: dict[str, list[str]] = {}
-        for bt in results:
-            targets.setdefault(bt.target, []).append(bt.new_path)
+        targets = collapse_fixup_targets(results, topo_ref)
         create_fixups(
             targets,
             mode="squash" if squash else "fixup",
@@ -424,7 +469,12 @@ def main(
 
     sep = "\0" if null else "\t"
     end = "\0" if null else "\n"
+    seen: set[tuple[str, str]] = set()
     for bt in results:
+        key = (bt.new_path, bt.target)
+        if key in seen:
+            continue
+        seen.add(key)
         info = run(
             "git",
             "rev-list",
