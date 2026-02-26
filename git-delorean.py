@@ -336,17 +336,7 @@ def resolve_blame_targets(
             # the file (e.g. git rev-list <target> -- <path> | tail -n 1)
             continue
         commits = blame_commits(old_path, ranges, blame_target)
-        if not commits:
-            continue
-
         target = find_earliest_ancestor(commits, blame_target)
-        if not target:
-            print(
-                f"Warning: no ancestor commit found for {_format_rename(old_path, new_path)}, skipping.",
-                file=sys.stderr,
-            )
-            continue
-
         yield BlameTarget(new_path, old_path, target, ranges)
 
 
