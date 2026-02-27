@@ -17,6 +17,17 @@ import subprocess
 import sys
 from collections import defaultdict
 from collections.abc import Iterator
+from typing import NamedTuple
+
+
+class HunkSpan(NamedTuple):
+    start: int
+    count: int
+
+
+class HunkPair(NamedTuple):
+    old: HunkSpan
+    new: HunkSpan
 
 
 @dataclasses.dataclass
@@ -29,7 +40,7 @@ class BlameTarget:
 
 _RAW_STATUS_RE = re.compile(r":\d{6} \d{6} [a-f0-9]+ [a-f0-9]+ (M|R\d+)")
 _HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+")
-_HUNK_NEW_RE = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+_HUNK_PAIR_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 
 def parse_args() -> argparse.Namespace:
@@ -160,20 +171,39 @@ def _parse_hunk_ranges(diff_chunk: str) -> list[tuple[int, int]]:
     return ranges
 
 
-def _parse_new_hunk_ranges(diff_chunk: str) -> list[tuple[int, int]]:
-    """Extract new-side ``(start, end)`` line ranges from ``@@`` headers."""
-    ranges: list[tuple[int, int]] = []
+def _parse_hunk_pairs(diff_chunk: str) -> list[HunkPair]:
+    """Extract hunk pairs from ``@@`` headers in a diff chunk."""
+    hunks: list[HunkPair] = []
     for line in diff_chunk.splitlines():
-        m = _HUNK_NEW_RE.match(line)
+        m = _HUNK_PAIR_RE.match(line)
         if not m:
             continue
-        start = int(m.group(1))
-        count = int(m.group(2)) if m.group(2) is not None else 1
-        if count == 0:
-            ranges.append((start, start))
-        else:
-            ranges.append((start, start + count - 1))
-    return ranges
+        hunks.append(HunkPair(
+            old=HunkSpan(int(m.group(1)), int(m.group(2)) if m.group(2) is not None else 1),
+            new=HunkSpan(int(m.group(3)), int(m.group(4)) if m.group(4) is not None else 1),
+        ))
+    return hunks
+
+
+def _adjust_ranges(
+    ranges: list[tuple[int, int]],
+    hunks: list[HunkPair],
+) -> list[tuple[int, int]]:
+    """Shift *ranges* to account for an intermediate's insertions/deletions.
+
+    Processes hunks bottom-to-top so earlier adjustments don't interfere.
+    """
+    adjusted = list(ranges)
+    for h in sorted(hunks, key=lambda h: h.old.start, reverse=True):
+        delta = h.new.count - h.old.count
+        if delta == 0:
+            continue
+        old_end = h.old.start + h.old.count - 1
+        adjusted = [
+            (s + delta, e + delta) if s > old_end else (s, e)
+            for s, e in adjusted
+        ]
+    return adjusted
 
 
 def diff_line_ranges(
@@ -289,16 +319,22 @@ def check_commutability(
     if not intermediates:
         return []
     conflicts: list[tuple[str, str]] = []
-    for sha in intermediates.splitlines():
+    adjusted_ranges = list(fixup_ranges)
+    # Process chronologically (oldest first) so we can track coordinate drift.
+    for sha in reversed(intermediates.splitlines()):
         diff_output = run(
             "git", "diff-tree", "-r", "-U0", f"{sha}^", sha, "--", file, check=False
         )
         if not diff_output:
             continue
-        intermediate_ranges = _parse_new_hunk_ranges(diff_output)
-        if not intermediate_ranges:
+        hunks = _parse_hunk_pairs(diff_output)
+        if not hunks:
             continue
-        if _ranges_overlap(fixup_ranges, intermediate_ranges):
+        # Build old-side ranges (in the parent's coordinate system).
+        old_ranges = [
+            (h.old.start, h.old.start + h.old.count - 1) for h in hunks
+        ]
+        if _ranges_overlap(adjusted_ranges, old_ranges):
             info = run(
                 "git",
                 "rev-list",
@@ -309,6 +345,8 @@ def check_commutability(
             )
             short_hash, subject = info.split("\0", 1)
             conflicts.append((short_hash, subject))
+        # Shift fixup ranges to account for this intermediate's changes.
+        adjusted_ranges = _adjust_ranges(adjusted_ranges, hunks)
     return conflicts
 
 
