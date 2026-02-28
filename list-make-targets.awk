@@ -6,7 +6,7 @@
 # The parsing done in this script is probably not exhaustive and may very well
 # produce incorrect results, when in doubt, read the actual Makefile.
 
-/^[a-zA-z_0-9%./()\-\$]+:/ {
+/^[a-zA-Z_0-9%.\/()$-]+:/ {
   if (message) {
     target = $1
     gsub("\\\\", "", target)
