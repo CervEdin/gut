@@ -3,9 +3,9 @@
 # Detect sed -i syntax (GNU vs BSD)
 _tmp=$(mktemp)
 if sed -i 'p' "$_tmp" 2>/dev/null; then
-    SED_INPLACE='sed -i'
+    SED_INPLACE=(sed -i)
 else
-    SED_INPLACE='sed -i ""'
+    SED_INPLACE=(sed -i '')
 fi
 rm -f "$_tmp"
 
@@ -113,7 +113,7 @@ case ${files[0]} in
 	*)
 		ffiles "${files[@]}" |
 			tr '\n' '\0' | xargs -0 -I% find % |
-			tr '\n' '\0' | xargs -0 -I% $SED_INPLACE "$sed_script" % ||
+			tr '\n' '\0' | xargs -0 -I% "${SED_INPLACE[@]}" "$sed_script" % ||
 			die "Files not found"
 
 		ffiles "${files[@]}" |
