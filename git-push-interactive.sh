@@ -1,8 +1,6 @@
 #!/bin/bash
 
-git rev-parse HEAD '@{upstream}' |\
- uniq |\
- sed -n -e '${1p}' -e '2q 1' &&
+test "$(git rev-parse HEAD '@{upstream}' | uniq | wc -l)" -eq 1 &&
  printf 'no changes\n' &&
  exit 0
 

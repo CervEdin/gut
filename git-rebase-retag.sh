@@ -10,8 +10,8 @@ else
 	exit 1
 fi
 
-SED_CMD='/^p\(ick\)\{0,1\} [0-9a-f]*/{s|^p\(ick\)\{0,1\} \([0-9a-f]*\).*|\2|p;q}'
-FIRST_SHA=$(sed --quiet "$SED_CMD" "$TODO")
+SED_CMD='/^p\(ick\)\{0,1\} [0-9a-f]*/{s|^p\(ick\)\{0,1\} \([0-9a-f]*\).*|\2|;p;q;}'
+FIRST_SHA=$(sed -n "$SED_CMD" "$TODO") # -n: quiet mode (--quiet)
 echo "$FIRST_SHA"
 
 TAGS=$(set +o pipefail; # grep fails w exit 1 on empty

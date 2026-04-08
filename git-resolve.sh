@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Detect sed -i syntax (GNU vs BSD)
+_tmp=$(mktemp)
+if sed -i 'p' "$_tmp" 2>/dev/null; then
+    SED_INPLACE='sed -i'
+else
+    SED_INPLACE='sed -i ""'
+fi
+rm -f "$_tmp"
+
 die () {
   echo "ERROR: $*. Aborting" >&2
   exit 1
@@ -103,13 +112,13 @@ case ${files[0]} in
 		;;
 	*)
 		ffiles "${files[@]}" |
-			xargs -d '\n' -I%  find % |
-			xargs -d '\n' -I% sed -i "$sed_script" % ||
+			tr '\n' '\0' | xargs -0 -I% find % |
+			tr '\n' '\0' | xargs -0 -I% $SED_INPLACE "$sed_script" % ||
 			die "Files not found"
 
 		ffiles "${files[@]}" |
 		if [ "$add" = true ]; then
-			tee >(xargs -d '\n' git add --sparse --)
+			tee >(tr '\n' '\0' | xargs -0 git add --sparse --)
 		else
 			cat
 		fi
