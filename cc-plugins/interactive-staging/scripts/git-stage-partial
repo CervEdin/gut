@@ -31,4 +31,4 @@ sha=$(git hash-object -w -- "$tempfile") || {
 # --cacheinfo takes literal index paths (no CWD prefix resolution),
 # unlike most git commands. Prepend the prefix so it works from subdirectories.
 prefix=$(git rev-parse --show-prefix)
-git update-index --cacheinfo "$mode,$sha,$prefix$path"
+git update-index --add --cacheinfo "$mode,$sha,$prefix$path"
