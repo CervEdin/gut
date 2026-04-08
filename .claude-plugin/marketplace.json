@@ -1,0 +1,17 @@
+{
+  "name": "gut",
+  "metadata": {
+    "description": "Git utility skills for Claude Code"
+  },
+  "owner": {
+    "name": "cervedin"
+  },
+  "plugins": [
+    {
+      "name": "peff-commit",
+      "source": "./cc-plugins/peff-commit",
+      "description": "Write a commit message in the style of Jeff King (peff) from the Git mailing list",
+      "version": "0.1.0"
+    }
+  ]
+}
