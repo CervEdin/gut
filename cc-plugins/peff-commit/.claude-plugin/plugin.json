@@ -1,0 +1,5 @@
+{
+  "name": "peff-commit",
+  "description": "Write a commit message in the style of Jeff King (peff) from the Git mailing list",
+  "version": "0.1.0"
+}
