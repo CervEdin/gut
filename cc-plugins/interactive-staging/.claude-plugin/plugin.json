@@ -1,0 +1,5 @@
+{
+  "name": "interactive-staging",
+  "description": "Selectively stage changes into discrete commits using git plumbing",
+  "version": "0.1.1"
+}
