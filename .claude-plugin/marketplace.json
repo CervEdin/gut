@@ -1,0 +1,23 @@
+{
+  "name": "gut",
+  "metadata": {
+    "description": "Git utility skills for Claude Code"
+  },
+  "owner": {
+    "name": "cervedin"
+  },
+  "plugins": [
+    {
+      "name": "interactive-staging",
+      "source": "./cc-plugins/interactive-staging",
+      "description": "Selectively stage changes into discrete commits using git plumbing",
+      "version": "0.1.1"
+    },
+    {
+      "name": "peff-commit",
+      "source": "./cc-plugins/peff-commit",
+      "description": "Write a commit message in the style of Jeff King (peff) from the Git mailing list",
+      "version": "0.1.0"
+    }
+  ]
+}
