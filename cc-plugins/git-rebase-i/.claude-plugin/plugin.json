@@ -1,0 +1,5 @@
+{
+  "name": "git-rebase-i",
+  "description": "Scripted git rebase -i — reword, edit, or drop commits without interactive mode",
+  "version": "0.1.0"
+}
