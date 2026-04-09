@@ -8,15 +8,57 @@
   },
   "plugins": [
     {
+      "name": "avar-review",
+      "source": "./cc-plugins/avar-review",
+      "description": "Channel Ævar Arnfjörð Bjarmason to review code for completeness, test coverage, and behavioral regressions",
+      "version": "0.1.0"
+    },
+    {
+      "name": "claude-rebase",
+      "source": "./cc-plugins/claude-rebase",
+      "description": "Interactive rebase via patches — reorder, edit, squash, and reword commits without git rebase -i",
+      "version": "0.1.0"
+    },
+    {
+      "name": "git-rebase-i",
+      "source": "./cc-plugins/git-rebase-i",
+      "description": "Scripted git rebase -i — reword, edit, or drop commits without interactive mode",
+      "version": "0.1.0"
+    },
+    {
+      "name": "gitster-review",
+      "source": "./cc-plugins/gitster-review",
+      "description": "Channel Junio C Hamano to review code for design coherence, series narrative, and long-term maintainability",
+      "version": "0.1.0"
+    },
+    {
       "name": "interactive-staging",
       "source": "./cc-plugins/interactive-staging",
       "description": "Selectively stage changes into discrete commits using git plumbing",
       "version": "0.1.1"
     },
     {
+      "name": "harmonize-branches",
+      "source": "./cc-plugins/harmonize-branches",
+      "description": "Analyze branch topology, consolidate divergent branches, and resolve conflicts",
+      "version": "0.1.0"
+    },
+    {
       "name": "peff-commit",
       "source": "./cc-plugins/peff-commit",
       "description": "Write a commit message in the style of Jeff King (peff) from the Git mailing list",
+      "version": "0.1.0"
+    },
+    {
+      "name": "peff-review",
+      "source": "./cc-plugins/peff-review",
+      "description": "Channel Jeff King (peff) to review code for simplicity, edge cases, and correctness — with working code alternatives",
+      "version": "0.1.0"
+    },
+    {
+      "name": "sunshine-review",
+      "source": "./cc-plugins/sunshine-review",
+      "description": "Channel Eric Sunshine to review code with meticulous, line-level precision — catching what others skim past",
       "version": "0.1.0"
     }
   ]
