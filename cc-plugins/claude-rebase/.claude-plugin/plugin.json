@@ -1,0 +1,5 @@
+{
+  "name": "claude-rebase",
+  "description": "Interactive rebase via patches — reorder, edit, squash, and reword commits without git rebase -i",
+  "version": "0.1.0"
+}
