@@ -8,7 +8,7 @@ Stage accumulated changes as discrete, logical commits — without interactive T
 
 ## Approach
 
-Uses the same technique as vim-fugitive: write desired content as a blob via `git hash-object -w`, then point the index at it via `git update-index --cacheinfo`. A helper script at `scripts/git-stage-partial` (relative to this skill) wraps this into a single atomic operation.
+Uses the same technique as vim-fugitive: write desired content as a blob via `git hash-object -w`, then point the index at it via `git update-index --cacheinfo`. A helper script at `${CLAUDE_SKILL_DIR}/scripts/git-stage-partial` wraps this into a single atomic operation.
 
 ## Step 1: Analysis
 
@@ -58,7 +58,7 @@ When only some changes in a file belong to this commit:
 
 3. Stage via the helper script:
    ```bash
-   .claude/plugins/interactive-staging/scripts/git-stage-partial <path> .stage-<name>
+   ${CLAUDE_SKILL_DIR}/scripts/git-stage-partial <path> .stage-<name>
    ```
 
 4. For subsequent commits to the same file, just keep editing `.stage-<name>` — it already reflects all changes staged so far, so there's no need to re-extract from the index.
@@ -66,7 +66,7 @@ When only some changes in a file belong to this commit:
 5. Keep `.stage-base-<name>` for the duration of the session — it allows reverting a stage:
    ```bash
    # To undo partial staging:
-   .claude/plugins/interactive-staging/scripts/git-stage-partial <path> .stage-base-<name>
+   ${CLAUDE_SKILL_DIR}/scripts/git-stage-partial <path> .stage-base-<name>
    ```
 
 6. Clean up both temp files after the last commit for that file.
@@ -75,7 +75,7 @@ When only some changes in a file belong to this commit:
 
 For files that should be removed in this commit:
 ```bash
-.claude/plugins/interactive-staging/scripts/git-stage-partial --remove <path>
+${CLAUDE_SKILL_DIR}/scripts/git-stage-partial --remove <path>
 ```
 
 ### Verify
