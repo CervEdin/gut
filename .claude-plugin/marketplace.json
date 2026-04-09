@@ -8,10 +8,28 @@
   },
   "plugins": [
     {
+      "name": "claude-rebase",
+      "source": "./cc-plugins/claude-rebase",
+      "description": "Interactive rebase via patches — reorder, edit, squash, and reword commits without git rebase -i",
+      "version": "0.1.0"
+    },
+    {
+      "name": "git-rebase-i",
+      "source": "./cc-plugins/git-rebase-i",
+      "description": "Scripted git rebase -i — reword, edit, or drop commits without interactive mode",
+      "version": "0.1.0"
+    },
+    {
       "name": "interactive-staging",
       "source": "./cc-plugins/interactive-staging",
       "description": "Selectively stage changes into discrete commits using git plumbing",
       "version": "0.1.1"
+    },
+    {
+      "name": "harmonize-branches",
+      "source": "./cc-plugins/harmonize-branches",
+      "description": "Analyze branch topology, consolidate divergent branches, and resolve conflicts",
+      "version": "0.1.0"
     },
     {
       "name": "peff-commit",
