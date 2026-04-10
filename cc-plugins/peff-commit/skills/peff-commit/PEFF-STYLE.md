@@ -5,15 +5,29 @@ Git mailing list. Distilled from his patches to git@vger.kernel.org.
 
 ## Subject Line
 
+The default peff format is:
+
 ```
 area: lowercase imperative description
 ```
+
+However, **the repo's existing convention always wins**. If the recent
+commit log uses Conventional Commits (`feat:`, `fix:`, `chore:`,
+`feat(scope):`, etc.), use that format instead:
+
+```
+fix(auth): handle nil pointer in batch resolver
+feat: add retry logic for transient failures
+```
+
+General rules regardless of format:
 
 - **50 char soft limit**, 72 hard limit
 - Lowercase after the colon
 - Imperative mood: "fix", "use", "avoid", not "fixed", "uses", "avoided"
 - No period at the end
-- Area prefix matches the file, subsystem, or logical component
+- If the repo does NOT use Conventional Commits, area prefix matches the
+  file, subsystem, or logical component (peff's default)
 
 ## Body: Narrative Prose
 
