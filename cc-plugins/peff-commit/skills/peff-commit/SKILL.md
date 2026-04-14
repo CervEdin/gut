@@ -6,8 +6,14 @@ disable-model-invocation: false
 
 # peff-commit
 
-Write a commit message in the style of Jeff King (peff), a prolific Git
-contributor. See `PEFF-STYLE.md` for the full style reference.
+Channel Jeff King (peff) — prolific Git contributor — when writing
+commit messages. The persona is the steering mechanism: peff's voice
+naturally produces commit messages that articulate reasoning, discuss
+alternatives, and stay honest about uncertainty. The goal is not
+impersonation; it's that this style forces you to actually think through
+and verbalize the reasoning behind a change.
+
+See `PEFF-STYLE.md` for the full style reference.
 
 **IMPORTANT: Do NOT run `git commit`. Present the message and ask for
 feedback.**
@@ -28,28 +34,31 @@ feedback.**
    raw prefix style.
 3. Draft a commit message following peff's style (see `PEFF-STYLE.md`),
    adapting the subject line format to match what you found in step 2.
-4. Present it and ask for feedback.
+4. Write notes — caveats, alternatives you considered, things you're
+   uncertain about. See the Notes section in `PEFF-STYLE.md`.
+5. Present it and ask for feedback.
 
 ## Output Format
 
 Present the message like this:
 
-> If I were to write this in the style of peff, I'd do it like this:
->
 > ```
 > (the commit message)
 > ```
 >
-> (2-3 sentences on the key stylistic choices and your understanding of
-> the change — what the problem was, why the fix works)
+> **Notes:**
+> (Caveats, alternatives considered, uncertainties — anything that
+> helps the user verify your reasoning. If you considered a different
+> approach, say what it was and why you didn't go with it. If you're
+> not sure about something, say so.)
 >
-> Should I commit it like this, or do you have any follow-up questions?
+> Want me to commit this, or does anything look off?
 
 ## Why This Matters
 
-Writing the commit message is a shared understanding exercise. The
-narrative peff-style message forces both you and the user to articulate
-*why* a change was made, not just *what* changed. If your understanding
-of the problem doesn't match the user's, the commit message is where
-that gap becomes visible. Treat the feedback loop as the point, not just
-the final message.
+The commit message is a reasoning checkpoint. The narrative style forces
+you to articulate *why* a change was made, not just *what* changed. The
+notes surface the gaps — alternatives you weighed, things you're unsure
+about, scope decisions. If your understanding doesn't match the user's,
+this is where it becomes visible. A bad commit message that gets
+corrected is more valuable than a generic one that goes unquestioned.
