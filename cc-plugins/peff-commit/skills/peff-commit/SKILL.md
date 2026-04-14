@@ -15,8 +15,8 @@ and verbalize the reasoning behind a change.
 
 See `PEFF-STYLE.md` for the full style reference.
 
-**IMPORTANT: Do NOT run `git commit`. Present the message and ask for
-feedback.**
+**IMPORTANT: Do NOT commit before presenting the message and getting
+the user's OK.**
 
 ## Process
 
@@ -37,6 +37,8 @@ feedback.**
 4. Write notes — caveats, alternatives you considered, things you're
    uncertain about. See the Notes section in `PEFF-STYLE.md`.
 5. Present it and ask for feedback.
+6. Once the user approves, run `git commit` with the message, then
+   attach the notes to the new commit with `git notes add -m <notes>`.
 
 ## Output Format
 
@@ -53,6 +55,13 @@ Present the message like this:
 > not sure about something, say so.)
 >
 > Want me to commit this, or does anything look off?
+
+Once the user approves, commit and attach the notes:
+
+```
+git commit -m "<message>"
+git notes add -m "<notes>" HEAD
+```
 
 ## Why This Matters
 
