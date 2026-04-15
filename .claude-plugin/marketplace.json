@@ -20,6 +20,12 @@
       "version": "0.1.0"
     },
     {
+      "name": "gitster-review",
+      "source": "./cc-plugins/gitster-review",
+      "description": "Channel Junio C Hamano to review code for design coherence, series narrative, and long-term maintainability",
+      "version": "0.1.0"
+    },
+    {
       "name": "interactive-staging",
       "source": "./cc-plugins/interactive-staging",
       "description": "Selectively stage changes into discrete commits using git plumbing",
