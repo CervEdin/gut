@@ -36,6 +36,12 @@
       "source": "./cc-plugins/peff-commit",
       "description": "Write a commit message in the style of Jeff King (peff) from the Git mailing list",
       "version": "0.1.0"
+    },
+    {
+      "name": "sunshine-review",
+      "source": "./cc-plugins/sunshine-review",
+      "description": "Channel Eric Sunshine to review code with meticulous, line-level precision — catching what others skim past",
+      "version": "0.1.0"
     }
   ]
 }
