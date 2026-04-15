@@ -8,6 +8,12 @@
   },
   "plugins": [
     {
+      "name": "avar-review",
+      "source": "./cc-plugins/avar-review",
+      "description": "Channel Ævar Arnfjörð Bjarmason to review code for completeness, test coverage, and behavioral regressions",
+      "version": "0.1.0"
+    },
+    {
       "name": "claude-rebase",
       "source": "./cc-plugins/claude-rebase",
       "description": "Interactive rebase via patches — reorder, edit, squash, and reword commits without git rebase -i",
