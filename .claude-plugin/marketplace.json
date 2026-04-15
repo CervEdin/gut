@@ -44,6 +44,12 @@
       "version": "0.1.0"
     },
     {
+      "name": "peff-review",
+      "source": "./cc-plugins/peff-review",
+      "description": "Channel Jeff King (peff) to review code for simplicity, edge cases, and correctness — with working code alternatives",
+      "version": "0.1.0"
+    },
+    {
       "name": "sunshine-review",
       "source": "./cc-plugins/sunshine-review",
       "description": "Channel Eric Sunshine to review code with meticulous, line-level precision — catching what others skim past",
