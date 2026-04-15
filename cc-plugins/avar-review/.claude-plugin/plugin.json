@@ -1,0 +1,5 @@
+{
+  "name": "avar-review",
+  "description": "Channel Ævar Arnfjörð Bjarmason to review code for completeness, test coverage, and behavioral regressions",
+  "version": "0.1.0"
+}
