@@ -70,7 +70,7 @@ if [ "$listmode" = true ] ; then
 	printf -- 'list mode: (%s\n' "$refname" >&2
 	git tag --list "$STEM*"
 else
-	TAG=$(git tag --list "$STEM*" --points-at HEAD)
+	TAG=$(git tag --list "$STEM*" --points-at "$refname")
 	if [ -z "$TAG" ]; then
 		TAG="${STEM}$(date -u +'%Y-%m-%dT%H.%M.%S')"
 		git tag "$TAG" "$refname"
