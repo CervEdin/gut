@@ -61,4 +61,44 @@ topics are cooking in 'seen' only.
 --------------------------------------------------
 [Stalled / Discarded]
 
-(none)
+* ec/prune-merged-dry-run (2026-04-17) — Discarded
+ - prune-merged: default to dry-run; require --yes to actually delete
+
+ `git-prune-merged.bash` was never integrated to 'main'; the script
+ lives only on topic branches that haven't graduated. A revival would
+ need a fresh patch that adds the script and the dry-run change
+ together.
+ source: <20260417130940.54848-1-erik@cervined.in>
+
+* cc/stash-inspector-ere (2026-04-24) — Discarded
+ - stash-inspector: use ERE for the stash@{N} extractor
+
+ `git-stash-inspector.sh` was never integrated to 'main'.
+ source: <20260424085744.52928-1-claude@gut.local>
+
+* cc/config-sort-drop-sponge (2026-04-24) — Discarded
+ - config-sort: drop in-tree sponge.sh for moreutils sponge
+
+ `git-config-sort.sh` was never integrated to 'main'.
+ source: <20260424085740.52769-1-claude@gut.local>
+
+* cc/delorean-no-gnu-xargs (2026-04-24) — Discarded
+ - delorean: don't rely on GNU xargs -d in the deleted-files loop
+
+ Superseded by `be52274 delorean: replace GNU awk and xargs with
+ POSIX equivalents` already on 'main' — equivalent portability fix
+ via a different approach (full awk/xargs replacement instead of
+ just dropping `-d`).
+ source: <20260424085736.52606-1-claude@gut.local>
+
+* ec/cc-plugin-makefile (2026-04-16) — Stalled
+ - Makefile: add Claude Code plugin targets
+
+ Patch applies cleanly to current 'main' but is a fragment of a
+ larger series. The new targets reference `.claude-plugin/marketplace.json`
+ and runtime `claude plugin install` calls that depend on the plugin
+ scripts on `feat/cc-marketplace`, none of which are on 'main'. The
+ Makefile alone would land dead targets. Pending submission of the
+ full series; reply on-list to convert to Discarded if
+ `feat/cc-marketplace` is being abandoned.
+ source: <20260416134518.68674-1-erik@cervined.in>
