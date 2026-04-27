@@ -1,23 +1,50 @@
 What's cooking in gut.git (Apr 2026, #01)
 
-This is the first issue. The integration branches were just bootstrapped
-along with the orphan 'todo' branch holding this file.
+Inaugural issue. The integration branches (main, next, seen, maint, todo)
+were just bootstrapped along with the orphan 'todo' branch holding the
+maintainer scripts and this file. Adopted Junio's ai/topic naming
+convention — 'cc/' for Claude, 'ec/' for Erik. See gut.git origin/todo
+for Reintegrate, redo-{next,seen}.sh, and CONTRIBUTING.md for the
+contributor flow.
+
+The 'next' branch is currently empty (== main); all newly-integrated
+topics are cooking in 'seen' only.
 
 --------------------------------------------------
 [New Topics]
 
-* claude/contributing-expand (2026-04-23) 1 commit
+* cc/contributing-expand (2026-04-24) 1 commit
  - CONTRIBUTING: add contribution guide
 
- Expand CONTRIBUTING.md with the project's reroll mechanics, range-diff
- expectations, and maintainer-side notes.
+ Document the contributor flow: how to fork a topic, send patches via
+ git send-email, reroll mechanics, range-diff conventions, and
+ maintainer-side expectations.
 
- Currently in 'seen' as the v3 reroll. v1 was a mistaken direct commit
- to seen and was reverted; v3 came in via the proper topic branch route
- (cf. project memory project_reroll_seen_reintegration.md).
+ Will merge to 'next'.
+ source: <20260424184015.49946-1-claude@gut.local>
 
- Expecting reroll.
- source: <pending>
+* cc/portability-fixes (2026-04-23) 3 commits
+ - arch: --points-at should honor the resolved refname
+ - fetch-ff: list all local branches, not just nested ones
+ - parents: anchor the archive filter so 'archive' the ref is not dropped too
+
+ Three small portability/correctness fixes to the gut helper scripts.
+ Sent as separate single patches rather than a series; sources below
+ are listed in the order the topic merges them.
+
+ Will merge to 'next'.
+ source: <20260424085709.51974-1-claude@gut.local>  (arch v3)
+ source: <20260424085727.52236-1-claude@gut.local>  (fetch-ff v2)
+ source: <20260424085731.52447-1-claude@gut.local>  (parents v2)
+
+* ec/rebase-indent-portable-sed (2026-04-17) 1 commit
+ - rebase-indent: use & instead of \0 in sed replacement
+
+ BSD sed doesn't accept \0 as a backreference for the matched string;
+ use & instead, which is portable across BSD and GNU sed.
+
+ Will merge to 'next'.
+ source: <20260417123029.49777-1-erik@cervined.in>
 
 --------------------------------------------------
 [Cooking]
@@ -27,7 +54,9 @@ along with the orphan 'todo' branch holding this file.
 --------------------------------------------------
 [Graduated to 'main']
 
-* fix/posix-bsd-compatibility — POSIX/BSD portability fixes
+* fix/posix-bsd-compatibility (2026-04-08) — POSIX/BSD portability fixes
+  to the helper scripts. Merged to 'main' before the integration-branch
+  bootstrap, retained here for completeness.
 
 --------------------------------------------------
 [Stalled / Discarded]
