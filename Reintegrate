@@ -327,7 +327,7 @@ show_merge () {
 		merge_hier=
 		;;
 	*)
-		echo 2>&1 "Huh?: $msg"
+		echo >&2 "Huh?: $msg"
 		return
 		;;
 	esac &&
