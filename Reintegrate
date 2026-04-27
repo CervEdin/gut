@@ -1,0 +1,25 @@
+#!/bin/sh
+# Per-topic merge primitive. Reads topic refs from stdin, one per line,
+# and merges each into HEAD with --no-ff. If refs/merge-fix/<topic>
+# exists, its tree is squashed into the merge to fix recorded semantic
+# conflicts.
+#
+# Modeled on Junio's Meta/Reintegrate; see
+# ~/repos/other/git/Documentation/howto/maintain-git.adoc
+
+set -eu
+
+while read -r topic; do
+	case "$topic" in
+	'' | '#'*) continue ;;
+	'###'*) continue ;; # marker line, skip when running directly
+	esac
+
+	git merge --rerere-autoupdate --no-ff -m "Merge branch '$topic'" "$topic"
+
+	fix="refs/merge-fix/$topic"
+	if git rev-parse --verify --quiet "$fix" >/dev/null; then
+		git cherry-pick -n "$fix"
+		git commit --amend --no-edit
+	fi
+done

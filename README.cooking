@@ -1,0 +1,29 @@
+The 'todo' branch
+=================
+
+This is an orphan branch — it shares no history with 'main'. It holds the
+maintainer's tooling and process artifacts for the gut project:
+
+  Reintegrate        — per-topic merge primitive (echo TOPIC | ./Reintegrate)
+  redo-next.sh       — declarative recipe to rebuild 'next' from 'main'
+  redo-seen.sh       — declarative recipe to rebuild 'seen' from 'next'
+  whats-cooking.txt  — current state of the integration tree
+  README.cooking     — this file
+
+Rationale: keep maintainer machinery off 'main' so the project tree stays
+clean, but version-control the process so 'whats-cooking.txt' has real
+history and the redo scripts are diffable across cycles. Modeled on the
+Git project's own 'todo' branch (Junio C Hamano's setup since 2005).
+
+Recommended use: mount this branch as a worktree at Meta/ inside your
+'main' checkout, mirroring the convention in
+~/repos/other/git/Documentation/howto/maintain-git.adoc:
+
+    git worktree add Meta todo
+
+Then 'Meta/Reintegrate', 'Meta/redo-seen.sh', etc. are live from a 'main'
+shell. The 'Meta/' name is a worktree pin only — it is *not* a path on
+the 'todo' branch itself.
+
+The full maintainer playbook lives in .claude/skills/gut-maintainer/ on
+'main'.

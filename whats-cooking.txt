@@ -1,0 +1,35 @@
+What's cooking in gut.git (Apr 2026, #01)
+
+This is the first issue. The integration branches were just bootstrapped
+along with the orphan 'todo' branch holding this file.
+
+--------------------------------------------------
+[New Topics]
+
+* claude/contributing-expand (2026-04-23) 1 commit
+ - CONTRIBUTING: add contribution guide
+
+ Expand CONTRIBUTING.md with the project's reroll mechanics, range-diff
+ expectations, and maintainer-side notes.
+
+ Currently in 'seen' as the v3 reroll. v1 was a mistaken direct commit
+ to seen and was reverted; v3 came in via the proper topic branch route
+ (cf. project memory project_reroll_seen_reintegration.md).
+
+ Expecting reroll.
+ source: <pending>
+
+--------------------------------------------------
+[Cooking]
+
+(none — 'next' is currently equal to 'main')
+
+--------------------------------------------------
+[Graduated to 'main']
+
+* fix/posix-bsd-compatibility — POSIX/BSD portability fixes
+
+--------------------------------------------------
+[Stalled / Discarded]
+
+(none)
