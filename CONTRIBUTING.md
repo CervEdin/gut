@@ -193,7 +193,7 @@ Before sending:
 ## Sending patches
 
 `git send-email` is already configured (see the repo `.gitconfig`) to deliver
-via local sendmail to the gut mailing list at `gut@localhost`.
+via local sendmail to the gut mailing list at `gut@mbp.localdomain`.
 
 ```bash
 # single patch
