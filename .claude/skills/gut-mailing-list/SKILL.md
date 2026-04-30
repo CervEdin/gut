@@ -301,6 +301,43 @@ git format-patch --cover-letter \
 Policy — _when_ to write a cover letter, _what_ makes a good one — lives in
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) § "Cover letter".
 
+### Pre-flight check
+
+Dry-run before every real send. `git send-email --dry-run` composes each message
+exactly as it would be sent — applies all config, computes Message-Id, picks
+From/To/Cc/Subject/In-Reply-To — and writes the result to stdout instead of
+handing it to sendmail. No mail leaves.
+
+What dry-run prints, per message:
+
+- Cc-detection lines (`(mbox) Adding cc: …`, `(body) Adding cc: …`) — addresses
+  send-email is auto-harvesting from the patch's From/Sob trailers.
+- `Dry-OK. Log says:` then `Sendmail: <argv>` (envelope sender + recipients).
+- The computed header block (From, To, Cc, Subject, Date, Message-ID, X-Mailer,
+  In-Reply-To, References, MIME-Version, Content-Transfer-Encoding,
+  Content-Type), a blank line, then `Result: OK`.
+
+Bodies are skipped on the dry-run path, so each message is ~15–20 header lines
+regardless of patch size — pipe to less or grep without worrying about flood.
+
+Inspect the envelope, not the body — the body is in what you wrote; what you're
+verifying is metadata. Filters to reach for situationally:
+
+- Full header sweep across the series — identities and numbering at a glance.
+- `^(From|Subject|Cc):` — catches a wrong `From:` when the `--from` override was
+  missed.
+- `^Subject:` only — confirms cover presence and `[PATCH n/N]`.
+- `In-Reply-To` / `References` — when replying to an existing thread.
+- One message's full headers — when something looks off.
+
+The `(body) Adding cc:` lines are load-bearing. For Claude-authored series with
+`Signed-off-by: Erik …`, they show Erik's address being auto-added to Cc —
+useful confirmation, or a surprise to catch.
+
+`--confirm=auto` (default) is the only built-in pre-send check — it prompts when
+send-email auto-added Cc recipients or `--compose` was used. `--confirm=never`
+skips it; dry-run-first replaces it.
+
 ### Rerolling a series
 
 For v2+ rerolls — tagging convention (`<topic>/v<N>`), the two `--range-diff`
