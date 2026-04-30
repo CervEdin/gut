@@ -270,6 +270,37 @@ git send-email --from 'Claude <claude@gut.local>' --cover-letter ...
 Delivery goes via local sendmail to bare `gut` (no `@domain` — this bypasses
 git's FQDN validation, which otherwise rejects `localhost`).
 
+### Cover letters
+
+Plain `git format-patch --cover-letter` leaves `*** SUBJECT HERE ***` /
+`*** BLURB HERE ***` placeholders that invite hand-editing the file. Drive the
+cover content from a file instead, so the generated cover letter is complete:
+
+```
+# /tmp/cover.txt — line 1 is the Subject, body follows a blank line:
+#   Makefile: split format from lint, cover markdown
+#
+#   The repo has been accumulating .md files (skills, CONTRIBUTING, …)
+#   that drift on line wrapping…
+
+git format-patch --cover-letter \
+                 --description-file=/tmp/cover.txt \
+                 --cover-from-description=auto \
+                 -o /tmp/p main..HEAD
+```
+
+- `--cover-from-description=auto` makes line 1 drive the Subject when the first
+  paragraph is ≤100 bytes; the default mode `message` leaves the
+  `*** SUBJECT HERE ***` placeholder. The `[PATCH 0/N]` prefix is always
+  automatic — never write that part yourself.
+- Human-interactive alternative: `git branch --edit-description` opens `$EDITOR`
+  and persists the content at `branch.<name>.description`, which
+  `git format-patch --cover-letter` then picks up flag-free. Non-interactive
+  agents skip the config dance and reach for `--description-file` directly.
+
+Policy — _when_ to write a cover letter, _what_ makes a good one — lives in
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.md) § "Cover letter".
+
 ### Rerolling a series
 
 For v2+ rerolls — tagging convention (`<topic>/v<N>`), the two `--range-diff`
