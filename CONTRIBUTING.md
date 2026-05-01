@@ -157,6 +157,7 @@ Use `git commit -s` to add it automatically.
 - `Acked-by:` — indicates someone familiar with the area liked the patch
 - `Reviewed-by:` — can only be offered by the reviewer after detailed analysis
 - `Tested-by:` — indicates someone applied and tested the patch
+- `Co-authored-by:` — credits someone you exchanged drafts of the patch with
 - `Suggested-by:` — credits someone who suggested the idea
 
 Only capitalize the first letter: `Signed-off-by`, not `Signed-Off-By`.
