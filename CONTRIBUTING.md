@@ -236,7 +236,10 @@ letter (or the first patch if there was no cover letter).
 
 Do not attach patches as MIME attachments. Send them inline as plain text so
 reviewers can quote and comment on specific lines. Do not cut-and-paste patches
-between windows — tabs get mangled that way.
+between windows — tabs get mangled that way. Make sure your mail client is not
+sending `quoted-printable` or `format=flowed`; both mangle whitespace in
+patches. `git send-email` does the right thing — trouble usually comes from MUAs
+that try to "help".
 
 ### Series vs standalone
 
