@@ -209,6 +209,11 @@ you are touching — they are the most likely to give useful review.
 obligation to reply, but missing them on Cc means your patch easily slides past
 the people best placed to comment.
 
+Once the list reaches consensus that a series is ready, re-send a final version
+with the trailers reviewers offered (`Acked-by:`, `Reviewed-by:`, `Tested-by:`)
+folded into each commit, Cc'ing the people who gave them so they can confirm.
+This is the version the maintainer applies.
+
 Subject prefixes:
 
 - `[PATCH]` — a patch (added automatically by `git format-patch`).
