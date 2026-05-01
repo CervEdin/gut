@@ -1,17 +1,27 @@
-What's cooking in gut.git (Apr 2026, #01)
+What's cooking in gut.git (May 2026, #01)
 
-Inaugural issue. The integration branches (main, next, seen, maint, todo)
-were just bootstrapped along with the orphan 'todo' branch holding the
-maintainer scripts and this file. Adopted Junio's ai/topic naming
-convention — 'cc/' for Claude, 'ec/' for Erik. See gut.git origin/todo
-for Reintegrate, redo-{next,seen}.sh, and CONTRIBUTING.md for the
-contributor flow.
-
-The 'next' branch is currently empty (== main); all newly-integrated
-topics are cooking in 'seen' only.
+One new topic this round (cc/makefile-format).  The three from the
+inaugural issue are still cooking in 'seen'; 'next' remains empty
+(== main).
 
 --------------------------------------------------
 [New Topics]
+
+* cc/makefile-format (2026-05-01) 2 commits
+ - Makefile: introduce a formatting target
+ - Makefile: add format-markdown target
+
+ Add a `format:` target as peer to `lint:`, rename `lint-python` →
+ `format-python` (autopep8 -i is a formatter, not a linter), and add
+ `format-markdown` running prettier across the project's markdown.
+ v2 also reformats README.md (the only tracked .md at the time) so
+ the target's output matches the tree state.
+
+ Will merge to 'next'.
+ source: <20260501080304.86583-1-claude@gut.local>
+
+--------------------------------------------------
+[Cooking]
 
 * cc/contributing-expand (2026-04-24) 1 commit
  - CONTRIBUTING: add contribution guide
@@ -29,8 +39,6 @@ topics are cooking in 'seen' only.
  - parents: anchor the archive filter so 'archive' the ref is not dropped too
 
  Three small portability/correctness fixes to the gut helper scripts.
- Sent as separate single patches rather than a series; sources below
- are listed in the order the topic merges them.
 
  Will merge to 'next'.
  source: <20260424085709.51974-1-claude@gut.local>  (arch v3)
@@ -45,60 +53,3 @@ topics are cooking in 'seen' only.
 
  Will merge to 'next'.
  source: <20260417123029.49777-1-erik@cervined.in>
-
---------------------------------------------------
-[Cooking]
-
-(none — 'next' is currently equal to 'main')
-
---------------------------------------------------
-[Graduated to 'main']
-
-* fix/posix-bsd-compatibility (2026-04-08) — POSIX/BSD portability fixes
-  to the helper scripts. Merged to 'main' before the integration-branch
-  bootstrap, retained here for completeness.
-
---------------------------------------------------
-[Stalled / Discarded]
-
-* ec/prune-merged-dry-run (2026-04-17) — Discarded
- - prune-merged: default to dry-run; require --yes to actually delete
-
- `git-prune-merged.bash` was never integrated to 'main'; the script
- lives only on topic branches that haven't graduated. A revival would
- need a fresh patch that adds the script and the dry-run change
- together.
- source: <20260417130940.54848-1-erik@cervined.in>
-
-* cc/stash-inspector-ere (2026-04-24) — Discarded
- - stash-inspector: use ERE for the stash@{N} extractor
-
- `git-stash-inspector.sh` was never integrated to 'main'.
- source: <20260424085744.52928-1-claude@gut.local>
-
-* cc/config-sort-drop-sponge (2026-04-24) — Discarded
- - config-sort: drop in-tree sponge.sh for moreutils sponge
-
- `git-config-sort.sh` was never integrated to 'main'.
- source: <20260424085740.52769-1-claude@gut.local>
-
-* cc/delorean-no-gnu-xargs (2026-04-24) — Discarded
- - delorean: don't rely on GNU xargs -d in the deleted-files loop
-
- Superseded by `be52274 delorean: replace GNU awk and xargs with
- POSIX equivalents` already on 'main' — equivalent portability fix
- via a different approach (full awk/xargs replacement instead of
- just dropping `-d`).
- source: <20260424085736.52606-1-claude@gut.local>
-
-* ec/cc-plugin-makefile (2026-04-16) — Stalled
- - Makefile: add Claude Code plugin targets
-
- Patch applies cleanly to current 'main' but is a fragment of a
- larger series. The new targets reference `.claude-plugin/marketplace.json`
- and runtime `claude plugin install` calls that depend on the plugin
- scripts on `feat/cc-marketplace`, none of which are on 'main'. The
- Makefile alone would land dead targets. Pending submission of the
- full series; reply on-list to convert to Discarded if
- `feat/cc-marketplace` is being abandoned.
- source: <20260416134518.68674-1-erik@cervined.in>
