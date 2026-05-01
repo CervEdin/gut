@@ -2,6 +2,7 @@ NAME=gut
 VERSION=0.0.1
 files=$(wildcard *.sh *.sed)
 shell_files=$(wildcard *.sh)
+md_files:=$(shell git ls-files -co --exclude-standard '*.md')
 programs=$(addprefix bin/, $(files))
 shell_programs=$(addprefix bin/, $(shell_files))
 INSTALL_DIR=${HOME}/bin
@@ -72,13 +73,18 @@ debug: $(shell_programs)
 
 debug_all: debug all
 
-.PHONY: lint
-## Run linter on files in project
-lint: \
-	lint-python \
-	lint-shell
+.PHONY: format
+## Run formatters on files in project
+format: \
+	format-markdown \
+	format-python
 
-.PHONY: lint-python
+.PHONY: format-markdown
+## Format markdown files.
+format-markdown: $(md_files)
+	npx --no-install prettier --print-width 80 --prose-wrap always --write $^
+
+.PHONY: format-python
 ## Run autopep8 on python files and fix the following errors:
 ## E301 - Add missing blank line.
 ## E302 - Add missing 2 blank lines.
@@ -86,8 +92,13 @@ lint: \
 ## E304 - Remove blank line following function decorator.
 ## E305 - Expected 2 blank lines after end of function or class.
 ## E306 - Expected 1 blank line before a nested definition.
-lint-python: **/*.py
+format-python: **/*.py
 	autopep8 -i --select=E301,E302,E303,E304,E305,E306 $^
+
+.PHONY: lint
+## Run linter on files in project
+lint: \
+	lint-shell
 
 .PHONY: lint-shell
 ## Run shellcheck on all shell scripts.
