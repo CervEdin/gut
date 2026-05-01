@@ -229,6 +229,11 @@ what changed since v1 without cluttering the commit message itself.
 Rerolls of v2 and later are also expected to carry a range-diff against the
 previous version so reviewers can see what changed between iterations.
 
+Send the reroll as a reply to the previous round so all iterations live in the
+same thread. Pass `--in-reply-to=<msgid>` to `git format-patch` (or
+`git send-email`), where `<msgid>` is the Message-Id of the previous cover
+letter (or the first patch if there was no cover letter).
+
 Do not attach patches as MIME attachments. Send them inline as plain text so
 reviewers can quote and comment on specific lines. Do not cut-and-paste patches
 between windows — tabs get mangled that way.
