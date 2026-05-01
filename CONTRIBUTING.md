@@ -14,8 +14,9 @@ itself.
    are building is good. Your goal is to get help coming up with a solution that
    is better than what you can build alone.
 
-3. You get comments and suggestions. Respond on the mailing list and take them
-   into account when preparing an updated version.
+3. You get comments and suggestions. Reply-All on the list so reviewers and the
+   wider audience stay in the loop, and take the comments into account when
+   preparing an updated version.
 
 4. Updated versions are full replacements, not incremental updates on top of
    what you posted. Rewrite history (e.g. with `git rebase -i`) to present a
