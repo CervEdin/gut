@@ -6,4 +6,4 @@ git for-each-ref --merged HEAD --no-contains HEAD \
 	--sort="-creatordate" \
 	--format="%(refname:short)" \
   -- 'refs/heads/' 'refs/tags/' |\
-  grep -v 'archive/*'
+  grep -v '^archive/'

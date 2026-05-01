@@ -7,7 +7,7 @@ git worktree list --porcelain |
 	sort > "$worktree_list"
 
 
-git for-each-ref --format='%(refname)' 'refs/heads/**/*' |
+git for-each-ref --format='%(refname)' refs/heads/ |
 	sort |
 	comm -23 - "$worktree_list" |
 		tr '\n' ' ' |
