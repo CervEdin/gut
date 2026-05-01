@@ -2,6 +2,7 @@ NAME=gut
 VERSION=0.0.1
 files=$(wildcard *.sh *.sed)
 shell_files=$(wildcard *.sh)
+md_files:=$(shell git ls-files -co --exclude-standard '*.md')
 programs=$(addprefix bin/, $(files))
 shell_programs=$(addprefix bin/, $(shell_files))
 INSTALL_DIR=${HOME}/bin
@@ -75,7 +76,13 @@ debug_all: debug all
 .PHONY: format
 ## Run formatters on files in project
 format: \
+	format-markdown \
 	format-python
+
+.PHONY: format-markdown
+## Format markdown files.
+format-markdown: $(md_files)
+	npx --no-install prettier --print-width 80 --prose-wrap always --write $^
 
 .PHONY: format-python
 ## Run autopep8 on python files and fix the following errors:
