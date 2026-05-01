@@ -285,6 +285,10 @@ You can suggest a topic name for the _What's cooking_ report by writing
 the cover letter — e.g. `ec/cover-letter-format`. The maintainer uses it as the
 label across iterations; otherwise they pick one when picking up the topic.
 
+If your series is part of a larger effort spanning several independent series
+sent over time, say so in the cover letter and state where this one fits in the
+broader plan.
+
 Send the series as a thread: cover letter first (`[PATCH 0/N]`), then each patch
 as a reply, either to the cover letter or to the preceding patch.
 `git send-email` does this automatically.
