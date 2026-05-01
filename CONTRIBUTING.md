@@ -280,6 +280,11 @@ details belong in the individual commit messages. The cover letter is not
 recorded in the commit history, so anything useful to future readers should live
 in the commits themselves.
 
+You can suggest a topic name for the _What's cooking_ report by writing
+`XX/your-topic-name` (XX = your initials, dash-delimited summary) at the top of
+the cover letter — e.g. `ec/cover-letter-format`. The maintainer uses it as the
+label across iterations; otherwise they pick one when picking up the topic.
+
 Send the series as a thread: cover letter first (`[PATCH 0/N]`), then each patch
 as a reply, either to the cover letter or to the preceding patch.
 `git send-email` does this automatically.
