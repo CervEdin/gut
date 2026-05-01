@@ -6,6 +6,7 @@ case "$#,$1" in
 esac
 Meta/Reintegrate "$@" <<\EOF
 cc/contributing-expand
+cc/makefile-format
 cc/portability-fixes
 ec/rebase-indent-portable-sed
 EOF
