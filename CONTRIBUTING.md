@@ -203,6 +203,12 @@ git send-email -1
 git send-email origin/main..HEAD
 ```
 
+Send patches with `To:` the list and `Cc:` people who have worked on the area
+you are touching — they are the most likely to give useful review.
+`git log -p -- <files>` is a quick way to find them. They are under no
+obligation to reply, but missing them on Cc means your patch easily slides past
+the people best placed to comment.
+
 Subject prefixes:
 
 - `[PATCH]` — a patch (added automatically by `git format-patch`).
