@@ -24,6 +24,19 @@ itself.
 
 5. Polish and re-send. Go back to step 2.
 
+6. While iterations continue, the maintainer may pick the latest version up from
+   the list and queue it on `seen` so others can try it without applying patches
+   by hand. Being on `seen` is **not** acceptance — it just means a version was
+   posted.
+
+7. Once discussion reaches consensus that the latest iteration is in good enough
+   shape, the maintainer marks the topic "Will merge to `next`" in the _What's
+   cooking_ report and merges it there.
+
+8. Topics in `next` cook while interactions with other in-flight work get sorted
+   out. Once a topic has cooked without needing further tweaks, it graduates to
+   `main` and ships in the next release.
+
 ## Choose a starting point
 
 The repo has three integration branches:
