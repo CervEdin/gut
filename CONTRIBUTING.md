@@ -14,14 +14,28 @@ itself.
    are building is good. Your goal is to get help coming up with a solution that
    is better than what you can build alone.
 
-3. You get comments and suggestions. Respond on the mailing list and take them
-   into account when preparing an updated version.
+3. You get comments and suggestions. Reply-All on the list so reviewers and the
+   wider audience stay in the loop, and take the comments into account when
+   preparing an updated version.
 
 4. Updated versions are full replacements, not incremental updates on top of
    what you posted. Rewrite history (e.g. with `git rebase -i`) to present a
    clean, logical progression. Nobody is interested in your earlier mistakes.
 
 5. Polish and re-send. Go back to step 2.
+
+6. While iterations continue, the maintainer may pick the latest version up from
+   the list and queue it on `seen` so others can try it without applying patches
+   by hand. Being on `seen` is **not** acceptance — it just means a version was
+   posted.
+
+7. Once discussion reaches consensus that the latest iteration is in good enough
+   shape, the maintainer marks the topic "Will merge to `next`" in the _What's
+   cooking_ report and merges it there.
+
+8. Topics in `next` cook while interactions with other in-flight work get sorted
+   out. Once a topic has cooked without needing further tweaks, it graduates to
+   `main` and ships in the next release.
 
 ## Choose a starting point
 
@@ -143,6 +157,7 @@ Use `git commit -s` to add it automatically.
 - `Acked-by:` — indicates someone familiar with the area liked the patch
 - `Reviewed-by:` — can only be offered by the reviewer after detailed analysis
 - `Tested-by:` — indicates someone applied and tested the patch
+- `Co-authored-by:` — credits someone you exchanged drafts of the patch with
 - `Suggested-by:` — credits someone who suggested the idea
 
 Only capitalize the first letter: `Signed-off-by`, not `Signed-Off-By`.
@@ -188,6 +203,17 @@ git send-email -1
 git send-email origin/main..HEAD
 ```
 
+Send patches with `To:` the list and `Cc:` people who have worked on the area
+you are touching — they are the most likely to give useful review.
+`git log -p -- <files>` is a quick way to find them. They are under no
+obligation to reply, but missing them on Cc means your patch easily slides past
+the people best placed to comment.
+
+Once the list reaches consensus that a series is ready, re-send a final version
+with the trailers reviewers offered (`Acked-by:`, `Reviewed-by:`, `Tested-by:`)
+folded into each commit, Cc'ing the people who gave them so they can confirm.
+This is the version the maintainer applies.
+
 Subject prefixes:
 
 - `[PATCH]` — a patch (added automatically by `git format-patch`).
@@ -203,9 +229,17 @@ what changed since v1 without cluttering the commit message itself.
 Rerolls of v2 and later are also expected to carry a range-diff against the
 previous version so reviewers can see what changed between iterations.
 
+Send the reroll as a reply to the previous round so all iterations live in the
+same thread. Pass `--in-reply-to=<msgid>` to `git format-patch` (or
+`git send-email`), where `<msgid>` is the Message-Id of the previous cover
+letter (or the first patch if there was no cover letter).
+
 Do not attach patches as MIME attachments. Send them inline as plain text so
 reviewers can quote and comment on specific lines. Do not cut-and-paste patches
-between windows — tabs get mangled that way.
+between windows — tabs get mangled that way. Make sure your mail client is not
+sending `quoted-printable` or `format=flowed`; both mangle whitespace in
+patches. `git send-email` does the right thing — trouble usually comes from MUAs
+that try to "help".
 
 ### Series vs standalone
 
@@ -245,6 +279,15 @@ The body explains the motivation and overall design of the series. Per-patch
 details belong in the individual commit messages. The cover letter is not
 recorded in the commit history, so anything useful to future readers should live
 in the commits themselves.
+
+You can suggest a topic name for the _What's cooking_ report by writing
+`XX/your-topic-name` (XX = your initials, dash-delimited summary) at the top of
+the cover letter — e.g. `ec/cover-letter-format`. The maintainer uses it as the
+label across iterations; otherwise they pick one when picking up the topic.
+
+If your series is part of a larger effort spanning several independent series
+sent over time, say so in the cover letter and state where this one fits in the
+broader plan.
 
 Send the series as a thread: cover letter first (`[PATCH 0/N]`), then each patch
 as a reply, either to the cover letter or to the preceding patch.
