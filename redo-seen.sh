@@ -5,4 +5,5 @@ case "$#,$1" in
 	exec Meta/Reintegrate "$1" "$0"
 esac
 Meta/Reintegrate "$@" <<\EOF
+ec/contributing-followup
 EOF
