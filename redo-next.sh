@@ -5,8 +5,4 @@ case "$#,$1" in
 	exec Meta/Reintegrate "$1" "$0"
 esac
 Meta/Reintegrate "$@" <<\EOF
-cc/contributing-expand
-cc/portability-fixes
-ec/rebase-indent-portable-sed
-cc/makefile-format
 EOF
