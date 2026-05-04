@@ -1,55 +1,111 @@
-What's cooking in gut.git (May 2026, #01)
+What's cooking in gut.git (May 2026, #02)
 
-One new topic this round (cc/makefile-format).  The three from the
-inaugural issue are still cooking in 'seen'; 'next' remains empty
-(== main).
+The pipeline drained this round.  All five topics from #01 graduated
+to 'main' (99d2fb5), and 'next' and 'seen' have been fast-forwarded to
+the same commit.  No topics are currently cooking.
 
---------------------------------------------------
-[New Topics]
+Three v2 series that were waiting on confirmation are being marked
+Discarded based on Erik's replies on the list -- two pertain to scripts
+that were never integrated to 'main', the third was superseded by an
+equivalent fix that landed independently.
 
-* cc/makefile-format (2026-05-01) 2 commits
- - Makefile: introduce a formatting target
- - Makefile: add format-markdown target
-
- Add a `format:` target as peer to `lint:`, rename `lint-python` →
- `format-python` (autopep8 -i is a formatter, not a linter), and add
- `format-markdown` running prettier across the project's markdown.
- v2 also reformats README.md (the only tracked .md at the time) so
- the target's output matches the tree state.
-
- Will merge to 'next'.
- source: <20260501080304.86583-1-claude@gut.local>
+One new topic (cc/mlmmj-migration) is held back pending a reroll: Erik
+asked for the full mlmmj setup (container + config) rather than just
+the migrate/rollback scripts.
 
 --------------------------------------------------
-[Cooking]
+[Graduated to 'main']
 
 * cc/contributing-expand (2026-04-24) 1 commit
- - CONTRIBUTING: add contribution guide
+  (merged to 'main' on 2026-05-04 at 99d2fb5)
+ + CONTRIBUTING: add contribution guide
 
  Document the contributor flow: how to fork a topic, send patches via
  git send-email, reroll mechanics, range-diff conventions, and
  maintainer-side expectations.
 
- Will merge to 'next'.
  source: <20260424184015.49946-1-claude@gut.local>
 
 * cc/portability-fixes (2026-04-23) 3 commits
- - arch: --points-at should honor the resolved refname
- - fetch-ff: list all local branches, not just nested ones
- - parents: anchor the archive filter so 'archive' the ref is not dropped too
+  (merged to 'main' on 2026-05-04 at 99d2fb5)
+ + arch: --points-at should honor the resolved refname
+ + fetch-ff: list all local branches, not just nested ones
+ + parents: anchor the archive filter so 'archive' the ref is not dropped too
 
  Three small portability/correctness fixes to the gut helper scripts.
 
- Will merge to 'next'.
  source: <20260424085709.51974-1-claude@gut.local>  (arch v3)
  source: <20260424085727.52236-1-claude@gut.local>  (fetch-ff v2)
  source: <20260424085731.52447-1-claude@gut.local>  (parents v2)
 
 * ec/rebase-indent-portable-sed (2026-04-17) 1 commit
- - rebase-indent: use & instead of \0 in sed replacement
+  (merged to 'main' on 2026-05-04 at 99d2fb5)
+ + rebase-indent: use & instead of \0 in sed replacement
 
  BSD sed doesn't accept \0 as a backreference for the matched string;
  use & instead, which is portable across BSD and GNU sed.
 
- Will merge to 'next'.
  source: <20260417123029.49777-1-erik@cervined.in>
+
+* cc/makefile-format (2026-05-01) 2 commits
+  (merged to 'main' on 2026-05-04 at 99d2fb5)
+ + Makefile: introduce a formatting target
+ + Makefile: add format-markdown target
+
+ Add a `format:` target as peer to `lint:`, rename `lint-python` →
+ `format-python` (autopep8 -i is a formatter, not a linter), and add
+ `format-markdown` running prettier across the project's markdown.
+
+ source: <20260501080304.86583-1-claude@gut.local>
+
+* ec/contributing-followup (2026-05-01) 9 commits
+  (merged to 'main' on 2026-05-04 at 99d2fb5)
+ + CONTRIBUTING: tell contributors to Reply-All on review
+ + CONTRIBUTING: describe topic graduation flow
+ + CONTRIBUTING: list Co-authored-by trailer
+ + CONTRIBUTING: cc area experts when sending patches
+ + CONTRIBUTING: re-send final version after consensus
+ + CONTRIBUTING: thread re-rolls under the previous round
+ + CONTRIBUTING: warn against quoted-printable and format=flowed
+ + CONTRIBUTING: suggest topic name in cover letter
+ + CONTRIBUTING: note multi-series effort hint in cover letter
+
+ Extend CONTRIBUTING.md with conventions mirrored from Git's
+ SubmittingPatches: Reply-All on review, topic graduation through
+ seen/next/main, Cc-ing area experts, re-sending the final version
+ with collected trailers, threading re-rolls under the previous
+ round, avoiding quoted-printable / format=flowed, suggesting a
+ topic name in the cover letter, and noting multi-series efforts.
+
+ source: <20260501214004.71280-1-claude@gut.local>
+
+--------------------------------------------------
+[Stalled / Expecting reroll]
+
+* cc/mlmmj-migration (2026-04-30) 1 commit
+ - podman/mlmmj: add gut alias→mlmmj migration scripts
+
+ Erik asked for the full mlmmj setup -- container definition and
+ supporting config -- rather than only the migrate/rollback scripts.
+ Held until the contributor expands the scope.
+
+ Expecting reroll.
+ source: <20260430082630.41218-1-claude@gut.local>
+ cf. <Z_q+kYBSzS6JYKLT@mbp> (Erik's reply asking for the full setup)
+
+--------------------------------------------------
+[Discarded]
+
+* delorean xargs v2 -- superseded by be52274 (delorean: replace GNU
+  awk and xargs with POSIX equivalents) already on 'main', which made
+  an equivalent portability fix using a different approach.
+  source: <20260427131301-…@cervined.in>
+
+* config-sort sponge v2 -- git-config-sort.sh was never integrated to
+  'main', so there is nothing for the patch to apply against.  Reply
+  if you want to revive.
+  source: <20260427131302-…@cervined.in>
+
+* stash-inspector ERE v2 -- git-stash-inspector.sh was never integrated
+  to 'main', same situation.  Reply if you want to revive.
+  source: <20260427131303-…@cervined.in>
