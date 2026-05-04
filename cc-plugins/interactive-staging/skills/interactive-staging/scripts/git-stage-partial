@@ -1,0 +1,34 @@
+#!/bin/bash
+# git-stage-partial: stage a constructed file version into the index
+# Usage: git-stage-partial <path> <tempfile>
+#        git-stage-partial --remove <path>
+
+if [ "${1:-}" = "--remove" ]; then
+  path="${2:?Usage: git-stage-partial --remove <path>}"
+  git update-index --force-remove -- "$path"
+  exit 0
+fi
+
+path="${1:?Usage: git-stage-partial <path> <tempfile>}"
+tempfile="${2:?Usage: git-stage-partial <path> <tempfile>}"
+
+# Detect file mode: prefer index entry, fall back to filesystem
+mode=$(git ls-files --stage -- "$path" 2>/dev/null | awk '{print $1}')
+if [ -z "$mode" ]; then
+  # New file — detect from filesystem permissions
+  if [ -x "$path" ]; then
+    mode=100755
+  else
+    mode=100644
+  fi
+fi
+
+sha=$(git hash-object -w -- "$tempfile") || {
+  echo "error: git hash-object failed for $tempfile" >&2
+  exit 1
+}
+
+# --cacheinfo takes literal index paths (no CWD prefix resolution),
+# unlike most git commands. Prepend the prefix so it works from subdirectories.
+prefix=$(git rev-parse --show-prefix)
+git update-index --add --cacheinfo "$mode,$sha,$prefix$path"
