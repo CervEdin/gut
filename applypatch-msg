@@ -1,0 +1,8 @@
+#!/bin/sh
+
+ident=$(git var GIT_COMMITTER_IDENT) || exit
+exec git interpret-trailers \
+	--in-place \
+	--if-exists addIfDifferent \
+	--trailer "Signed-off-by: ${ident%>*}>" \
+	"$1"
