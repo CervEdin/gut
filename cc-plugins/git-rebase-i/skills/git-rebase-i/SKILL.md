@@ -51,14 +51,58 @@ rm -r .rebase/
 
 Rewording only changes commit messages — no tree or content changes. This means
 there are no cascading conflicts to worry about, so multiple rewords can safely
-be batched into a single rebase using `exec` lines. Doing them incrementally
-would also cause SHAs to shift after each rebase, adding unnecessary complexity.
+be batched into a single autosquash. Doing them incrementally would also cause
+SHAs to shift after each rebase, adding unnecessary complexity.
 
-### Single commit
+### Creating `amend!` commits
 
-Use `edit` + `amend`:
+Create `amend!` commits, then fold them in with a single autosquash pass. This
+front-loads verification — each `amend!` commit is visible in `git log` with the
+exact replacement message before the rebase runs.
 
-#### 1. Write the sed script
+Write the new message to a file with the Write tool (avoids the Bash tool's `!`
+escaping). Then try native `--fixup=reword:` first; fall back to
+`bin/git-reword` if the git version doesn't support `-F` with `--fixup`:
+
+```bash
+git commit --allow-empty --fixup=reword:<sha> -F .rebase/reword-msg.txt \
+  || bin/git-reword <sha> -F .rebase/reword-msg.txt
+```
+
+For a subject-only change where the message contains no `!`:
+
+```bash
+git commit --allow-empty --fixup=reword:<sha> -m "new subject" \
+  || bin/git-reword <sha> -m "new subject"
+```
+
+#### Multiple commits
+
+Stack up multiple `amend!` commits, one per reword, then fold them all in a
+single autosquash pass:
+
+```bash
+git commit --allow-empty --fixup=reword:<sha-1> -F .rebase/reword-1.txt \
+  || bin/git-reword <sha-1> -F .rebase/reword-1.txt
+git commit --allow-empty --fixup=reword:<sha-2> -F .rebase/reword-2.txt \
+  || bin/git-reword <sha-2> -F .rebase/reword-2.txt
+```
+
+#### Verify and autosquash
+
+```bash
+git log --oneline -5                    # amend! commits should be visible
+GIT_SEQUENCE_EDITOR=cat git rebase -i --autosquash --rebase-merges --update-refs <oldest-sha>^
+git diff $(cat .rebase/ORIGINAL_HEAD)   # should be empty
+```
+
+### Fallback: sed-based reword via `GIT_SEQUENCE_EDITOR`
+
+When neither native `--fixup=reword: -F` nor `bin/git-reword` is available, use
+the sed-based approach. This is more fragile — errors surface mid-rebase rather
+than before it.
+
+#### Single commit
 
 ```bash
 cat > .rebase/edit.sed <<'EOF'
@@ -68,13 +112,9 @@ break
 EOF
 ```
 
-#### 2. Run the rebase
-
 ```bash
 GIT_SEQUENCE_EDITOR="sed -i '' -E -f .rebase/edit.sed" git rebase -i <sha>^
 ```
-
-#### 3. Amend and continue
 
 ```bash
 GIT_EDITOR="sed -i '' '1s/.*/new subject/'" git commit --amend
@@ -88,13 +128,11 @@ editing), use `git show --stat` to review, then `git commit --amend -m "..."`.
 After the rebase, verify with `git diff $(cat .rebase/ORIGINAL_HEAD)` — it
 should be empty.
 
-### Multiple commits (batch reword)
+#### Multiple commits (batch)
 
 Write a sed script with one `1s` substitution per commit — exact old subject →
 exact new subject. Each rule only fires on the matching commit; all others are
 no-ops.
-
-#### 1. Write the reword sed script
 
 ```bash
 cat > .rebase/reword.sed <<'SEDEOF'
@@ -105,8 +143,6 @@ SEDEOF
 
 **POSIX note:** sed does not interpret `\t` as a tab character. If the
 replacement text needs literal tabs, the file must contain actual tab bytes.
-
-#### 2. Write the sequence editor sed script
 
 Insert an `exec` line after each `pick` that needs rewording:
 
@@ -125,13 +161,9 @@ break
 EOF
 ```
 
-#### 3. Run the rebase
-
 ```bash
 GIT_SEQUENCE_EDITOR="sed -i '' -E -f .rebase/edit.sed" git rebase -i --rebase-merges --update-refs <oldest-sha>^
 ```
-
-#### 4. Verify at break
 
 ```bash
 git diff $(cat .rebase/ORIGINAL_HEAD)   # should be empty
@@ -191,6 +223,9 @@ GIT_SEQUENCE_EDITOR=cat git rebase -i --autosquash --rebase-merges --update-refs
 ```
 
 Verify with `git diff $(cat .rebase/ORIGINAL_HEAD)` after each rebase.
+
+If the fixup also needs a message change, do the fixup first, then use
+`git reword` in a second pass to update the target's message.
 
 ## Edit (remove parts of a commit)
 
