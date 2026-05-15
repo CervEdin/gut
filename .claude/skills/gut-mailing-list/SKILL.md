@@ -232,6 +232,10 @@ own for a future reader who lands on the message cold.
 - `[BUG]` — blocking correctness bug
 - `[MINOR]` — small correctness or style issue
 - `[RFC]` — request for comments before implementing
+- Custom prefixes — `git format-patch --rfc=<string>` and
+  `git send-email --rfc=<string>` set an arbitrary prefix in place of `RFC`.
+  `--rfc=WIP` produces `[WIP PATCH]`, `--rfc=RESEND` produces `[RESEND PATCH]`.
+  Plain `--rfc` (no argument) still gives `[RFC PATCH]`.
 - `Re:` is added automatically by `template reply`
 
 Keep each message coherent: the issues in one message should be related. Don't
