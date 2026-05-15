@@ -460,6 +460,13 @@ Conventions:
 - `source: <Message-Id>` of the patch (or cover letter for a series)
 - Optional `cf. <Message-Id>` for a review or follow-up worth pointing at
 
+For the `(<latest commit date>)` field, `%ah` gives human-readable relative
+dates ("2 weeks ago") instead of ISO dates — useful for showing at a glance how
+stale a topic is. `%(describe:tags=true)` embeds the tag-relative position (e.g.
+`v0.3.0-12-gabc1234`), which shows where a topic sits relative to releases. Both
+are available in `git log --format=` and can be used when generating entries
+programmatically.
+
 ### Sending it
 
 Use the himalaya template pipeline from `gut-mailing-list`:
