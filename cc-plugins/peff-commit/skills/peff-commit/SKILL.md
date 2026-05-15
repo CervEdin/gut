@@ -38,6 +38,8 @@ feedback.**
 4. Write notes — caveats, alternatives you considered, things you're uncertain
    about. See the Notes section in `PEFF-STYLE.md`.
 5. Present it and ask for feedback.
+6. Once the user approves, commit with the message, then attach the notes to the
+   new commit with `git notes add -m <notes>`.
 
 ## Output Format
 
