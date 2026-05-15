@@ -204,6 +204,12 @@ Tag the previous tip first if you want to preserve it (the contributor should
 already be doing this for their own range-diff per `gut-mailing-list`'s tagging
 convention `<topic>/v<N>`).
 
+For quick triage of what a reroll changed, `range-diff` accepts `--left-only`
+and `--right-only` to show only patches unique to one side. `--left-only` shows
+commits that v1 had but v2 dropped; `--right-only` shows commits v2 added. Both
+suppress the paired (modified) commits, so for a large series where most patches
+are unchanged, they cut the noise to just what moved.
+
 ### Reroll — replacing a topic that's ALREADY in next
 
 Don't. Once a topic is in `next`, its history is fixed — replacement happens by
