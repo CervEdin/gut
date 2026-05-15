@@ -338,6 +338,12 @@ sh Meta/redo-seen.sh
 When a topic graduates from `seen` to `next`, move its line from `redo-seen.sh`
 to `redo-next.sh`. When it graduates to `main`, drop it from both.
 
+To audit what each merge brought in after a rebuild, use `git log --dd`. It
+shows only the diff each merge introduced (the symmetric difference between
+parent trees), skipping commits that are reachable from the first parent. This
+gives a per-topic view of what landed, which is useful for verifying the rebuilt
+branch matches expectations.
+
 **Merge subjects.** Use git's default — never pass `-m` to `git merge`. With
 `seen` checked out, `git merge --no-ff ai/foo` produces
 `Merge branch 'ai/foo' into seen` automatically (the "into seen" suffix is git's
