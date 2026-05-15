@@ -1,0 +1,72 @@
+#!/bin/sh
+#
+# git-reword — create an amend! commit for use with rebase --autosquash
+#
+# Usage:
+#   git reword <commit> -m "new subject\n\nnew body"
+#   git reword <commit> -F message.txt
+
+set -e
+
+usage() {
+	echo "usage: git reword <commit> (-m <message> | -F <file>)" >&2
+	exit 1
+}
+
+if test $# -lt 3; then
+	usage
+fi
+
+commit="$1"
+shift
+
+message_source=
+message=
+while test $# -gt 0; do
+	case "$1" in
+	-m)
+		test $# -ge 2 || usage
+		message_source=inline
+		message="$2"
+		shift 2
+		;;
+	-F)
+		test $# -ge 2 || usage
+		message_source=file
+		message_file="$2"
+		shift 2
+		;;
+	*)
+		usage
+		;;
+	esac
+done
+
+if test -z "$message_source"; then
+	usage
+fi
+
+# Resolve the commit and get its subject for the amend! prefix
+commit_sha=$(git rev-parse --verify "$commit"^{commit}) || exit 1
+orig_subject=$(git log -1 --format=%s "$commit_sha")
+
+# Build the full commit message:
+#   line 1: amend! <original subject>   (for autosquash matching)
+#   line 2: blank
+#   line 3+: the replacement message
+case "$message_source" in
+inline)
+	full_message="amend! $orig_subject
+
+$message"
+	git commit --allow-empty -m "$full_message"
+	;;
+file)
+	# Prepend the amend! header to the file contents
+	{
+		echo "amend! $orig_subject"
+		echo
+		cat "$message_file"
+	} | git commit --allow-empty -F -
+	;;
+esac
