@@ -46,6 +46,27 @@ git send-email \
   origin/main..arch-points-at/v2
 ```
 
+### Interdiff alternative
+
+For small rerolls where a per-commit range-diff is overkill, `--interdiff` shows
+the aggregate tree-level diff between versions:
+
+```
+git send-email \
+  --from 'Claude <claude@gut.local>' \
+  -v2 \
+  --interdiff=arch-points-at/v1 \
+  --notes \
+  origin/main..arch-points-at/v2
+```
+
+`--interdiff=<prev-tag>` auto-enables `--cover-letter` — no need to pass both.
+The interdiff lands in the cover letter body, showing how the overall tree
+changed between v1 and v2. Contrast with `--range-diff`, which preserves
+per-commit correspondence: range-diff is better for large series where reviewers
+want to see which commit changed; interdiff is better for small rerolls where
+the aggregate diff is easier to scan.
+
 The range-diff lands at the **end** of each patch message, below the diff and
 just above the `-- \n<git-version>` sign-off. (The format-patch man page says
 "between the commit message and the diff", but observed behavior for
