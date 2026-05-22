@@ -56,6 +56,12 @@
       "version": "0.1.0"
     },
     {
+      "name": "resolve-merge-conflicts",
+      "source": "./cc-plugins/resolve-merge-conflicts",
+      "description": "Resolve merge conflicts in the working tree during an active merge, rebase, or cherry-pick",
+      "version": "0.1.0"
+    },
+    {
       "name": "sunshine-review",
       "source": "./cc-plugins/sunshine-review",
       "description": "Channel Eric Sunshine to review code with meticulous, line-level precision — catching what others skim past",
