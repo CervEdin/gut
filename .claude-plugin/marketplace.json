@@ -59,7 +59,7 @@
       "name": "resolve-merge-conflicts",
       "source": "./cc-plugins/resolve-merge-conflicts",
       "description": "Resolve merge conflicts in the working tree during an active merge, rebase, or cherry-pick",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "name": "sunshine-review",
