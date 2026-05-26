@@ -1,0 +1,10 @@
+The main structural decision was where to slot this. Putting artifacts
+inside "Special cases" (as §3.d already was) would have kept the old
+framing — binary files are weird edge cases. Pulling it out into its
+own subsection between §3.c and §3.e signals that it's a first-class
+escape hatch you should check before reaching for checkout
+--ours/--theirs at all, not an afterthought.
+
+The diff also adds a "Restore conflict markers" quick-reference row —
+that came in via the formatter when syncing source and cache. It's a
+genuinely useful entry so I left it in scope rather than reverting it.
