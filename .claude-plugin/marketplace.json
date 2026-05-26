@@ -14,6 +14,12 @@
       "version": "0.1.0"
     },
     {
+      "name": "bulk-catchup-rebase",
+      "source": "./cc-plugins/bulk-catchup-rebase",
+      "description": "Bulk-rebase a long-lived branch that trails upstream by many commits using iterative merges and rerere",
+      "version": "0.1.0"
+    },
+    {
       "name": "claude-rebase",
       "source": "./cc-plugins/claude-rebase",
       "description": "Interactive rebase via patches — reorder, edit, squash, and reword commits without git rebase -i",
