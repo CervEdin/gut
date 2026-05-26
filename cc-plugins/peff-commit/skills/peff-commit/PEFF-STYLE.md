@@ -129,6 +129,11 @@ it. They surface your reasoning, uncertainties, and caveats — the things that
 help a reviewer (or your future self) understand not just what you decided, but
 what you were thinking.
 
+**Formatting:** notes are stored verbatim by `git notes` and read in a terminal,
+so format them exactly like commit body prose: hard-wrap every line at 72
+characters. No markdown, no bullet lists masquerading as prose. Paragraphs
+separated by a single blank line.
+
 Use notes for:
 
 - **Alternatives not taken** — why another approach was tempting but wrong

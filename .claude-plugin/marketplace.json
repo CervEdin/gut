@@ -53,7 +53,7 @@
       "name": "peff-commit",
       "source": "./cc-plugins/peff-commit",
       "description": "Write a commit message in the style of Jeff King (peff) from the Git mailing list",
-      "version": "0.1.0"
+      "version": "0.2.1"
     },
     {
       "name": "peff-review",
