@@ -117,20 +117,62 @@ Use only when you genuinely mean "take this side entirely": binary files where
 merging is impossible, or an explicit "drop their version" decision. For textual
 files with real content on both sides, prefer hand-editing or `git resolve`.
 
-### d. Special cases
+### d. Artifacts (generated or fetched files)
+
+Some files in the repo are derived from something else: generated from local
+source, or fetched/vendored by a local script. Recognize these before reaching
+for any of the strategies above — the right place to resolve the conflict is the
+_source_, not the artifact.
+
+**Recognition cues:**
+
+- _Generated text_: `DO NOT EDIT` header (often naming the generator), paths
+  under `gen/` or `internal/gen/`, filenames like `foo.pb.go`, `foo_grpc.pb.go`,
+  `schema.json`.
+- _Generated or fetched binary_: protobuf descriptors, schema snapshots,
+  compiled assets, vendored blobs pulled by a Makefile target, `npm`
+  postinstall, or a fetch script in the repo.
+
+Don't hand-edit an artifact to resolve a conflict. Artifacts are _products_ —
+they should come out of the generator, not your editor. Best case, you redo the
+same merge twice and the next regeneration overwrites your work. Worst case, you
+resolve the source one way and the artifact another, and ship the drift as a
+bug.
+
+Resolve the source and re-derive:
+
+1. Resolve the conflict in the _source_ (`.proto`, schema source, grammar, asset
+   manifest, fetch script).
+2. Regenerate or refetch with the project's build target:
+   ```bash
+   make -C proto generate    # or: mvn generate-sources, npm run generate,
+                             #     bazel build //...:generated, etc.
+   ```
+3. Stage the result:
+   ```bash
+   git add -u
+   ```
+
+**Fallback — genuinely opaque content.** If a binary file is _not_ an artifact
+(a real photograph, audio you authored in place, a font with no source), git
+cannot merge it; pick one side:
+
+```bash
+git checkout --ours file && git add file
+git checkout --theirs file && git add file
+```
+
+> Some projects mark generated/fetched artifacts as binary in `.gitattributes` —
+> this forces whole-file resolution (no marker merging) and makes the derived
+> nature explicit at the repo level.
+
+### e. Special cases
 
 **Delete/modify conflict** — one side deleted the file, the other modified it:
 
 ```bash
 git add file    # keep the modified version
 git rm file     # accept the deletion
-```
-
-**Binary files** — git cannot merge binary content; pick one side entirely:
-
-```bash
-git checkout --ours file && git add file
-git checkout --theirs file && git add file
 ```
 
 **Submodule conflicts** — usually a disagreement about which commit to point to:
@@ -258,9 +300,11 @@ git rerere forget file  # discard a bad resolution
 | Take ours per conflict block   | `git resolve --ours file`                  |
 | Take theirs per conflict block | `git resolve --theirs file`                |
 | Take ours (whole file)         | `git checkout --ours file && git add file` |
+| Resolve artifact (gen'd/fetch) | Resolve source → regenerate → `git add -u` |
 | Check resolution vs auto       | `git diff AUTO_MERGE`                      |
 | Check for stray markers        | `git diff --check`                         |
 | Continue merge / rebase / cp   | `git merge/rebase/cherry-pick --continue`  |
 | Abort                          | `git merge/rebase/cherry-pick --abort`     |
 | Rerere state                   | `git rerere status`                        |
 | Forget bad rerere              | `git rerere forget file`                   |
+| Restore conflict markers       | `git checkout --merge <file>`              |
