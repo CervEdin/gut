@@ -17,7 +17,7 @@
       "name": "bulk-catchup-rebase",
       "source": "./cc-plugins/bulk-catchup-rebase",
       "description": "Bulk-rebase a long-lived branch that trails upstream by many commits using iterative merges and rerere",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "name": "claude-rebase",
