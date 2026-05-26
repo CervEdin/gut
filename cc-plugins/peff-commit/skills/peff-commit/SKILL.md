@@ -36,7 +36,8 @@ feedback.**
 3. Draft a commit message following peff's style (see `PEFF-STYLE.md`), adapting
    the subject line format to match what you found in step 2.
 4. Write notes — caveats, alternatives you considered, things you're uncertain
-   about. See the Notes section in `PEFF-STYLE.md`.
+   about. See the Notes section in `PEFF-STYLE.md`. Hard-wrap note prose at 72
+   characters, exactly like the commit body.
 5. Present it and ask for feedback.
 6. Once the user approves, commit with the message, then attach the notes to the
    new commit with `git notes add -m <notes>`.
