@@ -1,0 +1,15 @@
+The two-pass structure maps directly to Erik's document — I kept his
+for-loops verbatim and only added framing, "choosing iteration
+points", and the Pitfalls section.
+
+The skill intentionally doesn't bundle a script for finding iteration
+points; that felt like premature automation for a first version.
+
+The description is deliberately long — it needs to hit several distinct
+trigger phrases ("far behind", "stale branch", "too many conflicts",
+"iteratively") that are semantically related but don't share a single
+keyword, so the length is load-bearing.
+
+One uncertainty: `tac` in Step 2 is standard on Linux but requires
+coreutils or a `tail -r` substitute on macOS. Left as-is from Erik's
+original document.
