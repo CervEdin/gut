@@ -1,0 +1,3 @@
+The prohibition could have been framed as "unnecessary" rather
+than "wrong", but that undersells the failure: the flag causes a
+hard error, not a silent no-op, and the text should say so plainly.
