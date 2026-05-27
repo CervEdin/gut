@@ -1,0 +1,11 @@
+Five distinct changes in one commit was a scope call — I could
+have sent them as a patch series, but they all stem from the same run and
+correcting them separately would fragment the "lessons learned" narrative.
+The `origin/master` -> `origin/HEAD` sweep is the most mechanical of the
+five; if it needs reverting independently, it's easy to extract.
+
+The "Trust the loop" note references 247 tags running in seconds. That
+number came from the actual run described in the issues file, so it's
+grounded — but it may age badly if someone reads this on a much slower
+machine with thousands of tags. I left it in because the concrete number
+is more persuasive than "it's fast, trust us".
