@@ -99,7 +99,7 @@ work well — attempt a no-commit merge. Clean merges are discarded; conflicts
 stop the loop so you can resolve them:
 
 ```sh
-for v in $(git tag --sort=version:refname --list 'v*' --no-merged HEAD); do
+for v in $(git tag --sort=version:refname --list 'v*' --no-merged HEAD --merged origin/HEAD); do
   git -c merge.conflictstyle=zdiff3 merge --no-commit --no-ff "$v"
   if [ $? -eq 0 ]; then
     git merge --abort  # clean merge — discard and continue
