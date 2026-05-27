@@ -58,13 +58,31 @@ git config rerere.enabled true    # or: git config --global rerere.enabled true
 Without this, no resolutions are cached and every iteration re-conflicts from
 scratch.
 
+### Conflict style: zdiff3 (recommended)
+
+`zdiff3` produces richer conflict markers that include the common ancestor's
+version of each hunk alongside both sides, giving more context when resolving.
+It is noticeably easier to interpret than the default `merge` style — especially
+for LLM-assisted resolution.
+
+Set it **per-command** with `git -c` so no config file is touched:
+
+```sh
+git -c merge.conflictstyle=zdiff3 merge  ...
+git -c merge.conflictstyle=zdiff3 rebase ...
+```
+
+All merge and rebase commands in the steps below are written with this prefix.
+If you prefer to skip it for a particular run, just drop the `-c` argument — the
+skill works without it.
+
 ## Step 0: Test merge first
 
 Before starting the iterative loop, get a quick read on what the conflict
 landscape actually looks like:
 
 ```sh
-git merge --no-commit --no-ff origin/HEAD
+git -c merge.conflictstyle=zdiff3 merge --no-commit --no-ff origin/HEAD
 git merge --abort
 ```
 
@@ -82,7 +100,7 @@ stop the loop so you can resolve them:
 
 ```sh
 for v in $(git tag --sort=version:refname --list 'v*' --no-merged HEAD); do
-  git merge --no-commit --no-ff "$v"
+  git -c merge.conflictstyle=zdiff3 merge --no-commit --no-ff "$v"
   if [ $? -eq 0 ]; then
     git merge --abort  # clean merge — discard and continue
   else
@@ -206,7 +224,7 @@ git reset --hard $(git log --no-merges --format=%H -1 HEAD^2..HEAD)
 
 ```sh
 for sha in $(cat /tmp/merges); do
-  git rebase --no-rebase-merges $sha^2 || git rebase --continue
+  git -c merge.conflictstyle=zdiff3 rebase --no-rebase-merges $sha^2 || git rebase --continue
 done
 ```
 
@@ -307,7 +325,7 @@ If the goal is a single merge commit rather than a linear history, do Step 1
 only. Once the loop completes with no conflicts, run:
 
 ```sh
-git merge origin/HEAD
+git -c merge.conflictstyle=zdiff3 merge origin/HEAD
 ```
 
 Rerere replays every cached resolution and the merge completes cleanly in one
