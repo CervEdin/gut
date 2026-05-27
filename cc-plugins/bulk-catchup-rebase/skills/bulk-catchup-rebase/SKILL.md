@@ -141,7 +141,15 @@ When the loop stops:
 
 1. Resolve the conflicts (see `resolve-merge-conflicts` for per-conflict
    mechanics).
-2. Stage and commit: `git add -u && git merge --continue`
+2. Stage and commit:
+   ```sh
+   git add -u && git merge --continue
+   ```
+   Use this command exactly as written. Do **not** add `--no-edit` or any other
+   flags — `git merge --continue --no-edit` causes git to die with an error. Git
+   detects a non-interactive shell and skips the editor automatically, so there
+   is no need to suppress it. The auto-generated message ("Merge tag 'v1.2.3'
+   into branch-name") is correct.
 3. Rerun the loop — rerere records the resolution, so the same conflict won't
    stop you again.
 
