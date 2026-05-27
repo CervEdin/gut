@@ -92,11 +92,32 @@ for v in $(git tag --sort=version:refname --list 'v*' --no-merged HEAD); do
 done
 ```
 
-**Trust the loop.** The loop _is_ the optimization — do not sample every Nth
-tag, skip iterations, or shortcut because the tag count "looks like a lot".
-`git merge --no-commit --no-ff` is fast (247 tags ran in seconds); each
-iteration either discards cleanly in milliseconds or stops at a real conflict.
-Stop only when a conflict requires your attention; do not skip steps.
+**Default: trust the loop.** Do not preemptively sample every Nth tag, skip
+iterations, or shortcut because the tag count looks like a lot. Clean iterations
+only add ~50–100ms of delay each — they aren't the cost to optimize.
+
+**The real goal is decomposing conflicts.** Fine strides keep each conflict set
+small and coherent — one intermediate point's worth of upstream changes at a
+time. The thing to avoid is _compounded conflicts_: if merging A would conflict
+and merging B (after A) would also conflict, you almost always want to resolve A
+first and B second, not bundle them into one stop. The intermediate state after
+A often makes B's resolution obvious in a way it wouldn't be if you faced both
+at once.
+
+**Adjust to larger strides when conflicts repeat without value.** Some conflict
+shapes recur at every iteration but rerere never replays them — typically a
+segment of a file that gets bumped at every release (a version number, a build
+counter). The conflict structure is identical but the bumped value is different
+each time, so each iteration is a fresh rerere fingerprint. Walking the log to
+find the exact commits worth resolving is more work than just jumping further
+out and letting one resolution cover the stretch — that's the cheap, good-enough
+heuristic.
+
+Strides aren't a one-way ratchet. If a larger stride bundles together unrelated
+compounded conflicts, drop back to finer granularity for that segment. You can
+flip between strides mid-run; the right stride is the one that keeps conflicts
+decomposable while not making you re-resolve the same trivially-repeating
+pattern over and over.
 
 When the loop stops:
 
@@ -110,9 +131,28 @@ Repeat until the loop runs to completion with no conflicts. At that point every
 conflict fingerprint is cached in `.git/rr-cache/`.
 
 **Generated files.** If the conflict is in a generated file (`.pb.go`, paths
-under `gen/`, a `DO NOT EDIT` header), resolve the _source_ file (`.proto`,
-schema source, etc.) and regenerate — rerere still records the correct
-index-level resolution and replays it on the next iteration.
+under `gen/`, a `DO NOT EDIT` header), do not edit it directly. Identify the
+generator (`make -C proto buf-generate-cli`, etc.), resolve the source file
+(`.proto`, schema source, etc.), regenerate, then stage **all** output with
+`git add -u`. The generator often produces multiple files; staging only the one
+git named in the conflict leaves siblings as unstaged modifications, which trip
+the next iteration. Always `git add -u` after a regeneration step, never
+`git add <specific-file>`.
+
+## Lock contention is normal in the loop
+
+When running merge/rebase commands in a tight loop, you may occasionally hit
+`fatal: Unable to create '.git/index.lock': File exists.` or "Another git
+process seems to be running." This is **normal** in this skill — a previous
+iteration's git process is still finishing up when the next one starts.
+
+**Wait.** Do not remove `.git/index.lock`. Not under any circumstances. The lock
+means git has exclusive control of the index; removing it while a git process is
+live corrupts the index. There is no safe "first check if a process is running"
+heuristic — the risk is catastrophic and the correct action is always the same:
+wait. If unsure whether a process is still running, wait longer. Do not reason
+about whether removing it is safe. Re-run the failing command after the lock
+clears.
 
 ## Choosing iteration points
 
@@ -179,6 +219,63 @@ If `git rebase --continue` itself stops again, check `git status` and
 clean, the commit may have become empty — run `git rebase --skip` to drop it
 (see Pitfalls below).
 
+## Step 3: triage before rebasing
+
+Before starting Step 2, run:
+
+```sh
+git diff origin/HEAD --stat
+```
+
+This shows what a rebase would produce — the diff between the current tree and
+upstream. Use it to decide what to do next:
+
+- **Empty diff:** the branch contains nothing not already on upstream. The
+  rebase is a no-op. Stop. Ask the user whether to delete the branch before
+  doing anything else — this is the user's decision, not yours.
+
+- **Non-empty diff:** review each file. For each change, ask: is this still
+  relevant? Was it subsumed by another branch? Is it accidental (whitespace,
+  generated output)? Is it aligned with the branch's stated purpose? Only
+  proceed to Step 2 once the triage confirms there is something worth rebasing.
+
+_"Not really rebasing"_ — extracting a few keepers, abandoning the original
+branch, splitting work — is an acceptable outcome. But it is the user's call,
+not yours. Surface the triage result and ask.
+
+### When the branch is a mix of keepers and drops
+
+For a catch-all branch where some changes are worth keeping and others aren't,
+do not try to construct a `git rebase --onto` invocation that drops the unwanted
+commits.
+
+1. **Rebase first.** Try the standard rebase:
+
+   ```sh
+   git rebase --onto origin/HEAD \
+     $(git log --format=%H --no-merges --ancestry-path origin/HEAD..HEAD | tail -1)~
+   ```
+
+   The `~` makes the oldest non-merge commit's _parent_ the upstream so the
+   commit itself is replayed.
+
+2. **Fresh-commit fallback if rebase dropped keepers.** `git rebase` replays
+   _diffs_, not tree states. A cleanup commit whose diff is entirely reverts
+   relative to the new base becomes empty and is silently dropped — even if its
+   tree contained keepers via merge-chain inheritance. If that happens, reset to
+   upstream and re-stage only the keepers from the branch tip:
+
+   ```sh
+   git checkout origin/HEAD -- .         # all tracked files match upstream
+   git checkout <branch-tip> -- path/to/keeper.json
+   git commit -m "..."
+   ```
+
+   The diff IS the keepers — nothing can be dropped as empty.
+
+If keepers are unrelated to the branch's stated purpose, put them on their own
+focused branch rather than bundling with the feature work.
+
 ## Sanity checks
 
 After the rebase completes, verify your commits survived intact:
@@ -243,3 +340,39 @@ the project's workflow prefers merge commits.
   manual decision every time they appear — `git rm <file>` to accept the
   deletion, or restore + edit to keep it. Do not wait for rerere to kick in; it
   won't.
+
+- **A corrupted stage must be redone, not patched forward.** If a stage in Step
+  1 went wrong — wrong files staged, wrong resolution applied, dirty tree
+  carried into the loop — reset to the last clean checkpoint (`git log` →
+  `git reset --hard <sha>`) and redo that stage properly. Do not try to fix the
+  broken state in place; patching forward compounds the error and makes the
+  history unreadable.
+
+  **Rerere caveat.** If the bad resolution was learned by rerere, plain redo
+  will let rerere re-apply the wrong fix. Two options before redoing:
+  - `git rerere forget <pathspec>` while still in the conflicted state to drop
+    the cached resolution for the files involved, then redo normally; or
+  - `git -c rerere.enabled=false merge ...` for the redo iteration, which
+    bypasses rerere for that one command (there is no `--no-rerere` flag).
+
+## When stuck, escalate to the user
+
+Mistakes during a long-lived rebase are expensive: they corrupt intermediate
+state, leave the working tree in confusing partial-resolve conditions, and
+compound silently if you push through. The user has better context on the
+branch's purpose and a faster intuition for what "looks wrong" — escalate sooner
+than you would for ordinary tasks.
+
+When the state is unclear, stop and orient first:
+
+```sh
+git status
+git log --oneline -5
+git diff
+```
+
+If after orientation an approach is not converging — same error recurring,
+command doing the wrong thing, sanity checks failing — bring the situation to
+the user. If the question is genuinely a knowledge gap (e.g., "what does this
+rebase error mean?"), consulting the advisor is fine, but most of the time the
+right escalation is to the user.
