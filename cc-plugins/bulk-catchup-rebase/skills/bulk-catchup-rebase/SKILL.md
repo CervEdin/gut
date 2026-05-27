@@ -218,7 +218,7 @@ don't fetch again until done.
 **Capture the merge SHAs in oldest-first order:**
 
 ```sh
-git log --merges --format=%H HEAD^2..HEAD | tac > /tmp/merges
+git log --merges --format=%H $(git log --no-merges --format=%H -1 origin/HEAD..HEAD)..HEAD | tac > /tmp/merges
 ```
 
 **Reset to the first non-merge commit** (the original tip of your branch before
