@@ -225,14 +225,6 @@ test -f .git/REBASE_HEAD && git rebase --continue
 test -f .git/CHERRY_PICK_HEAD && git cherry-pick --continue
 ```
 
-`--continue` opens an editor for the commit message. If you want to use the
-default message without editing:
-
-```bash
-git merge --continue --no-edit
-git rebase --continue        # rebase uses the original commit message
-```
-
 During a rebase, each commit is replayed individually — resolve, stage, and
 `--continue` once per commit. Use `git rebase --skip` to drop a commit entirely.
 
