@@ -1,0 +1,10 @@
+The fix constrains both ends of the range cleanly: --no-merged
+HEAD keeps tags we haven't absorbed yet, and --merged origin/HEAD
+keeps tags that are on the mainline path. Together they produce exactly
+the intermediate checkpoints the loop was designed to walk through.
+
+One edge I noticed: if the repo has tags ahead of origin/HEAD (e.g.,
+local tags not yet pushed, or tags on a branch that hasn't landed in
+main), those are excluded too. That seems correct -- we don't want to
+test-merge into the future -- but worth flagging in case someone has an
+unusual local tagging workflow.
