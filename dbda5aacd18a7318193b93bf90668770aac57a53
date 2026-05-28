@@ -1,0 +1,7 @@
+The user flagged uncertainty about whether origin/HEAD needs to have
+been merged as the final step for the range to be correct. It does
+not — origin/HEAD..HEAD captures the original branch commits as long
+as they don't predate origin/HEAD in the upstream graph, which they
+can't for a feature branch. Merging origin/HEAD last is still
+recommended (the skill says so), but it is not a correctness
+requirement for this command.
