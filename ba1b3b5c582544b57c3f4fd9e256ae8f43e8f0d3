@@ -1,0 +1,11 @@
+The two-file split is deliberate. PEFF-STYLE.md is the canonical
+style reference, so the rule belongs there in full. SKILL.md step 4
+is where the model is most likely to be reading when it actually sits
+down to write notes, so a brief echo there reduces the chance of it
+slipping through unformatted.
+
+I considered also updating the Output Format section in SKILL.md (the
+block that shows how to present notes to the user before committing),
+but decided against it. That section describes the conversational notes
+shown during review, not the git-stored notes. They happen to coincide
+in practice, but mixing the two would blur the distinction.
