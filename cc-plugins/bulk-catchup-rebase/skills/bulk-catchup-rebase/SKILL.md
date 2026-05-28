@@ -92,6 +92,13 @@ of files in familiar packages is manageable in one session; dozens of unrelated
 files across generated code may warrant regenerating sources first. Run this
 once, note what you see, then proceed to Step 1.
 
+**Verify the branch's own build is clean before starting the loop.** If the
+branch is already broken at HEAD, no compile gate during the iterative loop is
+trustworthy — you cannot tell whether a new build break comes from a merge or
+was pre-existing. Ideally every commit on the branch is bisectable, but that is
+not a hard requirement here — what _is_ required is a clean build at the branch
+tip before the loop starts.
+
 ## Step 1: Iterative merge with rerere
 
 For each suitable intermediate point on the upstream branch — tagged releases
@@ -109,6 +116,13 @@ for v in $(git tag --sort=version:refname --list 'v*' --no-merged HEAD --merged 
   fi
 done
 ```
+
+Rerere caching is half of why the loop exists. The other half is **bisection**:
+each intermediate point localizes one cluster of conflicts to one small upstream
+stride. Semantic breaks — deleted APIs, removed infrastructure, renamed types —
+surface against a narrow surrounding context instead of all at once. Skipping
+the loop because rerere "wouldn't fire on these conflicts anyway" gives up the
+bisection benefit too, which is often the more valuable half.
 
 **Default: trust the loop.** Do not preemptively sample every Nth tag, skip
 iterations, or shortcut because the tag count looks like a lot. Clean iterations
@@ -141,16 +155,37 @@ When the loop stops:
 
 1. Resolve the conflicts (see `resolve-merge-conflicts` for per-conflict
    mechanics).
-2. Stage and commit:
+2. Build-verify before staging. Run the project's build or typecheck on the
+   _unstaged_ working tree. Staging before verifying carries broken state
+   forward, and rerere caches the broken fingerprint — a later iteration that
+   re-hits the same conflict will silently replay the broken resolution.
+   ```sh
+   go build ./...             # Go
+   mvn -q -DskipTests compile # Java / Maven
+   npm run typecheck          # JS / TS
+   cargo check                # Rust
+   ```
+   If the build fails, fix in-place before `git add`.
+3. Stage and commit:
+
    ```sh
    git add -u && git merge --continue
    ```
+
    Use this command exactly as written. Do **not** add `--no-edit` or any other
    flags — `git merge --continue --no-edit` causes git to die with an error. Git
    detects a non-interactive shell and skips the editor automatically, so there
    is no need to suppress it. The auto-generated message ("Merge tag 'v1.2.3'
    into branch-name") is correct.
-3. Rerun the loop — rerere records the resolution, so the same conflict won't
+
+   **In-session pauses are binding.** If the user has told you to stop before
+   continuing in this session, stop and surface state — even if the build passed
+   and rerere auto-resolved the conflict. The build passing is not approval to
+   continue. Frame this as in-session user-instruction discipline: the iterative
+   loop has the strongest "barrel through" momentum, which is exactly where a
+   pause instruction is most likely to be overridden by accident.
+
+4. Rerun the loop — rerere records the resolution, so the same conflict won't
    stop you again.
 
 Repeat until the loop runs to completion with no conflicts. At that point every
@@ -237,13 +272,36 @@ done
 ```
 
 `git rebase` will stop at each conflict even when rerere has fully resolved it —
-this is expected. Running `git rebase --continue` moves forward; if rerere left
-anything unresolved, `--continue` will tell you.
+this is expected. **Before running `git rebase --continue`, build-verify** —
+even when rerere appears to have fully resolved the conflict. Rerere matches on
+text fingerprints; a clean text resolution can still reference a symbol the
+surrounding upstream delta removed in a different file. Run the project build
+unstaged before continuing.
+
+Running `git rebase --continue` moves forward; if rerere left anything
+unresolved, `--continue` will tell you.
 
 If `git rebase --continue` itself stops again, check `git status` and
 `git rerere status`. If rerere has no pending resolutions and the index is
 clean, the commit may have become empty — run `git rebase --skip` to drop it
 (see Pitfalls below).
+
+### When the branch has meaningful internal merge topology
+
+This skill prescribes `--no-rebase-merges` throughout Step 2. That is the right
+shape for a branch with a linear commit history. If your branch's internal merge
+topology is meaningful — sub-branches whose merge commits you need to preserve —
+the `$sha^2` loop above is not the right shape.
+
+There is a sketch of a working approach: start Step 2 by running
+`git reset --hard` back to the original branch tip (before any of the Step 1
+merges), then rebase with `--rebase-merges --update-refs` instead of the loop.
+This approach has not been fully written up here yet and needs more lived
+experience before it belongs in a skill.
+
+**Surface the topology question before starting Step 2.** If your branch has
+sub-branch merges you intend to keep, stop and ask the user how they want to
+proceed rather than silently picking a loop shape that doesn't fit.
 
 ## Step 3: triage before rebasing
 
