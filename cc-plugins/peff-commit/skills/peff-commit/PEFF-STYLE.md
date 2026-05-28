@@ -26,7 +26,7 @@ feat: add retry logic for transient failures
 
 General rules regardless of format:
 
-- **50 char soft limit**, 72 hard limit
+- **50 char soft limit**, 72 hard limit for subject lines
 - Lowercase after the colon
 - Imperative mood: "fix", "use", "avoid", not "fixed", "uses", "avoided"
 - No period at the end
@@ -130,9 +130,9 @@ help a reviewer (or your future self) understand not just what you decided, but
 what you were thinking.
 
 **Formatting:** notes are stored verbatim by `git notes` and read in a terminal,
-so format them exactly like commit body prose: hard-wrap every line at 72
-characters. No markdown, no bullet lists masquerading as prose. Paragraphs
-separated by a single blank line.
+so format them exactly like commit body prose: aim for 72 characters per line
+(soft limit), hard limit 120. No markdown, no bullet lists masquerading as
+prose. Paragraphs separated by a single blank line.
 
 Use notes for:
 
