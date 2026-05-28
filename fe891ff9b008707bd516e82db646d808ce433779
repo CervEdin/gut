@@ -1,0 +1,16 @@
+The build-verify gate appears three times: at Step 0 (pre-flight),
+in the Step 1 loop stop sequence (before git add), and in Step 2
+(before --continue). The repetition is intentional -- each occurrence
+is at a different commit boundary where rerere caching is the specific
+risk, and the stakes differ enough that collapsing them into one
+paragraph would obscure which gate applies where.
+
+The in-session pause note is placed only in bulk-catchup-rebase, not
+in resolve-merge-conflicts. Single-conflict resolution doesn't carry
+the same loop momentum; the note belongs where the risk is highest.
+
+The --rebase-merges subsection deliberately has no alternate loop
+body. Encoding a loop before it has been lived through would be
+worse than acknowledging the gap and stopping. The reset-to-original-
+tip hint is included because it's the non-obvious part; the
+--rebase-merges flag itself is easy to find in git docs.
