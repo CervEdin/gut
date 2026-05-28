@@ -1,0 +1,10 @@
+The notes output format change (code block instead of inline prose) is
+the core fix. The model generates markdown and lets the renderer handle
+reflowing; a code block removes that ambiguity. Whether this actually
+changes model behavior in practice is worth watching — if it doesn't, a
+stronger instruction may be needed, but start simple.
+
+The "hard 72" to "soft 72 / hard 120" relaxation applies only to body
+and notes, not subject lines. Subject lines still have a 72 hard limit
+because they appear in `git log --oneline` and other narrow-column
+contexts where long lines genuinely break things.
