@@ -1,0 +1,11 @@
+I briefly considered recommending `git config
+merge.conflictstyle zdiff3` at the top of the session with an unset
+at the end — it's less typing per command. But it's a two-step
+ceremony that's easy to forget to clean up, and `git -c` is explicit
+at each callsite. The `-c` form also matches the existing pattern in
+the pitfalls section (`git -c rerere.enabled=false merge ...`), so it
+reads consistently throughout.
+
+The version is a patch bump. The skill's behaviour is otherwise
+identical — zdiff3 just changes how conflict markers are rendered, not
+the strategy or any step in the algorithm.
