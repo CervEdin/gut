@@ -1,0 +1,15 @@
+The three additions are independent but reinforce each other in
+sequence: the commit-inspection step reveals what the incoming side
+intended; the conflict-free failure-mode subsection names the
+specific danger that intention can create; the build gate is the
+enforcement mechanism that catches it.
+
+The conflict-free subsection's placement as §3f is a judgment call --
+it isn't a resolution strategy, but putting it at the end of the
+strategy list keeps all "before you stage" warnings in one area,
+adjacent to §4 where the build gate lives.
+
+The build command examples are illustrative, not exhaustive. Readers
+know their own build command; the point is that the gate exists and
+must run before git add, not that they should copy one of these four
+invocations.
