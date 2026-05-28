@@ -58,6 +58,28 @@ Most resolution mistakes come from skipping the base. The base tells you _why_
 the conflict exists — which side added what, and what the two changes are
 actually trying to accomplish.
 
+### Inspect the incoming side as a commit
+
+Stage 3 is a blob — the file content as the incoming side has it. But
+`MERGE_HEAD` is a full commit and gives you something stage 3 cannot: author,
+message, parents, neighboring files, and the history of the lines being changed.
+
+```bash
+git show MERGE_HEAD                                        # incoming commit message + author
+git show MERGE_HEAD:path/to/file                           # file as the incoming side has it
+git log -p MERGE_HEAD -- path/to/file                      # history of the file on the incoming side
+git blame MERGE_HEAD -L <start>,<end> -- path/to/file      # which commit last touched these lines
+```
+
+Read the motivation of the incoming change, not just its diff. A commit message
+often explains why a symbol was renamed or deleted and whether the branch-side
+caller is still sensible — information that is invisible from the diff alone.
+
+**During rebase or cherry-pick**, substitute the appropriate ref:
+
+- `MERGE_HEAD` → `REBASE_HEAD` during a rebase
+- `MERGE_HEAD` → `CHERRY_PICK_HEAD` during a cherry-pick
+
 ## 3. Choose the right resolution strategy
 
 ### a. Hand-edit the conflict markers (default)
@@ -183,6 +205,28 @@ git diff          # shows the two commit SHAs
 git add submodule
 ```
 
+### f. Conflict-free hunks that still break the build
+
+Some merges produce a clean text result — no conflict markers, rerere fires
+cleanly — but the resulting tree does not compile. The failure shape:
+
+- Your side retains a caller of `Foo.bar()`
+- The incoming side removed `Foo.bar()` in a **different file**
+- Git auto-merges both sides (no textual overlap, no conflict markers)
+- The tree compiles only if the caller is also updated or removed
+
+This class of failure is not surfaced by conflict markers, `git diff --check`,
+or rerere. **The build catches it; the build is what you should trust.**
+
+As a sanity check before kicking off the build, `git grep -n <symbol>` can make
+the failure mode visible:
+
+```bash
+git grep -n "Foo\.bar"   # find remaining callers of a potentially-removed symbol
+```
+
+But the check that matters is the build, not the grep.
+
 ## 4. Verify before staging
 
 After resolving but before `git add`:
@@ -202,6 +246,17 @@ Check that no stray conflict markers remain:
 
 ```bash
 git diff --check
+```
+
+**Run the project's build or typecheck before staging.** A clean text check does
+not mean a clean build, and rerere caches whatever you commit — including a
+broken resolution. Run this on the _unstaged_ working tree, before `git add`:
+
+```bash
+go build ./...             # Go
+mvn -q -DskipTests compile # Java / Maven
+npm run typecheck          # JS / TS
+cargo check                # Rust
 ```
 
 ## 5. Stage and continue
@@ -293,8 +348,12 @@ git rerere forget file  # discard a bad resolution
 | Take theirs per conflict block | `git resolve --theirs file`                |
 | Take ours (whole file)         | `git checkout --ours file && git add file` |
 | Resolve artifact (gen'd/fetch) | Resolve source → regenerate → `git add -u` |
+| Incoming commit message/author | `git show MERGE_HEAD`                      |
+| Incoming file as commit        | `git show MERGE_HEAD:file`                 |
+| Which commit touched lines     | `git blame MERGE_HEAD -L … -- file`        |
 | Check resolution vs auto       | `git diff AUTO_MERGE`                      |
 | Check for stray markers        | `git diff --check`                         |
+| Build-verify unstaged          | `<project build cmd>` before `git add`     |
 | Continue merge / rebase / cp   | `git merge/rebase/cherry-pick --continue`  |
 | Abort                          | `git merge/rebase/cherry-pick --abort`     |
 | Rerere state                   | `git rerere status`                        |
