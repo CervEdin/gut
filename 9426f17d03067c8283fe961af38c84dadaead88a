@@ -1,0 +1,16 @@
+The workflow inserts git commit --no-edit between git add -u and git
+rebase --continue because git notes can only annotate commits that
+already exist — you can't attach a note to a commit and then create
+it in the same step. The rebase doesn't require this split; it's
+purely to make room for the annotation before --continue moves past
+the commit.
+
+The /tmp/auto-merge.diff path is a placeholder — in practice, each
+session should use a session-specific path (e.g. /tmp/rebase/<branch>/)
+so parallel sessions don't clobber each other. Left generic here
+since the skill doesn't know the branch name ahead of time.
+
+An alternative would be storing the notes inline with -m only, skipping
+the -F file. That loses the full diff, which is the most useful part
+for forensic replay. The -F approach is slightly more ceremony but
+meaningfully more informative.
