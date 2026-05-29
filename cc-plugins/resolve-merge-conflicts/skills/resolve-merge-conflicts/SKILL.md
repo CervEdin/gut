@@ -274,6 +274,11 @@ Check that no stray conflict markers remain:
 git diff --check
 ```
 
+When surfacing a resolution for user review, walk through hunks in the order
+they appear in `git diff AUTO_MERGE` — not grouped by file type, component, or
+importance. Diff order is the natural reading order the user can follow along
+with.
+
 **Run the project's build or typecheck before staging.** A clean text check does
 not mean a clean build, and rerere caches whatever you commit — including a
 broken resolution. Run this on the _unstaged_ working tree, before `git add`:
