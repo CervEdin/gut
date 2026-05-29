@@ -80,6 +80,32 @@ caller is still sensible — information that is invisible from the diff alone.
 - `MERGE_HEAD` → `REBASE_HEAD` during a rebase
 - `MERGE_HEAD` → `CHERRY_PICK_HEAD` during a cherry-pick
 
+### Investigation order before touching code (CO/CT protocol)
+
+Every conflict has two sides: **CO** (the commit that introduced our version of
+the hunk) and **CT** (the commit that introduced their version —
+`REBASE_HEAD` / `MERGE_HEAD` / `CHERRY_PICK_HEAD`). Before writing a single
+line of resolution, run these three steps in order:
+
+```bash
+# 1. Read both commit messages first
+git show -q <CO> <CT>
+
+# 2. See what each side changed in the conflicting file
+git show --stat <CO> <CT> -- <conflicting-path>
+
+# 3. Diff the two versions of the file
+git diff <CO> <CT> -- <conflicting-path>
+```
+
+Use `git log -1 HEAD -- <path>` or `git blame :2:<path>` to find CO.
+
+A mechanical fix that makes the build pass can still be semantically wrong.
+Reading the commit messages first reveals whether the incoming side hardcoded
+behavior, deleted something intentionally, or renamed a concept — context that
+is invisible from the diff alone and that determines whether your resolution
+preserves the authors' intent.
+
 ## 3. Choose the right resolution strategy
 
 ### a. Hand-edit the conflict markers (default)
