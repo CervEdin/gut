@@ -185,6 +185,21 @@ When the loop stops:
    loop has the strongest "barrel through" momentum, which is exactly where a
    pause instruction is most likely to be overridden by accident.
 
+   **Autonomous pacing (when no explicit stop instruction is in effect).** Not
+   every conflict stop needs user approval — classify each one:
+
+   - **Trivial**: rerere fully resolved all conflicts, build passes, no
+     unexpected state. Always show `git diff AUTO_MERGE --stat` so the user
+     can see what happened, then stage, annotate, and continue without waiting.
+   - **Non-trivial**: conflict not covered by a known recipe, build fails,
+     `CONFLICT (modify/delete)` for an unapproved path, or any unexpected
+     git state. Show the full `git diff AUTO_MERGE` in diff order, stop,
+     and wait for explicit approval before continuing.
+
+   Always run `git diff AUTO_MERGE --stat` — never skip it even on a clean
+   rerere replay. It is the surface that tells the user what happened at each
+   stop.
+
 4. Rerun the loop — rerere records the resolution, so the same conflict won't
    stop you again.
 
