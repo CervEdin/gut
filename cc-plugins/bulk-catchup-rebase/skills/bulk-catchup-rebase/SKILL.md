@@ -278,6 +278,23 @@ text fingerprints; a clean text resolution can still reference a symbol the
 surrounding upstream delta removed in a different file. Run the project build
 unstaged before continuing.
 
+After verifying, commit and annotate before continuing:
+
+```sh
+git diff AUTO_MERGE > /tmp/auto-merge.diff   # save the resolution diff
+git add -u
+git commit --no-edit
+git notes --ref=claude-conflict-resolutions add -F /tmp/auto-merge.diff \
+  -m "brief explanation of how the conflict was resolved"
+git rebase --continue
+```
+
+The notes serve as a forensic audit trail — the AUTO_MERGE diff records exactly
+what changed from git's auto-merge attempt, and the message records why. If a
+later stride re-hits the same conflict with a different shape, the notes are the
+fastest way to understand what was done before. Use `git log
+--notes=claude-conflict-resolutions` to read them.
+
 Running `git rebase --continue` moves forward; if rerere left anything
 unresolved, `--continue` will tell you.
 
