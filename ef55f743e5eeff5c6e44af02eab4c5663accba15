@@ -1,0 +1,15 @@
+The specific case that motivated this: a PathType enum was removed on
+master and hardcoded to TO_END_NODE behavior. The resolution happened
+to be correct, but it was done by reading the diff rather than the
+commit message. The user pointed out the lesson holds even when you
+get lucky — if the commit message had said something different, the
+bot would have had no way to know it was wrong.
+
+The CO/CT framing (our commit / their commit) gives the protocol
+concrete handles. "Read both sides" is vague; "git show -q CO CT"
+is not. The three steps are ordered by cost: commit messages are
+cheap and often sufficient; the full diff is the last resort.
+
+The existing "Inspect the incoming side as a commit" subsection covered
+MERGE_HEAD commands but didn't impose an order or frame it as
+mandatory. The CO/CT protocol does both.
