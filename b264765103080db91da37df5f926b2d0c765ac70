@@ -1,0 +1,18 @@
+This came from a live session where the bot presented conflicts grouped
+by component rather than diff order. The user asked "can you talk about
+the conflicts in the order of the diff?" The rule was saved to a
+project-level memory file at the time, but belongs in the skill so it
+applies universally.
+
+The placement in §4 (after git diff --check, before the build gate) is
+where the AUTO_MERGE diff is already introduced. Keeping the
+presentation-order rule adjacent to the verification commands it
+applies to felt more natural than a separate §4.5.
+
+Unrelated tip: git supports a diff order file (diff.orderFile config,
+or git diff -O <file>) that controls the order files appear in diff
+output. For projects with a natural reading order — say, headers before
+sources, proto definitions before generated code, config before
+implementation — setting this up once makes every diff output easier
+to scan. Not something for the skill, but worth knowing if the default
+diff order is consistently unhelpful on a project.
