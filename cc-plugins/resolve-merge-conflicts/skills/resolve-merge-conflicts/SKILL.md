@@ -28,6 +28,37 @@ git log --merge --left-right --oneline        # commits from each side that caus
 `git status` shows which operation is in progress (merging, rebasing,
 cherry-picking) and which files are unmerged. Start here every time.
 
+Determine the operation type next — it affects ours/theirs semantics and how the
+summary is recorded:
+
+```sh
+if [ -f .git/MERGE_HEAD ]; then
+  OP_TYPE=merge
+elif [ -f .git/REBASE_HEAD ]; then
+  OP_TYPE=replay
+  REPLAY_HEAD=REBASE_HEAD
+else
+  OP_TYPE=replay
+  REPLAY_HEAD=CHERRY_PICK_HEAD
+fi
+```
+
+**Ours/theirs semantics:**
+
+- **Merge**: ours = current branch (HEAD), theirs = incoming branch (MERGE_HEAD)
+- **Replay** (rebase/cherry-pick): ours = upstream (the base you're rebasing
+  onto), theirs = your commit being replayed
+
+This distinction matters when deciding which side of a conflict to keep and when
+explaining the resolution in the summary.
+
+Set up the working directory for resolution artifacts (idempotent — safe to
+re-run if the skill is interrupted and restarted):
+
+```sh
+: ${WORKDIR:=$(mktemp -d -t git-conflict-resolution)}
+```
+
 ## 2. Inspect the three stages
 
 Git stores three versions of every conflicted file in the index:
@@ -83,9 +114,9 @@ caller is still sensible — information that is invisible from the diff alone.
 ### Investigation order before touching code (CO/CT protocol)
 
 Every conflict has two sides: **CO** (the commit that introduced our version of
-the hunk) and **CT** (the commit that introduced their version —
-`REBASE_HEAD` / `MERGE_HEAD` / `CHERRY_PICK_HEAD`). Before writing a single
-line of resolution, run these three steps in order:
+the hunk) and **CT** (the commit that introduced their version — `REBASE_HEAD` /
+`MERGE_HEAD` / `CHERRY_PICK_HEAD`). Before writing a single line of resolution,
+run these three steps in order:
 
 ```bash
 # 1. Read both commit messages first
@@ -290,29 +321,83 @@ npm run typecheck          # JS / TS
 cargo check                # Rust
 ```
 
-## 5. Stage and continue
+## 4.5. Document the resolution
 
-Stage each resolved file:
+Before staging, write a forensic record of what you did and why. This forces a
+reasoned decision before committing and creates an audit trail for later.
 
-```bash
-git add path/to/file
+```sh
+git diff AUTO_MERGE > $WORKDIR/resolution.diff
 ```
 
-Then continue the in-progress operation. Detect it from the git state:
+Write `$WORKDIR/resolution-summary.md` covering:
 
-```bash
-# Merge in progress:
-test -f .git/MERGE_HEAD && git merge --continue
+- Which side was taken for each conflict region and why
+- Reference commits with `git show --pretty=reference <SHA>` (gives a compact
+  one-line citation: hash, subject, date)
+- Name the model: "claude-sonnet-4-6 resolved this by..."
+- The reasoning should stand on its own — file paths are in the diff
 
-# Rebase in progress:
-test -f .git/REBASE_HEAD && git rebase --continue
+Then re-read the summary. Does the reasoning hold up? Would a future reader
+understand the decision without looking at the diff first? If not, revise.
 
-# Cherry-pick in progress:
-test -f .git/CHERRY_PICK_HEAD && git cherry-pick --continue
+## 5. Stage and commit
+
+Stage all resolved files:
+
+```sh
+git add -u
 ```
 
-During a rebase, each commit is replayed individually — resolve, stage, and
-`--continue` once per commit. Use `git rebase --skip` to drop a commit entirely.
+**For merge (`OP_TYPE=merge`):**
+
+Append the summary to the merge commit message, then commit:
+
+```sh
+{ echo; cat $WORKDIR/resolution-summary.md; } >> "$(git rev-parse --git-dir)/MERGE_MSG"
+git commit --no-edit
+```
+
+Add the diff as a note (summary is already in the commit message):
+
+```sh
+git notes --ref=claude-conflict-resolutions add -F $WORKDIR/resolution.diff
+```
+
+**For replay (`OP_TYPE=replay`):**
+
+Review the original commit message to see if the resolution made it outdated:
+
+```sh
+git log -1 --format=%B $REPLAY_HEAD > $WORKDIR/original-message.txt
+```
+
+Ask: did the resolution rename a symbol mentioned in the message? Remove
+described functionality? Change the approach significantly? If yes, edit
+`$WORKDIR/original-message.txt` and commit with the updated message:
+
+```sh
+git commit -F $WORKDIR/original-message.txt
+```
+
+Otherwise commit with the original message unchanged:
+
+```sh
+git commit --no-edit
+```
+
+Add summary and diff together as a note:
+
+```sh
+git notes --ref=claude-conflict-resolutions add \
+  -F $WORKDIR/resolution-summary.md \
+  --separator='---' \
+  -F $WORKDIR/resolution.diff
+```
+
+The caller (bulk-catchup-rebase or the user) is responsible for
+`git rebase --continue` / `git cherry-pick --continue` after this skill
+completes.
 
 ## 6. Abort and restart
 
@@ -367,26 +452,27 @@ git rerere forget file  # discard a bad resolution
 
 ## Quick reference
 
-| Task                           | Command                                    |
-| ------------------------------ | ------------------------------------------ |
-| List conflicted files          | `git diff --name-only --diff-filter=U`     |
-| Why did this conflict?         | `git log --merge --left-right --oneline`   |
-| View base / ours / theirs      | `git show :1:file` / `:2:file` / `:3:file` |
-| What our side changed          | `git diff :1:file :2:file`                 |
-| What their side changed        | `git diff :1:file :3:file`                 |
-| Show ancestor in markers       | `git checkout --conflict=zdiff3 file`      |
-| Take ours per conflict block   | `git resolve --ours file`                  |
-| Take theirs per conflict block | `git resolve --theirs file`                |
-| Take ours (whole file)         | `git checkout --ours file && git add file` |
-| Resolve artifact (gen'd/fetch) | Resolve source → regenerate → `git add -u` |
-| Incoming commit message/author | `git show MERGE_HEAD`                      |
-| Incoming file as commit        | `git show MERGE_HEAD:file`                 |
-| Which commit touched lines     | `git blame MERGE_HEAD -L … -- file`        |
-| Check resolution vs auto       | `git diff AUTO_MERGE`                      |
-| Check for stray markers        | `git diff --check`                         |
-| Build-verify unstaged          | `<project build cmd>` before `git add`     |
-| Continue merge / rebase / cp   | `git merge/rebase/cherry-pick --continue`  |
-| Abort                          | `git merge/rebase/cherry-pick --abort`     |
-| Rerere state                   | `git rerere status`                        |
-| Forget bad rerere              | `git rerere forget file`                   |
-| Restore conflict markers       | `git checkout --merge <file>`              |
+| Task                           | Command                                     |
+| ------------------------------ | ------------------------------------------- |
+| List conflicted files          | `git diff --name-only --diff-filter=U`      |
+| Why did this conflict?         | `git log --merge --left-right --oneline`    |
+| View base / ours / theirs      | `git show :1:file` / `:2:file` / `:3:file`  |
+| What our side changed          | `git diff :1:file :2:file`                  |
+| What their side changed        | `git diff :1:file :3:file`                  |
+| Show ancestor in markers       | `git checkout --conflict=zdiff3 file`       |
+| Take ours per conflict block   | `git resolve --ours file`                   |
+| Take theirs per conflict block | `git resolve --theirs file`                 |
+| Take ours (whole file)         | `git checkout --ours file && git add file`  |
+| Resolve artifact (gen'd/fetch) | Resolve source → regenerate → `git add -u`  |
+| Incoming commit message/author | `git show MERGE_HEAD`                       |
+| Incoming file as commit        | `git show MERGE_HEAD:file`                  |
+| Which commit touched lines     | `git blame MERGE_HEAD -L … -- file`         |
+| Check resolution vs auto       | `git diff AUTO_MERGE`                       |
+| Check for stray markers        | `git diff --check`                          |
+| Build-verify unstaged          | `<project build cmd>` before `git add`      |
+| Write resolution summary       | `$WORKDIR/resolution-summary.md`, then note |
+| Continue (caller's job)        | `git rebase/cherry-pick --continue`         |
+| Abort                          | `git merge/rebase/cherry-pick --abort`      |
+| Rerere state                   | `git rerere status`                         |
+| Forget bad rerere              | `git rerere forget file`                    |
+| Restore conflict markers       | `git checkout --merge <file>`               |
