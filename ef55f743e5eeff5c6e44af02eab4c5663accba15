@@ -1,7 +1,7 @@
 The specific case that motivated this: a PathType enum was removed on
 master and hardcoded to TO_END_NODE behavior. The resolution happened
 to be correct, but it was done by reading the diff rather than the
-commit message. The user pointed out the lesson holds even when you
+ commit message. The user pointed out the lesson holds even when you
 get lucky — if the commit message had said something different, the
 bot would have had no way to know it was wrong.
 
