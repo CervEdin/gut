@@ -341,10 +341,17 @@ Before starting Step 2, run:
 
 ```sh
 git diff origin/HEAD --stat
+git log --no-merges --oneline origin/HEAD..HEAD | wc -l
+git log --no-merges --oneline origin/HEAD..HEAD | head -10
+git log --merges --oneline origin/HEAD..HEAD | grep -v "Merge tag" | head -5
 ```
 
-This shows what a rebase would produce — the diff between the current tree and
-upstream. Use it to decide what to do next:
+The diff stat shows what a rebase would produce. The log commands give a cheap
+read on the payload: how many commits need rebasing, what they look like, and
+whether the branch has internal sub-branch merges worth knowing about. Use
+`wc -l` + `head` — never dump the full log into context.
+
+Use this to decide what to do next:
 
 - **Empty diff:** the branch contains nothing not already on upstream. The
   rebase is a no-op. Stop. Ask the user whether to delete the branch before
