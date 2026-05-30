@@ -153,8 +153,9 @@ pattern over and over.
 
 When the loop stops:
 
-1. Resolve the conflicts (see `resolve-merge-conflicts` for per-conflict
-   mechanics).
+1. Use the `resolve-merge-conflicts` skill. It handles resolution, summary
+   writing, staging, commit, and git note. Once the skill completes, continue
+   the loop.
 2. Build-verify before staging. Run the project's build or typecheck on the
    _unstaged_ working tree. Staging before verifying carries broken state
    forward, and rerere caches the broken fingerprint — a later iteration that
@@ -187,14 +188,13 @@ When the loop stops:
 
    **Autonomous pacing (when no explicit stop instruction is in effect).** Not
    every conflict stop needs user approval — classify each one:
-
    - **Trivial**: rerere fully resolved all conflicts, build passes, no
-     unexpected state. Always show `git diff AUTO_MERGE --stat` so the user
-     can see what happened, then stage, annotate, and continue without waiting.
+     unexpected state. Always show `git diff AUTO_MERGE --stat` so the user can
+     see what happened, then stage, annotate, and continue without waiting.
    - **Non-trivial**: conflict not covered by a known recipe, build fails,
-     `CONFLICT (modify/delete)` for an unapproved path, or any unexpected
-     git state. Show the full `git diff AUTO_MERGE` in diff order, stop,
-     and wait for explicit approval before continuing.
+     `CONFLICT (modify/delete)` for an unapproved path, or any unexpected git
+     state. Show the full `git diff AUTO_MERGE` in diff order, stop, and wait
+     for explicit approval before continuing.
 
    Always run `git diff AUTO_MERGE --stat` — never skip it even on a clean
    rerere replay. It is the surface that tells the user what happened at each
@@ -293,25 +293,16 @@ text fingerprints; a clean text resolution can still reference a symbol the
 surrounding upstream delta removed in a different file. Run the project build
 unstaged before continuing.
 
-After verifying, commit and annotate before continuing:
+After verifying, use the `resolve-merge-conflicts` skill to commit and record
+the resolution. It handles staging, the commit, and the git note. Then continue
+the rebase:
 
 ```sh
-git diff AUTO_MERGE > /tmp/auto-merge.diff   # save the resolution diff
-git add -u
-git commit --no-edit
-git notes --ref=claude-conflict-resolutions add -F /tmp/auto-merge.diff \
-  -m "brief explanation of how the conflict was resolved"
 git rebase --continue
 ```
 
-The notes serve as a forensic audit trail — the AUTO_MERGE diff records exactly
-what changed from git's auto-merge attempt, and the message records why. If a
-later stride re-hits the same conflict with a different shape, the notes are the
-fastest way to understand what was done before. Use `git log
---notes=claude-conflict-resolutions` to read them.
-
-Running `git rebase --continue` moves forward; if rerere left anything
-unresolved, `--continue` will tell you.
+`git rebase --continue` moves forward; if rerere left anything unresolved,
+`--continue` will tell you.
 
 If `git rebase --continue` itself stops again, check `git status` and
 `git rerere status`. If rerere has no pending resolutions and the index is
