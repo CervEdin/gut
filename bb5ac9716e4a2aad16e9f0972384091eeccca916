@@ -7,7 +7,7 @@ If the MERGE_MSG append ever stops working (git controls that
 file and we are tacking on prose it didn't generate), the
 fallback is to include the merge subject line at the top of the
 summary file and pass it as -F to git commit directly, or to
-commit --no-edit then amend with the enriched message.
+ commit --no-edit then amend with the enriched message.
 
 "Replay" is an informal umbrella for rebase/cherry-pick — not
 standard git terminology. If the inline explanation in Section 1
