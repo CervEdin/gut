@@ -2,11 +2,12 @@
 name: resolve-merge-conflicts
 description:
   Resolve merge conflicts in the working tree during an active merge, rebase, or
-  cherry-pick. Triggers when git reports unmerged paths ("both modified",
-  "deleted by us/them"), when conflict markers (<<<<<<<) appear in files, or
-  when the user asks to resolve, abort, or inspect an in-progress merge.
-  Distinct from inspect-merge-conflicts (that one is for historical merge
-  commits).
+  cherry-pick. Use this skill immediately whenever conflict markers (<<<<<<<)
+  appear in files, git reports unmerged paths ("both modified", "deleted by
+  us/them"), or any merge/rebase/cherry-pick is paused mid-flight — even if the
+  user just pastes git status output without explicitly asking to "resolve
+  conflicts." Distinct from inspect-merge-conflicts, which is for reviewing
+  historical merge commits after the fact.
 allowed-tools: Bash, Read, Edit
 ---
 
@@ -57,6 +58,7 @@ re-run if the skill is interrupted and restarted):
 
 ```sh
 : ${WORKDIR:=$(mktemp -d -t git-conflict-resolution)}
+MERGED_BY=<model-identifier>   # e.g. claude-sonnet-4-6 — fill in the running model
 ```
 
 ## 2. Inspect the three stages
@@ -330,16 +332,34 @@ reasoned decision before committing and creates an audit trail for later.
 git diff AUTO_MERGE > $WORKDIR/resolution.diff
 ```
 
-Write `$WORKDIR/resolution-summary.md` covering:
+Write `$WORKDIR/resolution-summary.md` covering each conflict region:
 
-- Which side was taken for each conflict region and why
-- Reference commits with `git show --pretty=reference <SHA>` (gives a compact
-  one-line citation: hash, subject, date)
-- Name the model: "claude-sonnet-4-6 resolved this by..."
+- No title header — the merge commit subject provides it
+- Section headers are H2, filename + line range, setext style:
+  ```
+  ChargersSchedule.java, lines 50–88
+  -----------------------------------
+  ```
+  Do not use `##` ATX headers — git strips lines starting with `##`
+- Name commits inline in the prose; no separate CO/CT bullet lists
+- For each conflict region, cover: which commit introduced our version and why;
+  which commit introduced their version and why; what specific lines or method
+  conflicted; what was kept and why — functional reasoning, not "it was ours"
+- Reference commits by running `git show --pretty=reference <SHA>` and quoting
+  the full output inline — e.g.
+  `cb152f0370 (fixup! ~wip: add diagnostic logging, 2026-05-30)`. Do not drop
+  bare SHAs without the subject and date.
 - The reasoning should stand on its own — file paths are in the diff
 
 Then re-read the summary. Does the reasoning hold up? Would a future reader
 understand the decision without looking at the diff first? If not, revise.
+
+Format the summary before committing:
+
+```sh
+pandoc --wrap=auto --columns=72 --markdown-headings=setext -f gfm -t gfm \
+  $WORKDIR/resolution-summary.md > $WORKDIR/resolution-summary-fmt.md
+```
 
 ## 5. Stage and commit
 
@@ -351,12 +371,17 @@ git add -u
 
 **For merge (`OP_TYPE=merge`):**
 
-Append the summary to the merge commit message, then commit:
+Build the commit message from the subject, formatted summary, and trailer:
 
 ```sh
-{ echo; cat $WORKDIR/resolution-summary.md; } >> "$(git rev-parse --git-dir)/MERGE_MSG"
-git commit --no-edit
+sed '/^$/q' "$(git rev-parse --git-dir)/MERGE_MSG" > $WORKDIR/msg.txt
+cat $WORKDIR/resolution-summary-fmt.md >> $WORKDIR/msg.txt
+git commit -F $WORKDIR/msg.txt --trailer "merged-by: $MERGED_BY"
 ```
+
+`sed '/^$/q'` extracts the subject line and its trailing blank line, stopping
+before the auto-generated `# Conflicts:` block that `--no-edit` would include.
+`--trailer` appends the trailer with the correct blank-line separator.
 
 Add the diff as a note (summary is already in the commit message):
 
@@ -423,56 +448,8 @@ git merge -X ours branch      # auto-resolve conflicting hunks in favor of ours
 sides conflict. Non-conflicting changes from both sides are still merged
 normally. It is not a whole-file replacement.
 
-## 7. One-time setup (suggest if not configured)
+## 7. One-time setup and quick reference
 
-If `git config merge.conflictStyle` is not `zdiff3`, suggest enabling it:
-
-```bash
-git config --global merge.conflictStyle zdiff3
-```
-
-`zdiff3` inserts the common ancestor between the markers, making it obvious what
-each side changed relative to the base.
-
-If `git config rerere.enabled` is not `true`, suggest enabling it:
-
-```bash
-git config --global rerere.enabled true
-```
-
-With `rerere` enabled, git records how you resolve each unique conflict. If the
-same conflict reappears (common during iterative rebases), git auto-applies your
-previous resolution.
-
-```bash
-git rerere status       # files with recorded resolutions
-git rerere diff         # what rerere would apply
-git rerere forget file  # discard a bad resolution
-```
-
-## Quick reference
-
-| Task                           | Command                                     |
-| ------------------------------ | ------------------------------------------- |
-| List conflicted files          | `git diff --name-only --diff-filter=U`      |
-| Why did this conflict?         | `git log --merge --left-right --oneline`    |
-| View base / ours / theirs      | `git show :1:file` / `:2:file` / `:3:file`  |
-| What our side changed          | `git diff :1:file :2:file`                  |
-| What their side changed        | `git diff :1:file :3:file`                  |
-| Show ancestor in markers       | `git checkout --conflict=zdiff3 file`       |
-| Take ours per conflict block   | `git resolve --ours file`                   |
-| Take theirs per conflict block | `git resolve --theirs file`                 |
-| Take ours (whole file)         | `git checkout --ours file && git add file`  |
-| Resolve artifact (gen'd/fetch) | Resolve source → regenerate → `git add -u`  |
-| Incoming commit message/author | `git show MERGE_HEAD`                       |
-| Incoming file as commit        | `git show MERGE_HEAD:file`                  |
-| Which commit touched lines     | `git blame MERGE_HEAD -L … -- file`         |
-| Check resolution vs auto       | `git diff AUTO_MERGE`                       |
-| Check for stray markers        | `git diff --check`                          |
-| Build-verify unstaged          | `<project build cmd>` before `git add`      |
-| Write resolution summary       | `$WORKDIR/resolution-summary.md`, then note |
-| Continue (caller's job)        | `git rebase/cherry-pick --continue`         |
-| Abort                          | `git merge/rebase/cherry-pick --abort`      |
-| Rerere state                   | `git rerere status`                         |
-| Forget bad rerere              | `git rerere forget file`                    |
-| Restore conflict markers       | `git checkout --merge <file>`               |
+See `references/quick-reference.md` for the command cheat sheet and one-time
+setup recommendations (`zdiff3`, `rerere`). Suggest both if not already
+configured when you first orient in a new repo.
