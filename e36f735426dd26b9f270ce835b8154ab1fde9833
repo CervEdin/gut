@@ -1,0 +1,18 @@
+The `sed '/^$/q'` trick reads lines until the first blank line and
+stops. MERGE_MSG looks like:
+
+  Merge tag 'v1.415.0' into investigate-infeasibilities-clean
+
+  # Conflicts:
+  #	core/.../ChargersSchedule.java
+
+So the sed command captures the subject and the blank that follows,
+then exits. The blank matters: without it the appended summary runs
+directly into the subject, which git reads as a continuation of the
+subject line rather than the start of the body.
+
+The eval harness that surfaced these issues runs three real merge
+scenarios from investigate-infeasibilities-clean (v1.415.0, v1.415.5,
+v1.415.6). With-skill: 7/7 on all three. Without-skill: 2/7, with
+the merged-by trailer and the # Conflicts: block as the two regressions
+this patch targets.
