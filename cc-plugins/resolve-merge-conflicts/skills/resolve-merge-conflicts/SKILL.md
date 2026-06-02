@@ -424,29 +424,27 @@ The caller (bulk-catchup-rebase or the user) is responsible for
 `git rebase --continue` / `git cherry-pick --continue` after this skill
 completes.
 
-## 6. Abort and restart
+## 6. Start a file's resolution over
 
-To abandon the in-progress operation entirely:
-
-```bash
-git merge --abort
-git rebase --abort
-git cherry-pick --abort
-```
-
-`--abort` returns the working tree and index to their pre-operation state.
-
-To restart with an automatic strategy option:
+If your edits to a conflicted file went wrong, recreate the original conflicted
+state — markers and all — and resolve it again:
 
 ```bash
-git merge --abort
-git merge -X theirs branch    # auto-resolve conflicting hunks in favor of theirs
-git merge -X ours branch      # auto-resolve conflicting hunks in favor of ours
+git checkout --merge file     # re-create conflict markers for one file
+git checkout --merge :/       # re-create them for every conflicted file
 ```
 
-`-X ours`/`-X theirs` is a per-hunk strategy option — it only fires where both
-sides conflict. Non-conflicting changes from both sides are still merged
-normally. It is not a whole-file replacement.
+This is the same plumbing as the marker re-styling in §3a (`--conflict` implies
+`--merge`); the intent here is different — discard a botched resolution rather
+than preview the base. It honors your configured conflict style (zdiff3 if set),
+and while the operation is still in progress it restores the markers even for
+files you had already `git add`ed — a clean way to throw away resolution work
+and start fresh. It does not touch the in-progress merge/rebase/cherry-pick
+itself.
+
+Aborting the operation entirely (`git merge --abort`, `git rebase --abort`,
+`git cherry-pick --abort`) is the caller's responsibility, not this skill's —
+the same division of labor as `--continue` in §5.
 
 ## 7. One-time setup and quick reference
 
