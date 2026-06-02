@@ -1,0 +1,231 @@
+#!/usr/bin/env bash
+# Integration tests for git-topology.py
+#
+# Each case builds a small repo with pinned commit dates (so tie-breaks and
+# ordering are deterministic) and asserts the exact forest output.
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PY="$SCRIPT_DIR/../git-topology.py"
+
+TMPDIR_ROOT="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_ROOT"' EXIT
+
+setup_repo() {
+    local dir="$TMPDIR_ROOT/$1"
+    mkdir -p "$dir"
+    git -C "$dir" init -q -b main
+    git -C "$dir" config user.email "test@test.com"
+    git -C "$dir" config user.name "Test"
+    echo "$dir"
+}
+
+# commit_at <repo> <message> <date> -- empty commit with a pinned date.
+commit_at() {
+    GIT_COMMITTER_DATE="$3" GIT_AUTHOR_DATE="$3" \
+        git -C "$1" commit -q --allow-empty -m "$2"
+}
+
+# merge_at <repo> <branch> <date> -- non-ff merge with a pinned date.
+merge_at() {
+    GIT_COMMITTER_DATE="$3" GIT_AUTHOR_DATE="$3" \
+        git -C "$1" merge -q --no-edit --no-ff "$2"
+}
+
+fail=0
+
+# check <name> <actual> <expected>
+check() {
+    echo -n "$1 ... "
+    if [ "$2" = "$3" ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+        printf -- '--- expected ---\n%s\n--- got ---\n%s\n' "$3" "$2"
+        fail=1
+    fi
+}
+
+# pure_tips <repo> [<pattern>...] -- branch tips that are NOT a strict ancestor
+# of any other branch tip, computed straight from 'git merge-base' with no
+# reference to git-topology's own nesting logic. This is the independent oracle
+# for what 'grep -v "^ "' (the roots) must return.
+pure_tips() {
+    local repo="$1"; shift
+    local -a refs=() oids=()
+    local name oid
+    while IFS=$'\t' read -r name oid; do
+        refs+=("$name"); oids+=("$oid")
+    done < <(git -C "$repo" for-each-ref --sort=refname \
+        --format='%(refname:short)%09%(objectname)' "$@")
+    local n=${#refs[@]} i j anc
+    for ((i = 0; i < n; i++)); do
+        anc=0
+        for ((j = 0; j < n; j++)); do
+            [ "$i" = "$j" ] && continue
+            # co-located tips are not STRICT ancestors of each other
+            [ "${oids[i]}" = "${oids[j]}" ] && continue
+            if git -C "$repo" merge-base --is-ancestor "${oids[i]}" "${oids[j]}"; then
+                anc=1; break
+            fi
+        done
+        [ "$anc" = 0 ] && echo "${refs[i]}"
+    done
+}
+
+# check_roots <name> <repo> [<pattern>...] -- assert that the forest's roots
+# (flush-left lines) equal the independently-computed pure tips. Decoupled from
+# the exact-forest assertions, so it survives changes to the nesting logic.
+check_roots() {
+    local name="$1" repo="$2"; shift 2
+    # Mirror the script's default: with no pattern it walks refs/heads/, so the
+    # oracle must look at the same ref set rather than every ref.
+    [ "$#" -eq 0 ] && set -- refs/heads/
+    local got want
+    got="$(cd "$repo" && python3 "$PY" "$@" | grep -v '^ ' | sort)"
+    want="$(pure_tips "$repo" "$@" | sort)"
+    check "$name" "$got" "$want"
+}
+
+d1="2026-01-01T00:00:01"
+d2="2026-01-01T00:00:02"
+d3="2026-01-01T00:00:03"
+d4="2026-01-01T00:00:04"
+
+# --- Repo 1: linear chain of feature branches (basic nesting) ---
+repo="$(setup_repo t1)"
+commit_at "$repo" "root" "$d1"
+git -C "$repo" switch -q -c feature/a; commit_at "$repo" "a" "$d2"
+git -C "$repo" switch -q -c feature/b; commit_at "$repo" "b" "$d3"
+git -C "$repo" switch -q -c feature/c; commit_at "$repo" "c" "$d4"
+# feature/c is the pure tip (root); the branches it is built on nest beneath.
+check "linear chain (default)" \
+    "$(cd "$repo" && python3 "$PY")" \
+    "$(cat <<'EOF'
+feature/c
+    feature/b
+        feature/a
+            main
+EOF
+)"
+check_roots "linear chain roots == pure tips" "$repo"
+check "linear chain (subpattern drops main)" \
+    "$(cd "$repo" && python3 "$PY" refs/heads/feature/)" \
+    "$(cat <<'EOF'
+feature/c
+    feature/b
+        feature/a
+EOF
+)"
+check_roots "linear chain subpattern roots == pure tips" "$repo" refs/heads/feature/
+
+# --- Repo 2: merge branch (nearest descendant wins, bases resurface) ---
+repo="$(setup_repo t2)"
+commit_at "$repo" "root" "$d1"
+git -C "$repo" switch -q -c topic-x; commit_at "$repo" "x1" "$d2"
+git -C "$repo" switch -q main
+git -C "$repo" switch -q -c topic-y; commit_at "$repo" "y1" "$d3"
+git -C "$repo" switch -q -c merge-xy; merge_at "$repo" topic-x "$d4"
+# merge-xy is the pure tip (root); topic-x and topic-y feed into it. main has
+# two descendants, topic-x and topic-y, and nests under the newer (topic-y).
+check "merge branch (nearest + resurface)" \
+    "$(cd "$repo" && python3 "$PY")" \
+    "$(cat <<'EOF'
+merge-xy
+    topic-x
+    topic-y
+        main
+EOF
+)"
+check_roots "merge branch roots == pure tips" "$repo"
+
+# --- Repo 3: co-located branches (same tip OID dropped as candidates) ---
+repo="$(setup_repo t3)"
+commit_at "$repo" "root" "$d1"
+git -C "$repo" switch -q -c base; commit_at "$repo" "base1" "$d2"
+git -C "$repo" switch -q -c colo-a
+git -C "$repo" switch -q -c colo-b
+# base/colo-a/colo-b share a tip, so each is its own root (none descends from
+# another). main nests under the lexically smallest co-located tip (base).
+check "co-located branches" \
+    "$(cd "$repo" && python3 "$PY")" \
+    "$(cat <<'EOF'
+base
+    main
+colo-a
+colo-b
+EOF
+)"
+check_roots "co-located roots == pure tips" "$repo"
+
+# --- Repo 4: committer-date tie -> name-asc tie-break (load-bearing) ---
+# alpha and beta share a committer date and neither descends from the other, so
+# both survive candidate filtering when placing main. main nests under the
+# lexically smaller name (alpha); an inverted tie-break would put it under beta
+# and fail this case.
+repo="$(setup_repo t4)"
+commit_at "$repo" "root" "$d1"
+git -C "$repo" switch -q -c alpha; commit_at "$repo" "alpha tip" "$d2"
+git -C "$repo" switch -q main
+git -C "$repo" switch -q -c beta; commit_at "$repo" "beta tip" "$d2"
+git -C "$repo" switch -q -c gamma-merge; merge_at "$repo" alpha "$d4"
+check "committer-date tie (name-asc)" \
+    "$(cd "$repo" && python3 "$PY")" \
+    "$(cat <<'EOF'
+gamma-merge
+    alpha
+        main
+    beta
+EOF
+)"
+check_roots "committer-date tie roots == pure tips" "$repo"
+
+# --- Repo 5: remote-tracking refs ---
+repo="$(setup_repo t5)"
+commit_at "$repo" "root" "$d1"
+git -C "$repo" switch -q -c feature/a; commit_at "$repo" "a" "$d2"
+git -C "$repo" switch -q main
+git -C "$repo" update-ref refs/remotes/origin/feature/a feature/a
+check "remotes excluded by default" \
+    "$(cd "$repo" && python3 "$PY")" \
+    "$(cat <<'EOF'
+feature/a
+    main
+EOF
+)"
+check_roots "remotes-excluded roots == pure tips" "$repo"
+# origin/feature/a shares feature/a's tip, so both are roots; main nests under
+# the lexically smaller one (feature/a).
+check "remotes included (heads + remotes)" \
+    "$(cd "$repo" && python3 "$PY" refs/heads/ refs/remotes/)" \
+    "$(cat <<'EOF'
+feature/a
+    main
+origin/feature/a
+EOF
+)"
+check_roots "remotes-included roots == pure tips" "$repo" refs/heads/ refs/remotes/
+
+# --- Empty result: a pattern matching nothing prints nothing ---
+check "no matching refs -> empty" \
+    "$(cd "$repo" && python3 "$PY" refs/heads/nonexistent/)" \
+    ""
+
+# --- Help ---
+check "help (-h) first line" \
+    "$(cd "$repo" && python3 "$PY" -h | head -1)" \
+    "git topology [<pattern>...]"
+check "help (--help) first line" \
+    "$(cd "$repo" && python3 "$PY" --help | head -1)" \
+    "git topology [<pattern>...]"
+
+# --- Smoke check: real repo must run and exit 0 ---
+echo -n "real repo runs ... "
+if (cd "$SCRIPT_DIR/.." && python3 "$PY" >/dev/null); then
+    echo "OK"
+else
+    echo "FAIL"
+    fail=1
+fi
+
+exit "$fail"
