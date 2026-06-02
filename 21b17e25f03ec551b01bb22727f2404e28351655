@@ -1,0 +1,18 @@
+Scope: this commit is only the Makefile rule. git-topology.py is still
+untracked and is not staged here -- adding the script itself is a
+separate logical change ("topology: add git-topology") and did not seem
+to belong in a build-infra commit. The unrelated README.md change is
+also left unstaged.
+
+The .py rule is deliberately appended after .sh and .sed. The earlier
+question raised whether this fucks with git-delorean; it does not,
+because GNU make implicit-rule search honors definition order and the
+.sh rule comes first. Verified with `make -n $HOME/bin/git-delorean`
+(links .sh) and `make -n $HOME/bin/git-topology` (links .py). The
+fragility worth naming: that precedence is positional, not explicit, so
+reordering the three link rules above .sh would silently flip delorean
+to .py. Erik chose to leave it as-is rather than stash git-delorean.sh.
+
+macOS /usr/bin/make is GNU make, so the definition-order guarantee holds
+here; a strict BSD make would not behave the same, but this makefile
+already relies on GNU-isms (wildcard, addprefix, pattern rules).
