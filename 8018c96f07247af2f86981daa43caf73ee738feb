@@ -1,0 +1,24 @@
+Scope: git-topology.py, its integration test, and the one-line README
+entry, committed together. The README and the tool's docstring/usage now
+describe the descendant orientation. The untracked .claude/ and CLAUDE.md
+are left out.
+
+Orientation: an earlier draft of this tool nested under the nearest
+ancestor, which put the rebase target (the most-ahead tip) at the deepest
+indent and the base at the flush-left root -- backwards for the
+--update-refs workflow, where you rebase the tip and let --update-refs
+carry the bases. Inverted to nest under the nearest descendant so pure
+tips are the roots and grep -v '^ ' yields the branches to rebase. The
+grep hint is kept out of --help by request; it lives in the module
+docstring only.
+
+A co-located guard was needed: when several branches share a tip OID they
+are each other's ancestor-or-self, so without excluding equal-OID pairs
+from the candidate-drop step they would eliminate one another and a real
+base could end up parentless. The guard keeps them all as roots.
+
+Tests pass 18/18 (python3 + git, autopep8 and shellcheck clean). The
+oracle check caught a real wiring bug while developing: the script
+defaults to refs/heads/ with no args, but the oracle's for-each-ref with
+no pattern listed every ref, so check_roots now mirrors the refs/heads/
+default.
