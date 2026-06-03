@@ -16,9 +16,10 @@ back to author dates, scrambles the very topology this tool shows. So the roots
 are exactly the set you hand to rebase, and 'git topology | grep -v "^ "' lists
 them.
 
-Uses only stdlib subprocess: ref patterns are handed to 'git for-each-ref'
-verbatim, preserving git's pattern/glob semantics, and reachability among the
-branch tips is computed from a single 'git rev-list' walk.
+Uses only stdlib subprocess: each argument that names a single ref is expanded
+to its full refname (so plain names like 'master' work), and anything else is
+handed to 'git for-each-ref' verbatim, preserving git's pattern/glob semantics.
+Reachability among the branch tips is computed from a single 'git rev-list' walk.
 """
 
 import subprocess
@@ -32,8 +33,14 @@ branch -- the branch whose tip is the closest commit reachable ahead of it. Git
 does not record which branch a branch was forked from, so the relationship is
 inferred from commit ancestry.
 
-With no arguments all local branches (refs/heads/) are shown. Any arguments are
-passed straight to 'git for-each-ref' as ref patterns, e.g.:
+With no arguments all local branches (refs/heads/) are shown. A plain ref name
+is resolved to its full refname, so the easy forms just work:
+
+  git topology master feat/git-topology        # only these two branches
+  git topology HEAD                             # the current branch
+
+Any argument that is not a single resolvable ref is passed straight to
+'git for-each-ref' as a ref pattern, preserving git's glob semantics:
 
   git topology refs/heads/feature/             # only feature branches
   git topology refs/heads/ refs/remotes/origin # include remote-tracking refs
@@ -53,7 +60,38 @@ def run(*args: str, check: bool = True) -> str:
     return result.stdout.strip()
 
 
-def main(patterns: list[str]) -> None:
+def is_pattern(arg: str) -> bool:
+    """True if arg should reach 'git for-each-ref' verbatim, not be resolved.
+
+    A fully-qualified 'refs/...' path, a trailing-slash prefix, or anything with
+    a glob character is a pattern; a plain 'master' or 'feat/x' is a name.
+    """
+    return arg.startswith("refs/") or arg.endswith("/") or any(c in arg for c in "*?[")
+
+
+def resolve(args: list[str]) -> list[str]:
+    """Expand plain ref names to full refnames, passing patterns through as-is.
+
+    'git for-each-ref' matches against the full refname, so a bare 'master'
+    never matches on its own. The names are resolved together in a single
+    'git rev-parse --symbolic-full-name' -- one fork no matter how many -- which
+    disambiguates each the way the rest of git does and aborts with a fatal
+    error on a name that matches no ref, so a typo fails loudly instead of
+    silently yielding an empty forest. Patterns keep git's glob/prefix
+    semantics by going to for-each-ref untouched.
+    """
+    names = [a for a in args if not is_pattern(a)]
+    patterns = [a for a in args if is_pattern(a)]
+    resolved: list[str] = []
+    if names:
+        out = run("git", "rev-parse", "--symbolic-full-name", *names)
+        resolved = [line for line in out.splitlines() if line]
+    return resolved + patterns
+
+
+def main(args: list[str]) -> None:
+    patterns = resolve(args)
+
     # One git process: tip commit, committer date and name for every branch,
     # sorted by name so the rendered tree and tie-breaks are deterministic.
     records = run(
@@ -167,4 +205,11 @@ if __name__ == "__main__":
     # Default to local branches.
     if not args:
         args = ["refs/heads/"]
-    main(args)
+    try:
+        main(args)
+    except subprocess.CalledProcessError as exc:
+        # Surface git's own diagnostic (e.g. "fatal: ambiguous argument
+        # 'mster'") rather than a Python traceback, and exit with its code.
+        if exc.stderr:
+            sys.stderr.write(exc.stderr)
+        sys.exit(exc.returncode)
