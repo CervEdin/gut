@@ -182,6 +182,14 @@ records what or why.
    loop's context; the sub-agent returns a compact report instead of flooding
    the orchestration layer.
 
+   How it commits and where it records the note belong to the
+   resolve-merge-conflicts skill, not here. Pass the sub-agent inputs and
+   intent, not a commit procedure: do **not** script the commit or pin a notes
+   ref in the dispatch. A dispatched procedure silently overrides the resolver's
+   own — which is exactly how a stale convention slips back in, replacing the
+   commit and audit the resolver would have made with whatever the dispatch
+   happened to dictate.
+
    Pass it the operation type (`merge`), the conflicted paths, and the loop's
    classification. Require it to report back — provenance (hand-resolved vs.
    rerere-replayed, and which cached resolution if identifiable), the build
