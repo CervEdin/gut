@@ -27,15 +27,18 @@ git log --merge --left-right --oneline        # commits from each side that caus
 ```
 
 `git status` shows which operation is in progress (merging, rebasing,
-cherry-picking) and which files are unmerged. Start here every time.
+cherry-picking) and which files are unmerged. Start here every time. (If
+`rerere.autoUpdate=true`, rerere stages its replay and the unmerged-path list
+can be empty even though `MERGE_HEAD` is set — the in-progress operation, not
+the empty list, is the signal there is work to resolve and audit.)
 
 Determine the operation type next — it affects ours/theirs semantics and how the
 summary is recorded:
 
 ```sh
-if [ -f .git/MERGE_HEAD ]; then
+if git rev-parse -q --verify MERGE_HEAD >/dev/null; then
   OP_TYPE=merge
-elif [ -f .git/REBASE_HEAD ]; then
+elif git rev-parse -q --verify REBASE_HEAD >/dev/null; then
   OP_TYPE=replay
   REPLAY_HEAD=REBASE_HEAD
 else
@@ -351,6 +354,16 @@ Write `$WORKDIR/resolution-summary.md` covering each conflict region:
   bare SHAs without the subject and date.
 - The reasoning should stand on its own — file paths are in the diff
 
+**Rerere replays get the full treatment, not a free pass.** When rerere replayed
+a cached resolution, the working tree came out clean without you deciding
+anything — but the audit still requires all of the above, written _as if you had
+resolved the hunk by hand_: read both sides and justify why the resolution is
+correct. "rerere replayed it" is never an acceptable reason to accept a
+resolution. On top of that reasoning, record provenance — note that rerere
+replayed it and, where identifiable, which earlier resolution
+(`git rerere status`, the `.git/rr-cache/` entry). Provenance is _additive_; it
+never substitutes for the reasoning.
+
 Then re-read the summary. Does the reasoning hold up? Would a future reader
 understand the decision without looking at the diff first? If not, revise.
 
@@ -423,6 +436,24 @@ git notes --ref=claude-conflict-resolutions add \
 The caller (bulk-catchup-rebase or the user) is responsible for
 `git rebase --continue` / `git cherry-pick --continue` after this skill
 completes.
+
+### Report what you resolved
+
+End by surfacing a compact report — a few lines, not a retelling of the diff.
+This is what a caller acts on, and the only thing that crosses the boundary when
+this skill runs inside a delegated sub-agent:
+
+- **Provenance** — per conflict, hand-resolved or rerere-replayed (and which
+  cached resolution, where identifiable).
+- **Build** — the verify command you ran and its result.
+- **Anomalies** — anything unexpected: `CONFLICT (modify/delete)`, an unapproved
+  path, a dirty or surprising state, a resolution you are not confident in.
+- **Commit** — the SHA and subject you created.
+- Or, if you could not resolve it cleanly: **blocked**, and why — never commit a
+  guessed or build-breaking resolution just to clear the stop.
+
+The report does not decide pacing; whether to pause for review is the caller's
+call. Your job is to resolve, record the audit, and report honestly.
 
 ## 6. Start a file's resolution over
 
