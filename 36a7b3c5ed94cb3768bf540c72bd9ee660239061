@@ -1,0 +1,16 @@
+The pattern/name split is purely syntactic, which leaves two soft spots.
+A bare prefix like 'wip/' is classified as a pattern, so it reaches
+for-each-ref and (as before this change) matches nothing rather than
+erroring -- we don't try to make 'wip/' mean "every wip branch". And a
+branch whose name literally contains *, ?, or [ would be misread as a
+glob; that seems an acceptable price for not forking per argument.
+
+One more edge: --symbolic-full-name prints a blank line for an argument
+that resolves to a non-symbolic object (a raw SHA), so we filter empty
+lines out of its output. That means a SHA passed as a "name" is dropped
+silently rather than erroring -- but feeding a SHA to a tool that nests
+branches is nonsensical, so I didn't guard it further.
+
+I included a Signed-off-by even though the recent log carries only the
+Co-Authored-By trailer; drop the sign-off if that's not the convention
+you want here.
