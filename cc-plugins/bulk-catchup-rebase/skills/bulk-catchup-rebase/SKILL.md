@@ -11,7 +11,7 @@ description: >
   the pure-merge variant (skip the rebase, take one final merge commit). Do NOT
   use for short-range interactive rebases (reorder/squash/reword) — those belong
   to claude-rebase or git-rebase-i.
-allowed-tools: Bash, Read, Edit, Write
+allowed-tools: Bash, Read, Edit, Write, Agent
 ---
 
 # Bulk Catch-up Rebase
@@ -107,15 +107,28 @@ stop the loop so you can resolve them:
 
 ```sh
 for v in $(git tag --sort=version:refname --list 'v*' --no-merged HEAD --merged origin/HEAD); do
-  git -c merge.conflictstyle=zdiff3 merge --no-commit --no-ff "$v"
-  if [ $? -eq 0 ]; then
-    git merge --abort  # clean merge — discard and continue
+  if git -c merge.conflictstyle=zdiff3 merge --no-commit --no-ff "$v"; then
+    git merge --abort                                       # clean: exit 0 — discard, keep walking
+  elif ! git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
+    echo "Merge of $v failed for a non-conflict reason — stop and investigate"; break
+  elif ! git diff --check >/dev/null 2>&1; then
+    echo "Conflict at $v — manual resolution needed"; break
   else
-    echo "Conflict at $v — resolve, then commit"
-    break
+    echo "Conflict at $v — rerere resolved fully; verify, then commit"; break
   fi
 done
 ```
+
+The loop classifies each stop so later steps don't rediscover it — and so a
+rerere replay can't masquerade as a clean merge. Exit 0 is a **clean** merge
+(discarded). A nonzero exit with no `MERGE_HEAD` is a **hard failure** (bad ref,
+dirty tree, unrelated histories) — stop and investigate, don't treat it as a
+conflict. A nonzero exit with `MERGE_HEAD` set is a real conflict stop, split by
+whether leftover markers remain (`git diff --check`): **manual** if they do,
+**rerere-resolved** if rerere replayed a cached resolution and the tree came out
+clean. Manual and rerere-resolved are handled _identically_ below — the split is
+carried forward only to frame the resolution and the pacing, never to skip the
+audit.
 
 Rerere caching is half of why the loop exists. The other half is **bisection**:
 each intermediate point localizes one cluster of conflicts to one small upstream
@@ -151,69 +164,69 @@ flip between strides mid-run; the right stride is the one that keeps conflicts
 decomposable while not making you re-resolve the same trivially-repeating
 pattern over and over.
 
-When the loop stops:
+When the loop stops, it has already classified the stop as **manual** or
+**rerere-resolved** (or broken out for a clean merge / hard failure). Both
+conflict cases are handled the same way here. A rerere replay is still a
+conflict stop — the cached resolution being textually clean is _precisely_ when
+the audit matters, because something was applied silently and nothing else
+records what or why.
 
-1. Use the `resolve-merge-conflicts` skill. It handles resolution, summary
-   writing, staging, commit, and git note. Once the skill completes, continue
-   the loop.
-2. Build-verify before staging. Run the project's build or typecheck on the
-   _unstaged_ working tree. Staging before verifying carries broken state
-   forward, and rerere caches the broken fingerprint — a later iteration that
-   re-hits the same conflict will silently replay the broken resolution.
-   ```sh
-   go build ./...             # Go
-   mvn -q -DskipTests compile # Java / Maven
-   npm run typecheck          # JS / TS
-   cargo check                # Rust
-   ```
-   If the build fails, fix in-place before `git add`.
-3. Stage and commit:
+1. **Delegate the resolution to a sub-agent running `resolve-merge-conflicts`.**
+   Spawn a general-purpose sub-agent (a default sub-agent shares this working
+   tree, so it sees the in-progress merge and its commit lands here) and tell it
+   to use the `resolve-merge-conflicts` skill to handle the stop end-to-end:
+   read both sides, resolve it — or, for a rerere replay, verify and justify the
+   replayed resolution _as if it had made it by hand_, never "rerere said so" —
+   build-verify on the unstaged tree, write the summary, stage, commit, and
+   record the git note. Delegating keeps the heavy diff-reading out of this
+   loop's context; the sub-agent returns a compact report instead of flooding
+   the orchestration layer.
 
-   ```sh
-   git add -u && git merge --continue
-   ```
+   Pass it the operation type (`merge`), the conflicted paths, and the loop's
+   classification. Require it to report back — provenance (hand-resolved vs.
+   rerere-replayed, and which cached resolution if identifiable), the build
+   result, anything unexpected (`CONFLICT (modify/delete)`, an unapproved path,
+   a surprising state), and the commit it created — or that it is **blocked**
+   and why.
 
-   Use this command exactly as written. Do **not** add `--no-edit` or any other
-   flags — `git merge --continue --no-edit` causes git to die with an error. Git
-   detects a non-interactive shell and skips the editor automatically, so there
-   is no need to suppress it. The auto-generated message ("Merge tag 'v1.2.3'
-   into branch-name") is correct.
+   The sub-agent's commit concludes the merge. **Do not** run `git add` or
+   `git merge --continue` yourself afterward: `MERGE_HEAD` is already gone, so a
+   manual `git merge --continue` dies with "no merge in progress." (Verify still
+   precedes stage, for the reason it always has — rerere caches whatever gets
+   committed, so a broken resolution must never reach the cache. The sub-agent
+   does this; you don't repeat it.)
 
-   **In-session pauses are binding.** If the user has told you to stop before
-   continuing in this session, stop and surface state — even if the build passed
-   and rerere auto-resolved the conflict. The build passing is not approval to
-   continue. Frame this as in-session user-instruction discipline: the iterative
-   loop has the strongest "barrel through" momentum, which is exactly where a
-   pause instruction is most likely to be overridden by accident.
+2. **Decide whether to pause — this loop owns pacing; the resolver does not.**
+   The audit trail already exists (step 1 committed it); this is only the
+   question of whether to keep walking autonomously or hand back for review,
+   read off the sub-agent's report:
+   - **Trivial** — rerere-resolved, build passed, report clean: show a one-line
+     summary and continue without waiting.
+   - **Non-trivial** — manual resolution, build trouble, a flagged anomaly, or a
+     **blocked** sub-agent: stop and surface the report and the committed
+     resolution (`git show`, or the git note) for explicit approval. A committed
+     resolution is fully reversible — reset it if you reject it.
 
-   **Autonomous pacing (when no explicit stop instruction is in effect).** Not
-   every conflict stop needs user approval — classify each one:
-   - **Trivial**: rerere fully resolved all conflicts, build passes, no
-     unexpected state. Always show `git diff AUTO_MERGE --stat` so the user can
-     see what happened, then stage, annotate, and continue without waiting.
-   - **Non-trivial**: conflict not covered by a known recipe, build fails,
-     `CONFLICT (modify/delete)` for an unapproved path, or any unexpected git
-     state. Show the full `git diff AUTO_MERGE` in diff order, stop, and wait
-     for explicit approval before continuing.
+   **In-session pauses are binding regardless.** If the user told you to stop,
+   stop and surface state — a green build and a clean rerere replay are not
+   approval to continue. The loop has the strongest "barrel through" momentum,
+   which is exactly where a pause instruction is most easily overridden by
+   accident.
 
-   Always run `git diff AUTO_MERGE --stat` — never skip it even on a clean
-   rerere replay. It is the surface that tells the user what happened at each
-   stop.
-
-4. Rerun the loop — rerere records the resolution, so the same conflict won't
-   stop you again.
+3. **Rerun the loop.** The tag you just merged is now an ancestor of HEAD, so
+   the `--no-merged HEAD` filter excludes it and the walk advances to the next
+   conflict — that, not rerere, is why this conflict won't stop you again
+   (rerere's payoff comes in Step 2's replay).
 
 Repeat until the loop runs to completion with no conflicts. At that point every
 conflict fingerprint is cached in `.git/rr-cache/`.
 
-**Generated files.** If the conflict is in a generated file (`.pb.go`, paths
-under `gen/`, a `DO NOT EDIT` header), do not edit it directly. Identify the
-generator (`make -C proto buf-generate-cli`, etc.), resolve the source file
-(`.proto`, schema source, etc.), regenerate, then stage **all** output with
-`git add -u`. The generator often produces multiple files; staging only the one
-git named in the conflict leaves siblings as unstaged modifications, which trip
-the next iteration. Always `git add -u` after a regeneration step, never
-`git add <specific-file>`.
+**Generated files** are resolved at their source, not the artifact — the
+`resolve-merge-conflicts` skill handles that (its artifacts section). One
+bulk-loop caveat to pass along to the sub-agent: after regenerating, stage
+**all** output with `git add -u`, never `git add <specific-file>` — a generator
+often emits several files, and leaving siblings unstaged trips the next
+iteration.
 
 ## Lock contention is normal in the loop
 
@@ -287,15 +300,20 @@ done
 ```
 
 `git rebase` will stop at each conflict even when rerere has fully resolved it —
-this is expected. **Before running `git rebase --continue`, build-verify** —
-even when rerere appears to have fully resolved the conflict. Rerere matches on
-text fingerprints; a clean text resolution can still reference a symbol the
-surrounding upstream delta removed in a different file. Run the project build
-unstaged before continuing.
+this is expected, and it is still a conflict stop to be audited, not skipped.
+**Delegate it to a sub-agent running `resolve-merge-conflicts`, exactly as in
+Step 1**: pass the operation type (`rebase`), the conflicted paths, and the
+loop's manual/rerere-resolved classification, and require the same report back.
+The sub-agent reads both sides — for a replay it verifies and justifies the
+resolution rather than trusting it, because rerere matches on text fingerprints
+and a clean text resolution can still reference a symbol the surrounding
+upstream delta removed in a different file (only the build catches that) —
+build-verifies on the unstaged tree, writes the audit, and commits the replayed
+commit.
 
-After verifying, use the `resolve-merge-conflicts` skill to commit and record
-the resolution. It handles staging, the commit, and the git note. Then continue
-the rebase:
+Unlike a merge, the sub-agent's commit does **not** conclude the operation —
+this loop owns the continue. After the sub-agent returns and you have applied
+the same pacing decision as Step 1, advance:
 
 ```sh
 git rebase --continue
