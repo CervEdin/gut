@@ -27,6 +27,9 @@ personal taste. PRs are welcome.
 - `git branch-status`\
   Displays status of local branches, tracking or not, compared to remote
   branches.
+- `git conflict-blame`\
+  Shows a blamed view of every conflict hunk in the working tree; `-c` prints
+  only the unique commit SHAs involved.
 - `git delete-both`\
   Deletes a branch, and IFF it's tracking, its remote counterpart.
 - `git delorean`\
