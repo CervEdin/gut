@@ -1,0 +1,14 @@
+git rev-parse --parseopt keeps short options in their short form in
+the generated set -- output (it emits -c, not --commits). The while
+loop matches both -c and --commits to stay correct across git
+versions that might normalize differently.
+
+The test harness needs 8 unchanged context lines between the two
+edited lines to force two distinct conflict hunks. With fewer lines,
+git's merge driver may collapse both conflicts into one region. This
+is a scaffolding detail, not a script limitation.
+
+I considered matching ======= markers as well as <<<<<<< and >>>>>>>
+to split the hunk at the ours/theirs boundary, but left it out — the
+combined view with both sides in one blame pass is more useful, and
+the zero-SHA markers already delimit the sides visually.
