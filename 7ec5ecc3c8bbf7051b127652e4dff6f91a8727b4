@@ -12,3 +12,8 @@ I considered matching ======= markers as well as <<<<<<< and >>>>>>>
 to split the hunk at the ours/theirs boundary, but left it out — the
 combined view with both sides in one blame pass is more useful, and
 the zero-SHA markers already delimit the sides visually.
+
+The exit-0-on-no-conflicts choice follows the same convention as
+git diff and similar porcelain: "nothing to report" is not an error.
+Callers that want to distinguish "ran successfully, no conflicts"
+from "didn't run" can check for output rather than exit status.
