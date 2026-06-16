@@ -74,15 +74,15 @@ Git stores three versions of every conflicted file in the index:
 | 2     | Ours    | `git show :2:file` |
 | 3     | Theirs  | `git show :3:file` |
 
-Read all three for each conflicted file before resolving:
+The conflicted working-tree file already shows all three sides where they clash.
+With zdiff3 markers each region carries ours, base, and theirs inline, so one
+read covers the conflict and its surrounding context:
 
 ```bash
-git show :1:path/to/file    # common ancestor
-git show :2:path/to/file    # our side
-git show :3:path/to/file    # their side
+git checkout --conflict=zdiff3 file   # rewrite markers to include the base inline
 ```
 
-Then look at what each side actually changed relative to the base:
+See what each side changed relative to the base:
 
 ```bash
 git diff :1:file :2:file    # base → ours (what our side did)
@@ -90,9 +90,17 @@ git diff :1:file :3:file    # base → theirs (what their side did)
 git diff :2:file :3:file    # ours vs theirs (direct comparison)
 ```
 
-Most resolution mistakes come from skipping the base. The base tells you _why_
-the conflict exists — which side added what, and what the two changes are
-actually trying to accomplish.
+When the conflict is a small slice of a long file — a handful of clashing lines
+in hundreds — reading the whole marked-up file to find them wastes context.
+`diff3` prints only the regions that differ across the three stages:
+
+```bash
+for s in 1 2 3; do git show :$s:file > "$WORKDIR/stage$s"; done # diff3 re-reads inputs; needs real files, not <(…)
+diff3 "$WORKDIR/stage2" "$WORKDIR/stage1" "$WORKDIR/stage3"     # ours base theirs
+```
+
+Weigh each side against the base — both its diff and the commit message that
+introduced it — to understand not just what the two sides changed but why.
 
 ### Inspect the incoming side as a commit
 
