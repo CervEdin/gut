@@ -1,5 +1,5 @@
 {
   "name": "resolve-merge-conflicts",
   "description": "Resolve merge conflicts in the working tree during an active merge, rebase, or cherry-pick",
-  "version": "0.1.10"
+  "version": "0.1.11"
 }
