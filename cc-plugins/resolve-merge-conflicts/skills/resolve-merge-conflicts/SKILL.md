@@ -37,15 +37,17 @@ summary is recorded:
 
 ```sh
 if git rev-parse -q --verify MERGE_HEAD >/dev/null; then
-  OP_TYPE=merge
+  echo "OP_TYPE=merge"
 elif git rev-parse -q --verify REBASE_HEAD >/dev/null; then
-  OP_TYPE=replay
-  REPLAY_HEAD=REBASE_HEAD
+  echo "OP_TYPE=replay REPLAY_HEAD=REBASE_HEAD"
 else
-  OP_TYPE=replay
-  REPLAY_HEAD=CHERRY_PICK_HEAD
+  echo "OP_TYPE=replay REPLAY_HEAD=CHERRY_PICK_HEAD"
 fi
 ```
+
+This prints the values rather than assigning them because, as below, a variable
+set in one Bash call is gone by the next — note `OP_TYPE` (and, for a replay,
+`REPLAY_HEAD`) from the output and carry them forward yourself.
 
 **Ours/theirs semantics:**
 
@@ -56,13 +58,22 @@ fi
 This distinction matters when deciding which side of a conflict to keep and when
 explaining the resolution in the summary.
 
-Set up the working directory for resolution artifacts (idempotent — safe to
-re-run if the skill is interrupted and restarted):
+Create a working directory for resolution artifacts. Run this once:
 
 ```sh
-: ${WORKDIR:=$(mktemp -d -t git-conflict-resolution)}
-MERGED_BY=<model-identifier>   # e.g. claude-sonnet-4-6 — fill in the running model
+mktemp -d -t git-conflict-resolution   # → e.g. /tmp/git-conflict-resolution.AbC123
 ```
+
+**Each Bash tool call runs in a fresh shell — shell variables do NOT persist
+between calls.** A `WORKDIR=...` set here is empty in the next block. So record
+the path `mktemp` printed and carry it yourself: throughout the steps below,
+`$WORKDIR` stands for that recorded path. In each Bash call that uses it, paste
+the literal path (or re-set `WORKDIR=` to it at the top of the call). The same
+goes for the other values the skill threads across steps: `$REPLAY_HEAD` in
+section 5 stands for the ref you noted above (`REBASE_HEAD` or
+`CHERRY_PICK_HEAD`), and the model identifier in the step-5 commit trailer has
+no persistent variable — substitute the literal (e.g. `claude-sonnet-4-6`) where
+the command shows `<model-identifier>`.
 
 ## 2. Inspect the three stages
 
@@ -397,7 +408,7 @@ Build the commit message from the subject, formatted summary, and trailer:
 ```sh
 sed '/^$/q' "$(git rev-parse --git-dir)/MERGE_MSG" > $WORKDIR/msg.txt
 cat $WORKDIR/resolution-summary-fmt.md >> $WORKDIR/msg.txt
-git commit -F $WORKDIR/msg.txt --trailer "merged-by: $MERGED_BY"
+git commit -F $WORKDIR/msg.txt --trailer "merged-by: <model-identifier>"  # literal, e.g. claude-sonnet-4-6
 ```
 
 `sed '/^$/q'` extracts the subject line and its trailing blank line, stopping
