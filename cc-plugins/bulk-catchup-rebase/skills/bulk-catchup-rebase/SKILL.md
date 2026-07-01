@@ -223,11 +223,13 @@ records what or why.
 
 3. **Rerun the loop.** The tag you just merged is now an ancestor of HEAD, so
    the `--no-merged HEAD` filter excludes it and the walk advances to the next
-   conflict — that, not rerere, is why this conflict won't stop you again
-   (rerere's payoff comes in Step 2's replay).
+   conflict — that, not rerere, is why this conflict won't stop you again, and
+   rerere's payoff comes in Step 2's replay: frequent manual stops (and a
+   near-empty cache) during this first pass are the expected working state, not
+   a fault.
 
-Repeat until the loop runs to completion with no conflicts. At that point every
-conflict fingerprint is cached in `.git/rr-cache/`.
+Repeat until the loop runs to completion with no conflicts. At that point rerere
+should have a recorded resolution for every conflict, ready to replay in Step 2.
 
 **Generated files** are resolved at their source, not the artifact — the
 `resolve-merge-conflicts` skill handles that (its artifacts section). One
@@ -333,7 +335,10 @@ git rebase --continue
 If `git rebase --continue` itself stops again, check `git status` and
 `git rerere status`. If rerere has no pending resolutions and the index is
 clean, the commit may have become empty — run `git rebase --skip` to drop it
-(see Pitfalls below).
+(see Pitfalls below). To confirm what a replay actually applied, ask rerere's
+porcelain (`git rerere diff`, `remaining`) rather than inspecting the cache
+directory; if you do need the directory, `git rev-parse --git-path rr-cache`
+locates it (not `.git/rr-cache`). See `references/rerere-cheatsheet.md`.
 
 ### When the branch has meaningful internal merge topology
 
@@ -462,6 +467,13 @@ the project's workflow prefers merge commits.
 - **Doing Step 2 against a moving target** — fetch once, then don't fetch again
   until both passes are done. If upstream moves between passes, the conflict
   fingerprints from Step 1 may not match the conflicts in Step 2.
+
+- **Letting the cache expire between passes** — `git gc` prunes recorded
+  resolutions (`gc.rerereResolved`, 60 days by default; unresolved entries at
+  15), so a long gap between Step 1 and Step 2 can empty the cache and make Step
+  2 re-conflict everywhere as if rerere never ran. Run the two passes close
+  together; if a Step 2 that should replay is instead stopping manually
+  throughout, redo the relevant Step 1 merges to re-record before rebasing.
 
 - **Treating `git diff @{1}` as a sanity check** — it shows upstream delta, not
   commit survival. Use `git range-diff` as described above.
