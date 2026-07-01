@@ -111,8 +111,10 @@ for v in $(git tag --sort=version:refname --list 'v*' --no-merged HEAD --merged 
     git merge --abort                                       # clean: exit 0 — discard, keep walking
   elif ! git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
     echo "Merge of $v failed for a non-conflict reason — stop and investigate"; break
-  elif ! git diff --check >/dev/null 2>&1; then
-    echo "Conflict at $v — manual resolution needed"; break
+  elif git status --porcelain | grep -E '^(DU|UD|AU|UA|DD|AA) '; then
+    echo "Conflict at $v above — structural (add/delete); rerere never caches these, manual decision needed"; break
+  elif ! git diff --check; then
+    echo "Conflict at $v above — manual resolution needed"; break
   else
     echo "Conflict at $v — rerere resolved fully; verify, then commit"; break
   fi
@@ -123,12 +125,19 @@ The loop classifies each stop so later steps don't rediscover it — and so a
 rerere replay can't masquerade as a clean merge. Exit 0 is a **clean** merge
 (discarded). A nonzero exit with no `MERGE_HEAD` is a **hard failure** (bad ref,
 dirty tree, unrelated histories) — stop and investigate, don't treat it as a
-conflict. A nonzero exit with `MERGE_HEAD` set is a real conflict stop, split by
-whether leftover markers remain (`git diff --check`): **manual** if they do,
-**rerere-resolved** if rerere replayed a cached resolution and the tree came out
-clean. Manual and rerere-resolved are handled _identically_ below — the split is
-carried forward only to frame the resolution and the pacing, never to skip the
-audit.
+conflict. A nonzero exit with `MERGE_HEAD` set is a real conflict stop,
+classified as **structural** (add/delete — rerere never caches these),
+**manual** (a real text conflict with no cached answer), or **rerere-resolved**
+(the cache replayed cleanly). See `references/conflict-classification.md` for
+why the checks run in that order and why two of them print instead of staying
+quiet.
+
+All three are handled _identically_ below in terms of audit — the split is
+carried forward only to frame the resolution and (per step 2) the pacing, never
+to skip the audit. But don't read "structural" and "manual" as synonyms for
+"hard": rerere skips add/delete conflicts unconditionally, no matter how many
+times the same shape recurs, so a structural stop says nothing about how much
+thought the resolution needs — see step 2.
 
 Rerere caching is half of why the loop exists. The other half is **bisection**:
 each intermediate point localizes one cluster of conflicts to one small upstream
@@ -164,9 +173,9 @@ flip between strides mid-run; the right stride is the one that keeps conflicts
 decomposable while not making you re-resolve the same trivially-repeating
 pattern over and over.
 
-When the loop stops, it has already classified the stop as **manual** or
-**rerere-resolved** (or broken out for a clean merge / hard failure). Both
-conflict cases are handled the same way here. A rerere replay is still a
+When the loop stops, it has already classified the stop as **structural**,
+**manual**, or **rerere-resolved** (or broken out for a clean merge / hard
+failure). All three are handled the same way here. A rerere replay is still a
 conflict stop — the cached resolution being textually clean is _precisely_ when
 the audit matters, because something was applied silently and nothing else
 records what or why.
@@ -192,10 +201,11 @@ records what or why.
 
    Pass it the operation type (`merge`), the conflicted paths, and the loop's
    classification. Require it to report back — provenance (hand-resolved vs.
-   rerere-replayed, and which cached resolution if identifiable), the build
-   result, anything unexpected (`CONFLICT (modify/delete)`, an unapproved path,
-   a surprising state), and the commit it created — or that it is **blocked**
-   and why.
+   rerere-replayed, and which cached resolution if identifiable), Judgment
+   (mechanical vs. reconciled behavior from both sides — this is what step 2
+   below actually paces on, not provenance), the build result, anomalies (an
+   unapproved path, a surprising state), and the commit it created — or that it
+   is **blocked** and why.
 
    The sub-agent's commit concludes the merge. **Do not** run `git add` or
    `git merge --continue` yourself afterward: `MERGE_HEAD` is already gone, so a
@@ -208,12 +218,39 @@ records what or why.
    The audit trail already exists (step 1 committed it); this is only the
    question of whether to keep walking autonomously or hand back for review,
    read off the sub-agent's report:
-   - **Trivial** — rerere-resolved, build passed, report clean: show a one-line
-     summary and continue without waiting.
-   - **Non-trivial** — manual resolution, build trouble, a flagged anomaly, or a
-     **blocked** sub-agent: stop and surface the report and the committed
-     resolution (`git show`, or the git note) for explicit approval. A committed
-     resolution is fully reversible — reset it if you reject it.
+
+   **Don't key this off structural/manual vs. rerere-resolved.** That split
+   answers "has this exact conflict fingerprint been seen before on this run,"
+   not "did resolving it take thought" — and two ordinary situations make
+   non-rerere resolutions the norm rather than the exception:
+   - Early in Step 1 the cache starts empty, so almost every stop is manual by
+     construction (the "frequent manual stops ... are the expected working
+     state" note above) — that's the normal shape of a first pass, not a run of
+     hard calls.
+   - A structural (add/delete) stop is _never_ cached by rerere, no matter how
+     many times the same shape recurs, so it will always report as non-rerere —
+     but resolving it is usually a one-line `git add`/`git rm` call
+     (`resolve-merge-conflicts` §3e), not a hard one.
+
+   Treating "not rerere-resolved" itself as the non-trivial trigger stops the
+   loop at nearly every conflict during a first pass and at every add/delete —
+   exactly the opposite of what the loop exists to do. Instead, read the
+   resolver's **Judgment** field (see that skill's report section) alongside
+   build and anomalies:
+
+   - **Trivial** — build passed, no anomalies, and Judgment says mechanical
+     (this covers a clean rerere replay _and_ a hand resolution that was an
+     unambiguous accept-one-side, an artifact regen, or a no-stakes add/delete):
+     show a one-line summary and continue without waiting.
+   - **Non-trivial** — build trouble, a flagged anomaly, Judgment says the
+     resolution reconciled behavior or intent from both sides, or a **blocked**
+     sub-agent: stop and surface the report and the committed resolution
+     (`git show`, or the git note) for explicit approval. A committed resolution
+     is fully reversible — reset it if you reject it.
+
+   Provenance (structural/manual vs. rerere-replayed) is still worth relaying in
+   the one-line summary as audit context, but it doesn't gate the pause decision
+   by itself.
 
    **In-session pauses are binding regardless.** If the user told you to stop,
    stop and surface state — a green build and a clean rerere replay are not
@@ -313,13 +350,13 @@ done
 this is expected, and it is still a conflict stop to be audited, not skipped.
 **Delegate it to a sub-agent running `resolve-merge-conflicts`, exactly as in
 Step 1**: pass the operation type (`rebase`), the conflicted paths, and the
-loop's manual/rerere-resolved classification, and require the same report back.
-The sub-agent reads both sides — for a replay it verifies and justifies the
-resolution rather than trusting it, because rerere matches on text fingerprints
-and a clean text resolution can still reference a symbol the surrounding
-upstream delta removed in a different file (only the build catches that) —
-build-verifies on the unstaged tree, writes the audit, and commits the replayed
-commit.
+conflict's classification (structural, manual, or rerere-resolved — same three
+categories as Step 1), and require the same report back. The sub-agent reads
+both sides — for a replay it verifies and justifies the resolution rather than
+trusting it, because rerere matches on text fingerprints and a clean text
+resolution can still reference a symbol the surrounding upstream delta removed
+in a different file (only the build catches that) — build-verifies on the
+unstaged tree, writes the audit, and commits the replayed commit.
 
 Unlike a merge, the sub-agent's commit does **not** conclude the operation —
 this loop owns the continue. After the sub-agent returns and you have applied
