@@ -460,13 +460,29 @@ completes.
 
 End by surfacing a compact report — a few lines, not a retelling of the diff.
 This is what a caller acts on, and the only thing that crosses the boundary when
-this skill runs inside a delegated sub-agent:
+this skill runs inside a delegated sub-agent. A caller deciding whether to pause
+for review reads this report, not the raw conflict shape — so it needs to say
+plainly whether the resolution took real thought, not just what kind of conflict
+it started as:
 
 - **Provenance** — per conflict, hand-resolved or rerere-replayed (and which
-  cached resolution, where identifiable).
+  cached resolution, where identifiable). This is audit trail, not a difficulty
+  signal: rerere fires on a text-fingerprint match and nothing more, and it
+  never fires at all for a `modify/delete` conflict (§3e) — so "hand-resolved"
+  covers a one-line `git rm` just as often as a real reconciliation of logic
+  from both sides.
+- **Judgment** — for each conflict, was the resolution mechanical (an
+  unambiguous accept-one-side, a regenerated artifact, or a `modify/delete`
+  where the deleted side's function is verifiably superseded elsewhere) or did
+  it require reconciling behavior or intent from both sides? Say which, and for
+  the latter, say why. This is the signal a caller needs to decide whether the
+  stop needs a second pair of eyes — provenance and conflict type don't tell it.
 - **Build** — the verify command you ran and its result.
-- **Anomalies** — anything unexpected: `CONFLICT (modify/delete)`, an unapproved
-  path, a dirty or surprising state, a resolution you are not confident in.
+- **Anomalies** — anything outside the strategies in §3: an unapproved path, a
+  dirty or surprising state, a conflict shape you had to improvise for, or a
+  resolution you are not confident in. A `modify/delete` resolved via §3e is not
+  by itself an anomaly — its difficulty, if any, belongs in Judgment above, not
+  here.
 - **Commit** — the SHA and subject you created.
 - Or, if you could not resolve it cleanly: **blocked**, and why — never commit a
   guessed or build-breaking resolution just to clear the stop.
