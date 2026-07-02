@@ -97,8 +97,25 @@ git merge --abort
 This probe runs in seconds and shows you — without committing anything — every
 file that would conflict if you merged today. Use it to judge scope: a handful
 of files in familiar packages is manageable in one session; dozens of unrelated
-files across generated code may warrant regenerating sources first. Run this
-once, note what you see, then proceed to Step 1.
+files across generated code may warrant regenerating sources first.
+
+**If the probe is fully clean, try a one-shot rebase before reaching for the
+bulk machinery.** Run the topology check (see Step 2) to pick the flags, then:
+
+```sh
+git -c merge.conflictstyle=zdiff3 rebase origin/HEAD   # --rebase-merges per the topology answer
+```
+
+A clean probe does not _guarantee_ a clean rebase — the probe tests one
+tip-vs-tip merge, while a rebase replays each commit individually and any one of
+them can conflict on the way. That's why this is a _try_: if the one-shot stops
+at a conflict, `git rebase --abort` and fall back to Step 1 — nothing is lost by
+the attempt. If it completes, skip straight to the sanity checks at the end of
+this skill. Walking every intermediate point through a conflict-free landscape
+is pure ceremony; the probe result, not the size of the gap, is the decision
+point.
+
+If the probe showed conflicts, note what you saw and proceed to Step 1.
 
 **Verify the branch's own build is clean before starting the loop.** If the
 branch is already broken at HEAD, no compile gate during the iterative loop is
@@ -157,6 +174,15 @@ bisection benefit too, which is often the more valuable half.
 **Default: trust the loop.** Do not preemptively sample every Nth tag, skip
 iterations, or shortcut because the tag count looks like a lot. Clean iterations
 only add ~50–100ms of delay each — they aren't the cost to optimize.
+
+**But bail out when the loop turns into pure ceremony.** If iteration after
+iteration merges clean with no conflict in sight, stop walking: run the topology
+check (Step 2), then _try_ a one-shot rebase from where you are, same as the
+clean-probe exit in Step 0. If the one-shot stops at a conflict, abort it and
+resume the loop where you left off. This is not the preemptive shortcutting
+warned against above — the trigger is observed evidence (a streak of clean
+merges), not tag-count anxiety, and the try costs one abort if it turns out
+wrong.
 
 **The real goal is decomposing conflicts.** Fine strides keep each conflict set
 small and coherent — one intermediate point's worth of upstream changes at a
