@@ -1,17 +1,8 @@
-Backward compatibility: a single bare name (git-branch-status.sh foo)
-behaved identically before and after -- the old code already expanded
-the last argument. The real change is for the other arguments, which
-used to be forwarded raw (matching nothing) and are now expanded too.
-
-Considered requiring an explicit -- separator instead of auto-detecting
-flags. Rejected it because a dash cannot begin a branch name, so the
-flag-vs-branch split is unambiguous without one; -- is kept only as an
-escape hatch for the rare non-refs/ positional pattern.
-
-Edge case: an argument that begins with a dash *after* -- is expanded to
-refs/heads/-foo. That is a grammar-legal ref but not a branch git will
-create, so it is harmless nonsense rather than a supported input.
-
-Not addressed here: both for-each-ref invocations receive "$@", so a
-user-supplied --sort stacks with the hardcoded --sort=committerdate
-rather than replacing it. Pre-existing; left alone.
+Considered dropping `--` entirely, since per-argument classification
+makes it redundant: a leading dash is always a flag and everything
+else is a branch, so nothing needs a positional separator to be
+disambiguated. Kept it as a tolerated (currently inert) separator only
+because the flag/branch ordering around `--` may be reworked -- most
+likely flipped to the conventional "own args -- pass-through" form --
+and accepting the token now is friendlier than rejecting it and having
+to start honouring it later.
