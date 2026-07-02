@@ -1,0 +1,17 @@
+Defaulting to --rebase-merges everywhere instead of stopping to ask
+was tempting as the safer shape, but it is unproven in combination
+with the Step 2 $sha^2 loop under heavy conflicts, and it would bake
+in a topology decision the user may not want either. Asking costs one
+question; a wrong default costs a reflog dig. The TODO in the message
+stands: fold --rebase-merges into the loop shape properly once there
+is a conflict-heavy run to learn from.
+
+The trigger uses origin/HEAD..HEAD like the rest of the skill, so it
+inherits the existing assumption that origin/HEAD is set - no new
+fragility, but no fix for the old one either.
+
+Two data points support the preserved-topology path, but the second
+run also hit silent build breaks (see
+issues/bulk-catchup-rebase-2026-07-02-2.md). Those are a build-gating
+problem, not a topology one, and are deliberately out of scope here -
+they belong to the parked --exec change.
