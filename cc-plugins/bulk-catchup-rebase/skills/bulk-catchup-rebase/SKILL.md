@@ -317,13 +317,15 @@ right.
 ## Step 2: Iterative rebase over the captured merges
 
 Once Step 1 completes, convert the merge-commit history back to a linear rebase.
-This iterative loop is **required** — do not skip straight to
-`git rebase origin/HEAD`. A direct rebase against the remote tip defeats rerere
-entirely: the cached resolutions from Step 1 were recorded at specific conflict
-boundaries (one release worth of delta at a time), and a single-shot rebase
-against the full upstream history presents conflicts at different boundaries
-where the cached fingerprints do not match. The rerere cache will appear to do
-nothing, and every conflict must be resolved by hand again.
+**First run the topology check (below) — it decides whether the `$sha^2` loop
+here is even the right shape.** This iterative loop is **required** — do not
+skip straight to `git rebase origin/HEAD`. A direct rebase against the remote
+tip defeats rerere entirely: the cached resolutions from Step 1 were recorded at
+specific conflict boundaries (one release worth of delta at a time), and a
+single-shot rebase against the full upstream history presents conflicts at
+different boundaries where the cached fingerprints do not match. The rerere
+cache will appear to do nothing, and every conflict must be resolved by hand
+again.
 
 The loop below replays your commits through the same incremental boundaries so
 rerere's fingerprints fire at the right moments. Only after the loop completes
@@ -386,22 +388,37 @@ porcelain (`git rerere diff`, `remaining`) rather than inspecting the cache
 directory; if you do need the directory, `git rev-parse --git-path rr-cache`
 locates it (not `.git/rr-cache`). See `references/rerere-cheatsheet.md`.
 
-### When the branch has meaningful internal merge topology
+### Topology check — run before ANY rebase
 
-This skill prescribes `--no-rebase-merges` throughout Step 2. That is the right
-shape for a branch with a linear commit history. If your branch's internal merge
-topology is meaningful — sub-branches whose merge commits you need to preserve —
-the `$sha^2` loop above is not the right shape.
+Before any rebase this skill performs — the Step 2 loop, the final rebase onto
+`origin/HEAD`, or a one-shot — check for internal merge commits:
 
-There is a sketch of a working approach: start Step 2 by running
-`git reset --hard` back to the original branch tip (before any of the Step 1
-merges), then rebase with `--rebase-merges --update-refs` instead of the loop.
-This approach has not been fully written up here yet and needs more lived
-experience before it belongs in a skill.
+```sh
+git log --merges --oneline origin/HEAD..HEAD
+```
 
-**Surface the topology question before starting Step 2.** If your branch has
-sub-branch merges you intend to keep, stop and ask the user how they want to
-proceed rather than silently picking a loop shape that doesn't fit.
+Non-empty output → STOP and ask the user whether to preserve the branch's merge
+topology (`--rebase-merges`) or flatten it. The trigger is mechanical on
+purpose: never classify a merge as "just a catch-up" or "not meaningful
+topology" on your own. A judgment-framed check is exactly what gets talked-past
+mid-run, and a branch flattened without permission is expensive to undo. Whether
+a merge commit matters is the user's call; the cost of asking is one question.
+
+Repo merge policy is not evidence here. Squash-only settings, a rebase-only
+merge queue, or branch protection describe how PRs land on the **default**
+branch — they say nothing about what shape the user wants a local branch to
+keep.
+
+If the user chooses to preserve topology, the `$sha^2` loop above is not the
+right shape. The working approach: start Step 2 with `git reset --hard` back to
+the original branch tip (before any of the Step 1 merges), then rebase with
+`--rebase-merges --update-refs` instead of `--no-rebase-merges`. Two runs
+support this so far — a zero-conflict one-shot `git rebase --rebase-merges`
+whose commits came out byte-identical under `git range-diff`, and a full Step
+1 + Step 2 run that carried `--rebase-merges --update-refs` through the replay
+and the final rebase, preserving the internal merge across one real conflict
+stop. Evidence is still thin for conflict-heavy replays, so verify with
+`git range-diff` afterward and watch the merge commits closely.
 
 ## Step 3: triage before rebasing
 
