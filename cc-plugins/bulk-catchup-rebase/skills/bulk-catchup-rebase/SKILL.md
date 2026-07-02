@@ -78,6 +78,14 @@ skill works without it.
 
 ## Step 0: Test merge first
 
+**Orientation is read-only — do not fetch.** The whole run (probe, Step 1,
+Step 2) must see a single upstream state, and that invariant is achieved by NOT
+fetching: operate on the remote-tracking refs as they are. A fetch moves those
+refs — it can shift the rebase target and invalidate conflict fingerprints, and
+the user may have deliberately pinned the refs they want to catch up to. If the
+refs look stale, say so and ask the user whether to fetch before anything
+starts; never fetch on your own initiative.
+
 Before starting the iterative loop, get a quick read on what the conflict
 landscape actually looks like:
 
@@ -322,8 +330,9 @@ rerere's fingerprints fire at the right moments. Only after the loop completes
 do you perform a final `git rebase --no-rebase-merges origin/HEAD` to land on
 the current tip cleanly.
 
-MUST be done against the same upstream state — fetch once before starting, then
-don't fetch again until done.
+MUST be done against the same upstream state as Step 1 — which means **no
+fetching**, not "fetch first." The remote-tracking refs you started with ARE the
+target; leave them alone until both passes are done (see Step 0).
 
 **Capture the merge SHAs in oldest-first order:**
 
@@ -501,9 +510,11 @@ the project's workflow prefers merge commits.
 - **Forgetting `rerere.enabled`** — no resolutions are cached; every iteration
   re-conflicts from scratch. Enable it before Step 1, not after.
 
-- **Doing Step 2 against a moving target** — fetch once, then don't fetch again
-  until both passes are done. If upstream moves between passes, the conflict
-  fingerprints from Step 1 may not match the conflicts in Step 2.
+- **Fetching mid-run** — a fetch moves remote-tracking refs, so the rebase
+  target shifts and Step 1's conflict fingerprints may not match the conflicts
+  Step 2 presents. The "same upstream state throughout" invariant is achieved by
+  not fetching at all — not by fetching early. Don't bundle a fetch into
+  orientation; if the refs look stale, ask the user before starting (Step 0).
 
 - **Letting the cache expire between passes** — `git gc` prunes recorded
   resolutions (`gc.rerereResolved`, 60 days by default; unresolved entries at
