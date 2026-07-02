@@ -73,8 +73,9 @@ git -c merge.conflictstyle=zdiff3 rebase ...
 ```
 
 All merge and rebase commands in the steps below are written with this prefix.
-If you prefer to skip it for a particular run, just drop the `-c` argument — the
-skill works without it.
+Keep it on every command, even when the user's config already sets zdiff3
+globally — the flag is idempotent, costs nothing, and makes each command
+self-documenting. Do not propose dropping it to "simplify" the commands.
 
 ## Step 0: Test merge first
 
