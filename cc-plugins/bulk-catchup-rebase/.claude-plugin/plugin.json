@@ -1,5 +1,5 @@
 {
   "name": "bulk-catchup-rebase",
   "description": "Bulk-rebase a long-lived branch that trails upstream by many commits using iterative merges and rerere",
-  "version": "0.2.0"
+  "version": "0.2.1"
 }
