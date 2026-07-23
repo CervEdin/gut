@@ -373,15 +373,29 @@ Write `$WORKDIR/resolution-summary.md` covering each conflict region:
   bare SHAs without the subject and date.
 - The reasoning should stand on its own — file paths are in the diff
 
-**Rerere replays get the full treatment, not a free pass.** When rerere replayed
-a cached resolution, the working tree came out clean without you deciding
-anything — but the audit still requires all of the above, written _as if you had
-resolved the hunk by hand_: read both sides and justify why the resolution is
-correct. "rerere replayed it" is never an acceptable reason to accept a
-resolution. On top of that reasoning, record provenance — note that rerere
+**Rerere replays get a sanity check, not the full audit.** When rerere replayed
+a cached resolution, the reasoning already happened when the resolution was
+first recorded — don't re-derive it from scratch. Three quick checks are enough:
+
+1. The build (and tests/lint, where the project runs them) passes green on the
+   replayed result.
+2. The replayed hunk looks reasonable — skim it in context; nothing obviously
+   references a symbol or behavior the surrounding code no longer has.
+3. The source resolution read the history right — find where it was first
+   recorded (the earlier resolution commit and its audit note, where they exist)
+   and check its reasoning against the commits it reconciled. This is validating
+   recorded reasoning, not reconstructing it: a resolution that was accidental
+   or misread the sides replays with perfect fidelity and can pass the first two
+   checks green.
+
+In the summary, record provenance in place of fresh reasoning: note that rerere
 replayed it and, where identifiable, which earlier resolution
-(`git rerere status`, the `.git/rr-cache/` entry). Provenance is _additive_; it
-never substitutes for the reasoning.
+(`git rerere status`, the `.git/rr-cache/` entry). Escalate to the full
+hand-resolution treatment above only when a check fails. The checks split by
+failure direction: rerere's fingerprint guarantees the conflict hunks are
+identical but says nothing about the world around them, so checks 1 and 2 catch
+a resolution replayed into a tree that has moved since it was recorded, and
+check 3 catches a resolution that was already wrong when it was cached.
 
 Then re-read the summary. Does the reasoning hold up? Would a future reader
 understand the decision without looking at the diff first? If not, revise.
