@@ -217,10 +217,13 @@ happened when the resolution was first recorded.
 
 1. **Delegate the resolution to a sub-agent running `resolve-merge-conflicts`.**
    Spawn a general-purpose sub-agent (a default sub-agent shares this working
-   tree, so it sees the in-progress merge and its commit lands here) and tell it
-   to use the `resolve-merge-conflicts` skill to handle the stop end-to-end:
-   read both sides, resolve it — or, for a rerere replay, run that skill's quick
-   sanity checks (build, reasonableness, and the source resolution's recorded
+   tree, so it sees the in-progress merge and its commit lands here), dispatched
+   on Sonnet (`model: sonnet`) by default — conflict stops are frequent and
+   mostly mechanical, so the cheaper model is the right fit; escalate to a
+   stronger model only for a stop that already looks hard — and tell it to use
+   the `resolve-merge-conflicts` skill to handle the stop end-to-end: read both
+   sides, resolve it — or, for a rerere replay, run that skill's quick sanity
+   checks (build, reasonableness, and the source resolution's recorded
    reasoning) rather than re-deriving it — build-verify on the unstaged tree,
    write the summary, stage, commit, and record the git note. Delegating keeps
    the heavy diff-reading out of this loop's context; the sub-agent returns a
