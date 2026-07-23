@@ -211,20 +211,20 @@ pattern over and over.
 When the loop stops, it has already classified the stop as **structural**,
 **manual**, or **rerere-resolved** (or broken out for a clean merge / hard
 failure). All three are handled the same way here. A rerere replay is still a
-conflict stop — the cached resolution being textually clean is _precisely_ when
-the audit matters, because something was applied silently and nothing else
-records what or why.
+conflict stop — something was applied silently, so it gets a quick sanity check
+and a provenance record — but not a full re-resolution; the reasoning already
+happened when the resolution was first recorded.
 
 1. **Delegate the resolution to a sub-agent running `resolve-merge-conflicts`.**
    Spawn a general-purpose sub-agent (a default sub-agent shares this working
    tree, so it sees the in-progress merge and its commit lands here) and tell it
    to use the `resolve-merge-conflicts` skill to handle the stop end-to-end:
-   read both sides, resolve it — or, for a rerere replay, verify and justify the
-   replayed resolution _as if it had made it by hand_, never "rerere said so" —
-   build-verify on the unstaged tree, write the summary, stage, commit, and
-   record the git note. Delegating keeps the heavy diff-reading out of this
-   loop's context; the sub-agent returns a compact report instead of flooding
-   the orchestration layer.
+   read both sides, resolve it — or, for a rerere replay, run that skill's quick
+   sanity checks (build, reasonableness, and the source resolution's recorded
+   reasoning) rather than re-deriving it — build-verify on the unstaged tree,
+   write the summary, stage, commit, and record the git note. Delegating keeps
+   the heavy diff-reading out of this loop's context; the sub-agent returns a
+   compact report instead of flooding the orchestration layer.
 
    How it commits and where it records the note belong to the
    resolve-merge-conflicts skill, not here. Pass the sub-agent inputs and
@@ -390,11 +390,14 @@ this is expected, and it is still a conflict stop to be audited, not skipped.
 Step 1**: pass the operation type (`rebase`), the conflicted paths, and the
 conflict's classification (structural, manual, or rerere-resolved — same three
 categories as Step 1), and require the same report back. The sub-agent reads
-both sides — for a replay it verifies and justifies the resolution rather than
-trusting it, because rerere matches on text fingerprints and a clean text
-resolution can still reference a symbol the surrounding upstream delta removed
-in a different file (only the build catches that) — build-verifies on the
-unstaged tree, writes the audit, and commits the replayed commit.
+both sides — for a replay it runs the quick sanity checks rather than a full
+re-derivation: rerere matches on text fingerprints, so a clean text resolution
+can still reference a symbol the surrounding upstream delta removed in a
+different file (only the build catches that), and the source resolution itself
+can have misread the history it reconciled — here the Step 1 commit and its
+audit note make that check cheap, since the recorded reasoning is already
+written down and only needs to hold up, not be re-derived — build-verifies on
+the unstaged tree, writes the audit, and commits the replayed commit.
 
 Unlike a merge, the sub-agent's commit does **not** conclude the operation —
 this loop owns the continue. After the sub-agent returns and you have applied
