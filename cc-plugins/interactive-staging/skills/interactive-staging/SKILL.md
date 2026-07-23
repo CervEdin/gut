@@ -136,3 +136,17 @@ to confirm remaining changes match expectations before continuing.
   detects from filesystem for new files.
 - **Renamed files:** Stage as deletion of old path + addition of new path
   (partial or whole as appropriate).
+
+## Appendix: Starting from a fully staged index
+
+Occasionally the session starts with everything already in the index (e.g. after
+`git reset --soft <base>` to split up squashed work). Unstage with:
+
+```bash
+git reset -N
+```
+
+`-N` marks paths that don't exist in HEAD as intent-to-add instead of dropping
+them to untracked, so new files keep showing up in `git status` as `A` and in
+`git diff` with their content — they can't get lost among unrelated untracked
+files, and diff-based tooling still sees them.
