@@ -1,0 +1,23 @@
+While the operation is in progress, checkout --merge rebuilds the
+conflict from HEAD/MERGE_HEAD/merge-base, so it discards a staged
+resolution too — not just unstaged edits. (Once the operation ends and
+those refs are gone, there is nothing left to rebuild from.)
+
+Erik noted this also discards a staged rerere result. It does — but it
+discards the *applied* resolution only; the recorded preimage in
+.git/rr-cache survives (git rerere forget is the explicit way to drop
+that). I chose not to add a rerere caveat to section 6: keeping a botched
+resolution discardable while the recording survives is the behavior we
+want, and the line would have added noise for an edge case.
+
+The :/ pathspec is the "top" magic signature (anchored at the repo
+root). I picked it over . deliberately so the restart reaches conflicted
+files in sibling directories regardless of cwd.
+
+Version bump is a patch. It is arguably minor since it removes guidance
+and redirects to a different command, but it reads as a scope correction
+rather than new behavior, and Erik picked patch when asked.
+
+The working tree has unrelated untracked files (analyze_tool_costs.py,
+read_transcripts.py, issues/, a workspace dir). This commit stages only
+the two skill files.

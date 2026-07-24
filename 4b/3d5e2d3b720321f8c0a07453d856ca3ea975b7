@@ -1,0 +1,41 @@
+Erik reported this: the snippet treats WORKDIR/MERGED_BY as state that
+survives across Bash tool calls. It does not, and this commit is the fix
+— the framing is "they don't persist, here's how we carry them," not "we
+wrongly assume."
+
+I confirmed export does not rescue it: exported a var in one Bash tool
+call, read it in the next, came back empty. Each call is a separate
+shell process.
+
+Alternatives weighed for WORKDIR before settling on mktemp:
+
+A deterministic path under $(git rev-parse --git-dir) is recomputable
+and collision-free, but in a worktree --git-dir is the per-worktree
+private dir (.git/worktrees/<name>, vs --git-common-dir for the shared
+one), so cleanup means rm-ing inside .git — a footgun agents avoid.
+Rejected on that ground.
+
+A fixed $TMPDIR/git-conflict-resolution path drops the .git problem but
+collides globally across every repo and session on the machine.
+
+A worktree-hashed $TMPDIR path is reproducible, which is its one real
+advantage, but it still has to be remembered and injected per call
+exactly like the mktemp literal — so it buys little over mktemp here.
+Kept on the table as an alternative if reproducibility ever matters.
+
+I verified the worktree --git-dir behavior in a throwaway repo, and
+checked via bulk-catchup-rebase that the resolver runs as a sub-agent in
+one shared working tree with conflict stops handled sequentially, so
+parallel-worktree collisions are not a real scenario for this caller.
+
+OP_TYPE and REPLAY_HEAD are fixed here too, at Erik's prompt. REPLAY_HEAD
+is the one with teeth — it is consumed by git log in section 5. OP_TYPE
+is only ever a prose label in the section-5 headers, never executed, but
+it came from the same silent-assignment pattern, so it echoes now as
+well.
+
+Patch bump 0.1.10 -> 0.1.11: skill-body wording/bug-fix, no change to
+what the skill does or how it triggers, per cc-plugins/CLAUDE.md.
+
+Formatted with prettier 3.9.4 (--print-width 80 --prose-wrap always),
+matching the Makefile format-markdown target.

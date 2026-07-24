@@ -1,0 +1,10 @@
+This is a follow-through commit: the policy decision lives in the
+resolve-merge-conflicts change; this one keeps the caller's dispatch
+language from contradicting it. One plugin per commit matches the
+log's convention, and the plugins version independently.
+
+Naming the three checks in the dispatch parenthetical brushes
+against the skill's own rule about not scripting the resolver's
+procedure from the dispatch. I kept it to a naming, not a procedure
+— the resolver still owns how the checks run — but trimming the
+parenthetical entirely would also be defensible.

@@ -1,0 +1,7 @@
+Patch bump (0.2.5 -> 0.2.6); could be minor since it changes which
+model resolves. Erik's call.
+
+"Escalate when hard" is my reading of "usually I want this to be a
+Sonnet agent" — drop it if the intent was unconditional. The pacing
+decision reads the resolver's Judgment field, which a weaker model
+may fill in less carefully.

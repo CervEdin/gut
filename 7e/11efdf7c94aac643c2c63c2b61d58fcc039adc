@@ -1,0 +1,17 @@
+--separator='---' stitches multiple -F inputs into one note body
+with a divider between them; no fallback is provided here. If it
+blows up on an older installation, the fix is to concatenate the
+two files before passing them as a single -F.
+
+If the MERGE_MSG append ever stops working (git controls that
+file and we are tacking on prose it didn't generate), the
+fallback is to include the merge subject line at the top of the
+summary file and pass it as -F to git commit directly, or to
+ commit --no-edit then amend with the enriched message.
+
+"Replay" is an informal umbrella for rebase/cherry-pick — not
+standard git terminology. If the inline explanation in Section 1
+doesn't make the mapping clear enough, an alternative is to drop
+the umbrella and say "rebase or cherry-pick" throughout, or to
+model it as cherry-pick since git rebase is mechanically a
+sequence of cherry-picks.
