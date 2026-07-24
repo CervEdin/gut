@@ -1,0 +1,24 @@
+The merge-stop classifier was verified empirically in throwaway repos,
+not reasoned about. git diff --diff-filter=U and git ls-files -u both
+fail to tell a rerere-resolved stop from a manual one when
+rerere.autoUpdate=true (rerere stages the replay, so the index looks
+clean), and conflict markers are gone after a replay. git diff --check
+keys on worktree marker content, invariant to the autoUpdate setting,
+so it is the one detector that classifies all of {clean, manual,
+rerere-resolved, hard-failure} correctly. MERGE_HEAD presence separates
+a real conflict from a hard failure regardless.
+
+allowed-tools gains Agent — the canonical Claude Code name for the
+subagent tool as of v2.1.63 (Task is a back-compat alias). For a skill,
+allowed-tools grants no-prompt permission rather than restricting, so
+this mainly avoids a permission prompt mid-loop.
+
+Deferred follow-up: consider running the loops with -c
+rerere.autoUpdate=false so replays stay unstaged and the agent is forced
+to verify and stage them consciously — a structural nudge against
+skipping the audit. Left out to keep this change focused.
+
+One-spawn-per-stop trades a little token and latency overhead per spawn
+(the sub-agent re-reads the skill and re-orients) for a much smaller
+main-loop context over a long run; builds already ran at every stop, so
+build time is unchanged.

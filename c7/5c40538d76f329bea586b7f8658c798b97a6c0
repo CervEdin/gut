@@ -1,0 +1,13 @@
+An alternative was to keep "fetch once before starting" but demand
+user confirmation first. That still bakes in the assumption that
+fresher refs are what the run wants; the retrospective's point was the
+opposite - the refs as they stand are the target, and the user may
+have pinned them deliberately. So the confirmation moved to the only
+case where fetching is even on the table: visibly stale refs, before
+anything starts.
+
+"If the refs look stale" is left to judgment. No staleness probe is
+prescribed - FETCH_HEAD's mtime was considered and dropped, since it
+only says when some fetch last ran, not whether origin has moved. If
+this proves too vague in practice, a follow-up could compare against
+the remote-tracking ref's reflog.

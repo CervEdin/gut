@@ -1,0 +1,16 @@
+This loop trusts resolve-merge-conflicts' self-reported Judgment field
+to decide whether to pause, so the same caveat applies here: nothing
+independently verifies that a resolution the sub-agent called mechanical
+actually was.
+
+The DU/UD/AU/UA/DD/AA set is what git printed for every add/delete shape
+I constructed and checked by hand on this machine (both directions of
+modify/delete, add/add). I did not check whether copy detection,
+submodule conflicts, or other configurations produce codes outside that
+set.
+
+I extracted the classifier's rationale to a reference file but left the
+Step 2 pacing rewrite inline, even though it also grew the file by a
+fair amount. That content seemed like something a reader needs at
+execution time on every pass, not detail to look up on demand, so I
+didn't push it out too.
