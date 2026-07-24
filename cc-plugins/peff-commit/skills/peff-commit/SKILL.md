@@ -34,7 +34,9 @@ feedback.**
      description) while keeping peff's narrative body style. The repo's
      convention always takes priority over peff's raw prefix style.
 3. Draft a commit message following peff's style (see `PEFF-STYLE.md`), adapting
-   the subject line format to match what you found in step 2.
+   the subject line format to match what you found in step 2. Then reread the
+   draft and delete every clause that carries no fact, causal link, or decision
+   — asides survive only if they report effort, confidence, or scope.
 4. Write notes — caveats, alternatives you considered, things you're uncertain
    about. See the Notes section in `PEFF-STYLE.md`. Aim for 72 chars per line
    (soft limit), hard limit 120 — same as the commit body.
