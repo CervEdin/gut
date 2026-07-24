@@ -1,0 +1,15 @@
+"Iteration after iteration merges clean" is deliberately not
+quantified. The retrospective run walked 17 clean tags; picking a
+number would just move the ceremony threshold around, and the cost of
+guessing wrong in either direction is one aborted rebase. The signal
+is a streak with no conflict in sight, and the try is cheap.
+
+Known gap: a one-shot skips the per-conflict build verification the
+bulk path gets from its resolver stops, and the second 2026-07-02
+retrospective shows conflict-free replays can still break the build.
+The parked --exec build-gating change should cover the one-shot too
+when it lands; until then the sanity-check section is the only gate.
+
+Bailing out mid-Step-1 loses nothing: resolutions rerere captured up
+to that point stay cached, so falling back to the loop resumes where
+it left off.

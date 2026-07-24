@@ -1,0 +1,13 @@
+The accidental-resolution motivation surfaced in review of this
+change; dc634e3 never wrote it down — its stated rationale was only
+that "the cached resolution can be stale or wrong in the new
+context", which is the first failure direction. If dc634e3 had other
+unrecorded motivations, this relaxation may still be missing one.
+
+Check 3 leans on the audit trail existing — an earlier resolution
+commit with a note. Outside the bulk-catchup flow (a cache populated
+by ordinary merges, no notes), "find where it was first recorded"
+may bottom out at the rr-cache entry alone, and the check degrades
+to reading the postimage against history with no recorded reasoning
+to lean on. That seemed acceptable for a sanity check; the
+escalation path exists for when it isn't.

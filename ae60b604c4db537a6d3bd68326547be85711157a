@@ -1,0 +1,14 @@
+Judgment is self-reported by the sub-agent doing the resolution. There
+is no independent check that a resolution marked mechanical actually
+was; a rushed or overconfident sub-agent could mislabel a judgment call
+and slip past the caller's pause gate. This has not been run through the
+skill's own eval loop, so I don't have measured evidence for how
+reliably a sub-agent fills this in correctly in practice, only the
+reasoning above.
+
+I considered tying Judgment to conflict type directly instead of leaving
+it a free assessment (structural implies mechanical, content implies
+interpretive), but that just re-introduces the conflation this change is
+trying to remove. A modify/delete can need real judgment if the deleted
+side's function has to be ported somewhere, and a content conflict can
+be a trivial whitespace or version-bump collision.

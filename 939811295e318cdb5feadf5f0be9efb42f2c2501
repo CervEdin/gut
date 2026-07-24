@@ -1,0 +1,15 @@
+The "trivial/non-trivial" framing came directly from user corrections
+in a live session. The plan draft had "stop before every --continue",
+and the user pushed back: "stop at non-trivial conflicts, that's all."
+The AUTO_MERGE --stat rule came from the same session: "always surface
+it, approval or not."
+
+The two bullet points deliberately don't enumerate every possible
+non-trivial case — the list would be both long and incomplete. The
+common thread is "unexpected state": anything that doesn't fit the
+pattern of "rerere resolved it and the build agrees" is non-trivial.
+
+Placement is immediately after the in-session pause paragraph because
+the two rules are complementary: one covers explicit stop instructions,
+the other covers the autonomous default when no instruction is in
+effect.

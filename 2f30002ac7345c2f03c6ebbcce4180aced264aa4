@@ -1,0 +1,11 @@
+Scope: kept as one commit. The expiry pitfall could read as an unrelated
+"while in the area" addition, but it's the necessary bound on the "an empty
+cache is normal" reassurance this same commit adds to Step 1 — without it,
+that advice masks the one case (gc pruning between passes) where an empty
+cache is a genuine problem. One qualifies the other, so they land together.
+
+Includes a 0.1.14 patch bump (docs/clarification, no behavioral change).
+
+The gc figures (60 days resolved / 15 unresolved) are git's documented
+defaults for gc.rerereResolved / gc.rerereUnresolved; I did not inspect the
+user's local config, hence the "by default" phrasing in the pitfall text.

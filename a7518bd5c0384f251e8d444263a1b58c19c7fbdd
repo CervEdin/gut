@@ -1,0 +1,9 @@
+The autoUpdate orientation note is kept deliberately even though it was
+initially waved off: the skill is general-purpose and must behave the
+same regardless of the user's rerere.autoUpdate setting, so the
+robustness note earns its place on its own merits, not because of any
+one machine's config.
+
+The worktree-safety fix (rev-parse over a literal .git/MERGE_HEAD path)
+is opportunistic — it hasn't bitten us, but the rev-parse form is
+strictly more correct and costs nothing.

@@ -1,0 +1,22 @@
+The negative examples quoted in the new bullets are not hypothetical;
+they are lifted from notes this skill produced for a whitespace
+series in CervEdin/git-test earlier today. There is a risk in
+quoting them: vivid negative examples sit in the context window and
+can prime the register they ban. I kept them anyway because naming
+the exact moves is what steers a model off them, and kept the
+wording terse to limit the exposure.
+
+I considered a dedicated section ("Restraint" / "The AI failure
+mode") and rejected it. A section narrating model behavior is itself
+the wrong register, and instruction text doubles as example text, so
+the rules were folded into existing sections and written dry.
+
+The deletion pass went into step 3 rather than a new numbered step
+to avoid renumbering. It may be partly redundant with the new
+bullets in PEFF-STYLE.md; my guess is a process step holds better
+over a long generation than a one-time prohibition, but I have not
+measured that.
+
+peff-review, sunshine-review, and gitster-review likely have the
+same vocabulary-prescribing tone sections; this commit does not
+touch them.

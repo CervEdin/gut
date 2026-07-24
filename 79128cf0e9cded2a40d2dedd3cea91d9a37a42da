@@ -1,0 +1,9 @@
+The Step 1 build-verify paragraph is still there — it's owned
+by bulk-catchup-rebase, not the resolver. The resolver runs its
+own build gate before staging; the Step 1 paragraph is a
+reminder to the orchestration layer about what the resolver is
+doing and why the order matters for rerere.
+
+No behaviour change for Step 1 merges beyond gaining the audit
+trail that Step 2 already had. Step 2 loses the inline notes
+instructions that were there before.

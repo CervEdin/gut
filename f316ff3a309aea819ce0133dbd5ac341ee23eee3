@@ -1,0 +1,12 @@
+Spotted via analyze_tool_costs.py — a throwaway script that ranks
+tool calls in session transcripts by word count. The git log result
+showed up at rank 3 (~1500 words) when it should have cost maybe 50.
+
+The grep -v "Merge tag" filter was also fragile: it kept internal
+sub-branch merges (e.g. "Merge branch 'topic/foo' into wip/bar")
+visible alongside regular commits, which is neither a clean
+non-merge list nor a topology-only view. The prescribed form splits
+these two questions with --no-merges and --merges respectively.
+
+Bump: patch (0.1.9 -> 0.1.10) — wording + example commands, no
+change to strategy.

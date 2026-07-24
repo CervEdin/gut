@@ -1,0 +1,16 @@
+The change is an appendix rather than a step in the main staging
+loop, and the subject reflects that scope: it covers a starting
+condition (index already full), not a change to how hunks get
+staged.
+
+Alternative I considered mentioning in the doc: `git restore
+--staged .`. It has exactly the failure mode the appendix warns
+about — new files fall to untracked, and restore has no
+intent-to-add equivalent — so leaving it out seems right, though an
+explicit "don't use restore --staged here" sentence could be argued
+for.
+
+I took the diff's claim about -N semantics at face value; it matches
+my understanding (reset -N records removed-from-index paths as
+intent-to-add, present since git 1.8.3), but I did not test it in a
+scratch repo.
