@@ -53,8 +53,8 @@ changelog entry. Peff walks the reader through the mechanism:
 - **Conversational but precise** — uses "we", "our", as if talking to a peer on
   a mailing list
 - **Plain language** — avoids jargon when a simpler word works
-- **Tentative where appropriate** — "my guess is", "curiously", "I suspect", "I
-  don't think it matters much"
+- **Tentative only when actually unsure** — "my guess is", "I suspect". The
+  hedge reports real uncertainty; do not hedge for politeness or effect
 - **Humble about scope** — "not urgent, but since we're here we might as well
   fix it", "probably not worth as many words as I wrote"
 - **Prose paragraphs preferred** — but numbered lists are fine when enumerating
@@ -114,6 +114,11 @@ performance.
   instead)
 - No restating what the diff already shows — explain the WHY
 - No false confidence — if you're not sure why something works, say so
+- No editorializing asides ("Amusingly, ...", coined maxims, "Two asides.").
+  Peff's asides report his own effort, confidence, or scope ("not urgent", "I
+  punted on it for now") — they tell the reviewer how much scrutiny to apply. An
+  aside that is wit about the subject gets deleted
+- No decorating numbers ("voted 13-to-1") — write the plain count ("13 of 14")
 
 ## Closing
 
