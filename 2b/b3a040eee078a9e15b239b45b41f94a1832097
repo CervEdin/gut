@@ -1,0 +1,34 @@
+This commit was written three times, and the drafts are more
+interesting than the result.
+
+The first argued the change on turn-cost — every commit is a two-turn
+negotiation. That is a real effect but the wrong reason. The reason is
+that the message records a perceived motivation, and an agent that
+cannot state one has probably misunderstood the change; cost is the
+symptom, the diagnostic value is the point. Worth knowing that the
+weaker framing is what comes out first if nobody pushes.
+
+The second kept notes as a proposal, shown but not attached until the
+user agreed. I even flagged in that draft's own notes that a distracted
+user would end up with commits carrying no notes at all. Flagging a
+problem is not fixing it: the gate was the same stall the commit
+removes, moved one object further down, and the same argument that
+makes an unprompted commit safe — corrections are cheap — applies
+verbatim to `git notes edit`. Notes now always get saved.
+
+The test in step 3 is self-graded, and that is its weak point. Asked
+"can you state why this change was made?", a model can nearly always
+construct something plausible from the diff. This commit is the
+example: I judged the motivation clear because I had written the plan
+that supplied it, then reproduced my own reasoning and called it
+recovered. The three conditions are written to fire on structural
+signals rather than felt confidence, but I have not measured how often
+they fire.
+
+One gap I noticed and did not close: none of the three conditions asks
+why the change is being made *now*. Peff messages often carry that
+("not urgent, but since we're here"), and neither of these two commits
+records what prompted the work. A fourth condition for it is tempting,
+but it risks firing on nearly every commit and dragging the default
+back toward always-interviewing, which is what this commit sets out to
+stop.
