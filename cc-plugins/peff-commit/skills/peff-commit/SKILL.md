@@ -41,14 +41,17 @@ feedback.**
    about. See the Notes section in `PEFF-STYLE.md`. Aim for 72 chars per line
    (soft limit), hard limit 120 — same as the commit body.
 5. Present it and ask for feedback.
-6. Once the user approves, commit with the message, then attach the notes to the
-   new commit with `git notes add -m <notes>`.
-7. Check for long lines:
+6. Once the user approves, commit with the message. A `commit-msg` hook may
+   reject it for long lines. Rewrap and retry, or pass `--no-verify` for a line
+   that genuinely can't wrap — a code snippet, pasted output, a long identifier
+   — and is still inside the 120-char hard limit.
+7. Check the notes before attaching them. No hooks fire on `git notes add`, so
+   nothing else catches a long line, and checking first saves a rewrite:
    ```
-   git log -1 --format=%s | grep -n '.\{73\}'
-   { git log -1 --format=%b; git notes show 2>/dev/null; } | grep -n '.\{121\}'
+   printf '%s\n' "$notes" | grep -n '.\{121\}'
    ```
-   If any lines are reported, show them to the user and offer to fix them.
+   Rewrap any lines it reports, then attach with
+   `printf '%s\n' "$notes" | git notes add -F -`.
 
 ## Output Format
 
