@@ -1,0 +1,36 @@
+This commit's own message needed --no-verify: the quoted hook runs to
+77 characters at its widest, which is exactly the case the 72-to-120
+range exists for. Nice to have the demonstration land in the commit
+that argues for it, though it does mean the hook rejected the message
+that quotes the hook.
+
+An earlier draft of this commit also collapsed the body and notes
+limits from soft-72/hard-120 down to a hard 72, reasoning that the
+skill and the hook were two sources of truth and the looser one was
+winning. Wrong twice over. 35d32b9 introduced 120 deliberately, as
+room for code snippets, benchmark output, and long identifiers that do
+not wrap; and a hook is a trigger rather than a ban — it stops you and
+makes you decide. The two were never in conflict. Recording it because
+the wrong story was the more persuasive one.
+
+Whether the hook should itself distinguish the soft limit from the hard
+one is a separate question, untouched here. As it stands it fires at
+72, so every use of the 72-to-120 range costs a --no-verify.
+
+A follow-up worth considering: have the skill notice a missing
+commit-msg hook and offer to install one. Deliberately not done here —
+it turns a message-writing skill into a repo-configuring one, and the
+argument in this commit is that the width belongs to the repo.
+
+I considered piping notes through `fmt -w 72` rather than grepping
+them, and rejected it. fmt would enforce the soft limit as if it were
+hard, and on this host it reflows rather than wraps — joining short
+lines within a paragraph even under -s, and double-spacing after
+sentence ends — so a pasted table or a deliberate break would not
+survive. Reporting a violation leaves the judgement where it belongs.
+
+The "no hooks fire on git notes add" claim is tested, not assumed: a
+throwaway repo with pre-commit, prepare-commit-msg, commit-msg,
+post-commit and post-rewrite all logging showed every one fire on
+`git commit` and none on `git notes add`. Only reference-transaction
+fires there, and it sees nothing but the ref update.
