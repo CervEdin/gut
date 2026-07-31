@@ -1,0 +1,37 @@
+My first attempt at this commit also collapsed the body and notes
+limits from soft-72/hard-120 down to a hard 72, on the theory that the
+skill and the hook were two sources of truth and the looser one was
+winning. That was wrong twice over. 35d32b9 introduced 120
+deliberately, as room for code snippets, benchmark output, and long
+identifiers that do not wrap, and the hook is a trigger rather than a
+ban — it stops you and makes you decide, and --no-verify is the
+intended way past it for a line that is legitimately long. The two
+were never in conflict. I am recording it here because the wrong story
+was more persuasive than the right one and someone may reach for it
+again.
+
+Whether the hook itself should distinguish the soft limit from the hard
+one is a separate question I have not touched. As it stands it fires at
+72, so any commit using the 72-to-120 range needs --no-verify.
+
+The skill now depends on infrastructure that is not in the repo: the
+hook is untracked and lives in the shared git dir, so it covers this
+worktree but nothing outside it. Run peff-commit elsewhere and the
+message width has no trigger at all, where before there was at least a
+post-hoc grep. A follow-up worth considering is having the skill notice
+a missing commit-msg hook and offer to install one; deliberately not
+done here.
+
+I considered piping the notes through `fmt -w 72` instead of grepping
+them, and rejected it. fmt would enforce the soft limit as if it were
+hard, and on this host it reflows rather than wraps — it joins short
+lines within a paragraph, even under -s, and double-spaces after
+sentence ends — so a pasted table or a deliberate line break in a note
+would not survive. Reporting a violation leaves the judgement where it
+belongs.
+
+The hook behaviour in the commit message is tested, not assumed: a
+throwaway repo with all five commit hooks logging showed every one of
+them fire on `git commit` and none on `git notes add`, with
+reference-transaction firing on the refs/notes/commits update and
+receiving only the old sha, new sha, and refname.
