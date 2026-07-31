@@ -17,8 +17,8 @@ you to actually think through and verbalize the reasoning behind a change.
 
 See `PEFF-STYLE.md` for the full style reference.
 
-**IMPORTANT: Do NOT run `git commit`. Present the message and ask for
-feedback.**
+The default is to commit and then report. Interview the user first only when the
+change's motivation can't be recovered — see step 3.
 
 ## Process
 
@@ -33,18 +33,31 @@ feedback.**
      Commits, use that format for the subject line (type, optional scope,
      description) while keeping peff's narrative body style. The repo's
      convention always takes priority over peff's raw prefix style.
-3. Draft a commit message following peff's style (see `PEFF-STYLE.md`), adapting
+3. Decide whether you can state _why_ the change was made. The motivation is
+   missing when:
+   - nothing in the diff, the conversation, or the recent log explains why the
+     change was made;
+   - two plausible motivations would produce materially different messages; or
+   - the change reads as a workaround or a tradeoff whose rationale lives
+     outside the code.
+
+   If any of those hold, interview the user before drafting — ask focused
+   questions (AskUserQuestion) about motivation, alternatives weighed, and
+   scope. Don't draft a speculative message first; a draft invites correction of
+   wording instead of supplying the reasoning that's missing. Otherwise go
+   straight on to step 4.
+
+4. Draft a commit message following peff's style (see `PEFF-STYLE.md`), adapting
    the subject line format to match what you found in step 2. Then reread the
    draft and delete every clause that carries no fact, causal link, or decision
    — asides survive only if they report effort, confidence, or scope.
-4. Write notes — caveats, alternatives you considered, things you're uncertain
+5. Write notes — caveats, alternatives you considered, things you're uncertain
    about. See the Notes section in `PEFF-STYLE.md`. Aim for 72 chars per line
    (soft limit), hard limit 120 — same as the commit body.
-5. Present it and ask for feedback.
-6. Once the user approves, commit with the message. A `commit-msg` hook may
-   reject it for long lines. Rewrap and retry, or pass `--no-verify` for a line
-   that genuinely can't wrap — a code snippet, pasted output, a long identifier
-   — and is still inside the 120-char hard limit.
+6. Commit with the drafted message, then report — see Output Format. A
+   `commit-msg` hook may reject it for long lines. Rewrap and retry, or pass
+   `--no-verify` for a line that genuinely can't wrap — a code snippet, pasted
+   output, a long identifier — and is still inside the 120-char hard limit.
 7. Check the notes before attaching them. No hooks fire on `git notes add`, so
    nothing else catches a long line, and checking first saves a rewrite:
    ```
@@ -55,8 +68,11 @@ feedback.**
 
 ## Output Format
 
-Present the message like this:
+Report the commit like this — the sha, the message as it landed, and the notes
+that went with it:
 
+> Committed as `1f3fd68`:
+>
 > ```
 > (the commit message)
 > ```
@@ -71,7 +87,7 @@ Present the message like this:
 > verify your reasoning.
 > ```
 >
-> Want me to commit this, or does anything look off?
+> `git commit --amend` to fix the message, `git notes edit` for the notes.
 
 ## Why This Matters
 
@@ -81,3 +97,11 @@ the gaps — alternatives you weighed, things you're unsure about, scope
 decisions. If your understanding doesn't match the user's, this is where it
 becomes visible. A bad commit message that gets corrected is more valuable than
 a generic one that goes unquestioned.
+
+That is why the message records the motivation you _believed_ you were acting
+on, and why it gets written even when you commit without asking. If you can't
+state the motivation, that is itself the signal — you may have misread the point
+of the change. And if the change later turns out to be wrong, the recorded why
+usually shows how you got there. Reviewing it after the commit exists costs
+nothing, since amending is cheap; stopping to ask when nothing needs deciding
+leaves the work parked.
