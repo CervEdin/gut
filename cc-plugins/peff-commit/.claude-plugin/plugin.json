@@ -1,5 +1,5 @@
 {
   "name": "peff-commit",
   "description": "Channel Jeff King (peff) to write commit messages that articulate reasoning, not just describe diffs",
-  "version": "0.2.5"
+  "version": "0.2.6"
 }
