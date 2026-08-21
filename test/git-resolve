@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# Integration tests for git-resolve.sh
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SH="$SCRIPT_DIR/../git-resolve.sh"
+
+TMPDIR_ROOT="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_ROOT"' EXIT
+
+fail=0
+
+check() {
+    echo -n "$1 ... "
+    if [ "$2" = "$3" ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+        printf -- '--- expected ---\n%s\n--- got ---\n%s\n' "$3" "$2"
+        fail=1
+    fi
+}
+
+setup_conflict() {
+    # $1: repo name, $2: conflict style ("merge", "diff3", "zdiff3")
+    local dir="$TMPDIR_ROOT/$1"
+    mkdir -p "$dir"
+    git -C "$dir" init -q -b main
+    git -C "$dir" config user.email "test@test.com"
+    git -C "$dir" config user.name "Test"
+    git -C "$dir" config merge.conflictstyle "$2"
+
+    printf 'line one\nbase line\nline three\n' > "$dir/file.txt"
+    git -C "$dir" add file.txt
+    git -C "$dir" commit -q -m "base"
+
+    git -C "$dir" switch -q -c ours
+    printf 'line one\nours edit\nline three\n' > "$dir/file.txt"
+    git -C "$dir" commit -q -a -m "ours edit"
+
+    git -C "$dir" switch -q main
+    git -C "$dir" switch -q -c theirs
+    printf 'line one\ntheirs edit\nline three\n' > "$dir/file.txt"
+    git -C "$dir" commit -q -a -m "theirs edit"
+
+    git -C "$dir" switch -q ours
+    git -C "$dir" merge -q --no-edit theirs >/dev/null 2>&1 || true
+    [ -f "$dir/.git/MERGE_HEAD" ] || { echo "FAIL: no MERGE_HEAD in $1"; exit 1; }
+
+    echo "$dir"
+}
+
+for style in merge diff3 zdiff3; do
+    # --- --ours ---
+    repo="$(setup_conflict "ours-$style" "$style")"
+    (cd "$repo" && bash "$SH" --ours file.txt >/dev/null)
+    check "--ours ($style style)" "$(cat "$repo/file.txt")" \
+        "$(printf 'line one\nours edit\nline three')"
+
+    # --- --theirs ---
+    repo="$(setup_conflict "theirs-$style" "$style")"
+    (cd "$repo" && bash "$SH" --theirs file.txt >/dev/null)
+    check "--theirs ($style style)" "$(cat "$repo/file.txt")" \
+        "$(printf 'line one\ntheirs edit\nline three')"
+
+    # --- --both ---
+    repo="$(setup_conflict "both-$style" "$style")"
+    (cd "$repo" && bash "$SH" --both file.txt >/dev/null)
+    check "--both ($style style)" "$(cat "$repo/file.txt")" \
+        "$(printf 'line one\nours edit\ntheirs edit\nline three')"
+done
+
+exit "$fail"
