@@ -57,6 +57,9 @@ $(INSTALL_DIR)/% : $(INSTALL_DIR)/%.sh
 $(INSTALL_DIR)/% : $(INSTALL_DIR)/%.sed
 	ln -fs $< $@
 
+$(INSTALL_DIR)/% : $(INSTALL_DIR)/%.py
+	ln -fs $< $@
+
 ## Make all of gut
 all: $(installed_programs) $(installed_links)
 

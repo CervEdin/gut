@@ -25,6 +25,8 @@ personal taste. PRs are welcome.
 Creates and manges "archive" tags.
 - `git branch-status`\
 Displays status of local branches, tracking or not, compared to remote branches.
+- `git conflict-blame`\
+Shows a blamed view of every conflict hunk in the working tree; `-c` prints only the unique commit SHAs involved.
 - `git delete-both`\
 Deletes a branch, and IFF it's tracking, its remote counterpart.
 - `git delorean`\
@@ -59,6 +61,9 @@ Resolves merge conflicts, in favor of either ours/theirs/both while retaining no
 Search and replace string across the repository, starting at `./`.
 - `git stash-drop-range`\
 Drops a range of stash items from stash.
+- `git topology`\
+  Prints a forest of branches, nesting each branch under its nearest descendant
+  branch (inferred from commit ancestry), so pure tips show as roots.
 
 # Installation
 
