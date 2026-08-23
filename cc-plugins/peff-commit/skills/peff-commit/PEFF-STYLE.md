@@ -122,7 +122,13 @@ performance.
 
 ## Closing
 
-End with a `Signed-off-by:` line using the actual author's identity.
+Peff ends with a `Signed-off-by:` line, but not by personal style — the Git
+project requires that trailer of every submission, from anyone. Follow the
+same logic rather than the letter of it: add whatever trailer the *target*
+project requires, which for most repos means matching what the recent log
+carries (sign off where it signs off, carry a `Reviewed-by:` or ticket
+trailer where the log carries one, add nothing where the log carries
+nothing).
 
 If the change is a port of a fix from elsewhere, say so plainly: "Apply the same
 fix here."
