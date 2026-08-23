@@ -1,9 +1,13 @@
 ---
 name: peff-commit
-description:
+description: >-
   Write a commit message in the style of Jeff King (peff) from the Git mailing
-  list. Use when about to commit, or when the user wants to craft a thoughtful
-  commit message.
+  list — narrative prose that says why the change was made, and git notes
+  recording what was uncertain about it. Use it whenever a commit message is
+  about to be written or rewritten: committing staged work, amending or
+  rewording an existing message, fixing up a series before it is sent, or any
+  time the user asks for a good, careful, or detailed commit message. Prefer it
+  over writing the message unaided.
 disable-model-invocation: false
 ---
 
