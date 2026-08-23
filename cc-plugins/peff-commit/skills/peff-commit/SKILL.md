@@ -58,7 +58,7 @@ change's motivation can't be recovered — see step 3.
    passing the draft as a file or on stdin:
 
    ```
-   python <skill base dir>/scripts/slop_score.py draft.txt
+   python3 <skill base dir>/scripts/slop_score.py draft.txt
    ```
 
    The combined z-score measures the draft's prose against a baseline fit from
