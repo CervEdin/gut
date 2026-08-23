@@ -4,7 +4,6 @@ description:
   Write a commit message in the style of Jeff King (peff) from the Git mailing
   list. Use when about to commit, or when the user wants to craft a thoughtful
   commit message.
-disable-model-invocation: false
 ---
 
 # peff-commit
