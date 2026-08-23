@@ -29,10 +29,13 @@ change's motivation can't be recovered — see step 3.
    convention. Look for patterns like:
    - **Conventional Commits**: `feat:`, `fix:`, `chore:`, `feat(scope):`, etc.
    - **Subsystem prefix**: `http: ...`, `odb: ...`
-   - **No prefix**: bare imperative sentences If the repo uses Conventional
-     Commits, use that format for the subject line (type, optional scope,
-     description) while keeping peff's narrative body style. The repo's
-     convention always takes priority over peff's raw prefix style.
+   - **No prefix**: bare imperative sentences
+
+   Follow whatever the log shows and keep peff's narrative body underneath it.
+   With Conventional Commits that means type, optional scope, and description on
+   the subject line. The repo's convention always takes priority over peff's raw
+   prefix style.
+
 3. Decide whether you can state _why_ the change was made. The motivation is
    missing when:
    - nothing in the diff, the conversation, or the recent log explains why the
