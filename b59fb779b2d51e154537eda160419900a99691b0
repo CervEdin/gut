@@ -1,0 +1,14 @@
+This message trips its own detector: the quoted "utilize" costs the
+flat +8, so it scores 3.3 with the prose alone at -4.7. That is the
+exception step 5 keeps, and the new output made it obvious rather than
+leaving a bare 3.3 to interpret.
+
+I left the bands where they are. They were calibrated on messages that
+carried no phrase hits, so the total and the prose-only score are the
+same number for an honest draft, and re-anchoring them would have thrown
+away the calibration recorded in e39c59c.
+
+Removing phrase from the sum was the other option. Measured against the
+three caricatures in SLOP_VARIANTS it scores 24.0, 9.6 and 5.8 without
+it, and the last of those sits inside the range real messages occupy, so
+the detector would have lost the case it was built for.
