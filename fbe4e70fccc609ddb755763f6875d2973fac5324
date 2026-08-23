@@ -1,0 +1,5 @@
+Ten commits is a small sample for checking the repo's own trailer
+convention, especially right after this rule started. I did not read
+further back to check. The Generated-by rule doesn't have the same
+problem, because it isn't inferred from the log at all — it can't drift
+the way a mirrored convention can.
