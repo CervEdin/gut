@@ -130,6 +130,18 @@ carries (sign off where it signs off, carry a `Reviewed-by:` or ticket
 trailer where the log carries one, add nothing where the log carries
 nothing).
 
+That's a question about the repo's requirements, not about who or what wrote
+the message. If an LLM drafted the commit, say so with its own trailer:
+
+```
+Generated-by: Claude (claude-opus-5)
+```
+
+Never fold that fact into `Co-authored-by:` or a human's `Signed-off-by:`.
+Both of those assert something the model didn't do — joint authorship, or a
+person's review and sign-off — and `Generated-by:` says the true thing
+instead: a model produced the text.
+
 If the change is a port of a fix from elsewhere, say so plainly: "Apply the same
 fix here."
 

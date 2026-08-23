@@ -45,6 +45,11 @@ change's motivation can't be recovered — see step 3.
    not because every repo wants one — read the log to find out what this one
    wants.
 
+   That's separate from marking that an LLM wrote the message. Always add a
+   `Generated-by:` trailer naming the model for that — never `Co-authored-by:`
+   or a human's `Signed-off-by:` on the model's behalf. See "Closing" in
+   `PEFF-STYLE.md`.
+
 3. Decide whether you can state _why_ the change was made. The motivation is
    missing when:
    - nothing in the diff, the conversation, or the recent log explains why the
