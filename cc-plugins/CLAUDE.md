@@ -12,3 +12,8 @@ version before committing:
 
 The version decision belongs to the person asking for the change, not to Claude.
 When in doubt, propose a patch bump and let the user correct it.
+
+Entries in `.claude-plugin/marketplace.json` carry no `version` field on
+purpose. Install reads the version from `plugin.json`, so a version in the
+registry is ignored, and the two drifted apart every time one was bumped without
+the other.
