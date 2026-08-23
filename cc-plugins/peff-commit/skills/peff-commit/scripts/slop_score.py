@@ -239,6 +239,11 @@ and defaults to an empty list when not provided.""",
 }
 
 
+# Under this many words of prose (code identifiers stripped) the
+# readability metrics are summarising three or four sentences, and the
+# score reports sampling noise rather than anything about the writing.
+MIN_PROSE_WORDS = 40
+
 # The baseline ships next to this script so scoring works from any cwd.
 DEFAULT_BASELINE_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "slop_baseline.json"
@@ -258,12 +263,31 @@ def cmd_score(args):
     z, combined = score_against(row, stats)
     hits = STOCK_PHRASE_PATTERN.findall(raw_text)
 
-    print(f"combined z-score: {combined:.1f}\n")
+    fields = FIELDS_HIGH_IS_SLOP + FIELDS_LOW_IS_SLOP + FIELDS_FLIPPED
+    prose_fields = [f for f in fields if f != "phrase"]
+    worst = max(prose_fields, key=lambda f: z[f])
+
+    # The two axes are reported apart because they call for different
+    # repairs: a phrase hit saturates at MAX_Z whatever the rest of the
+    # prose does, so summing it into one number hides both the cause and
+    # the fix. Naming the worst prose metric does the same job for the
+    # other direction, where a metric sitting low masks another's spike.
+    print(f"combined z-score: {combined:.1f}")
+    if hits:
+        print(f"  stock-phrase penalty {z['phrase']:+.1f} of that; "
+              f"the prose alone scores {combined - z['phrase']:+.1f}")
+    print(f"  strongest prose signal: {worst} {z[worst]:+.1f}")
+    print()
+
     print(f"{'metric':10}{'value':>10}{'z':>7}")
-    for f in FIELDS_HIGH_IS_SLOP + FIELDS_LOW_IS_SLOP + FIELDS_FLIPPED:
+    for f in fields:
         print(f"{f:10}{row[f]:>10.3f}{z[f]:>7.1f}")
     if hits:
         print(f"\nstock-phrase hits: {', '.join(hits)}")
+    if row["words"] < MIN_PROSE_WORDS:
+        print(f"\nonly {row['words']} words of prose after stripping code."
+              f" Under {MIN_PROSE_WORDS} the metrics are summarising too few"
+              f"\nsentences to mean much; judge a message this short by eye.")
 
 
 def cmd_fit(args):

@@ -56,18 +56,33 @@ change's motivation can't be recovered — see step 3.
    — asides survive only if they report effort, confidence, or scope.
 5. Score the draft with the bundled slop scorer (needs the `textstat` package),
    passing the draft as a file or on stdin:
+
    ```
    python <skill base dir>/scripts/slop_score.py draft.txt
    ```
+
    The combined z-score measures the draft's prose against a baseline fit from
    300 of peff's real commit messages, so 0 means "median peff" — that is the
-   target, not a minimum. Below ~5 is fine. 5–8 means the prose is denser than
-   nearly all of the corpus: break clause-chained sentences into shorter ones,
-   trade abstract nouns for verbs, and rescore. Above ~10 is LLM-slop register;
-   rewrite rather than touch up. The per-metric table shows which signal fired.
-   One known false positive: quoting slop vocabulary verbatim (say, while
-   writing about slop) trips the stock-phrase detector — judge that hit by eye
-   instead of chasing it.
+   target, not a minimum. Read the output in this order:
+
+   - **The stock-phrase penalty, if there is one.** A hit costs a flat +8
+     however mild it is, so one stray "utilize" carries an otherwise clean draft
+     into the bands below and the density advice there won't fix it. Delete the
+     word and rescore. The exception is quoting slop vocabulary on purpose —
+     writing about slop — where the hit is correct and stays.
+   - **Then the total, once no phrase penalty is in it.** Below ~5 is fine. 5–8
+     means the prose is denser than nearly all of the corpus: break
+     clause-chained sentences into shorter ones, trade abstract nouns for verbs,
+     and rescore. Above ~10 is LLM-slop register; rewrite rather than touch up.
+   - **Then the strongest prose signal, which the scorer names.** The total sums
+     signed z-scores, so a metric sitting low hides another one's spike. Real
+     messages rarely push a single metric past +3; past that, read what that
+     metric measures even when the total looks fine.
+
+   Under 40 words of prose the metrics are summarising three or four sentences
+   and the score reports noise. The scorer says so when it happens; judge a
+   message that short by eye.
+
 6. Write notes — caveats, alternatives you considered, things you're uncertain
    about. See the Notes section in `PEFF-STYLE.md`. Aim for 72 chars per line
    (soft limit), hard limit 120 — same as the commit body.
