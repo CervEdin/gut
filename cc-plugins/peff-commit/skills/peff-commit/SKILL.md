@@ -56,11 +56,15 @@ change's motivation can't be recovered — see step 3.
    — asides survive only if they report effort, confidence, or scope. Write the
    result to `.git/peff-commit-draft`, which is untracked by construction; steps
    5 and 7 both read the message from there.
-5. Score the draft with the bundled slop scorer (needs the `textstat` package):
+5. Score the draft with the bundled slop scorer:
 
    ```
    python3 <skill base dir>/scripts/slop_score.py .git/peff-commit-draft
    ```
+
+   It needs the `textstat` package and says so in one line if it is missing.
+   That is not worth installing anything over mid-commit: skip the step, and say
+   in your report that the draft went unscored.
 
    The combined z-score measures the draft's prose against a baseline fit from
    300 of peff's real commit messages, so 0 means "median peff" — that is the

@@ -5,7 +5,12 @@ import statistics
 import subprocess
 import sys
 
-import textstat
+try:
+    import textstat
+except ImportError:
+    # Reported in main() as one line. A traceback out of a skill step
+    # reads like the script is broken rather than absent.
+    textstat = None
 
 REPO = "."
 
@@ -331,6 +336,11 @@ def main():
         argv = ["score"] + argv
 
     args = ap.parse_args(argv)
+    if textstat is None:
+        raise SystemExit(
+            "slop_score.py needs the textstat package: "
+            "pip install textstat"
+        )
     args.func(args)
 
 
