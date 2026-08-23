@@ -53,12 +53,13 @@ change's motivation can't be recovered — see step 3.
 4. Draft a commit message following peff's style (see `PEFF-STYLE.md`), adapting
    the subject line format to match what you found in step 2. Then reread the
    draft and delete every clause that carries no fact, causal link, or decision
-   — asides survive only if they report effort, confidence, or scope.
-5. Score the draft with the bundled slop scorer (needs the `textstat` package),
-   passing the draft as a file or on stdin:
+   — asides survive only if they report effort, confidence, or scope. Write the
+   result to `.git/peff-commit-draft`, which is untracked by construction; steps
+   5 and 7 both read the message from there.
+5. Score the draft with the bundled slop scorer (needs the `textstat` package):
 
    ```
-   python3 <skill base dir>/scripts/slop_score.py draft.txt
+   python3 <skill base dir>/scripts/slop_score.py .git/peff-commit-draft
    ```
 
    The combined z-score measures the draft's prose against a baseline fit from
@@ -86,10 +87,11 @@ change's motivation can't be recovered — see step 3.
 6. Write notes — caveats, alternatives you considered, things you're uncertain
    about. See the Notes section in `PEFF-STYLE.md`. Aim for 72 chars per line
    (soft limit), hard limit 120 — same as the commit body.
-7. Commit with the drafted message, then report — see Output Format. A
-   `commit-msg` hook may reject it for long lines. Rewrap and retry, or pass
-   `--no-verify` for a line that genuinely can't wrap — a code snippet, pasted
-   output, a long identifier — and is still inside the 120-char hard limit.
+7. Commit with `git commit -F .git/peff-commit-draft`, then report — see Output
+   Format. A `commit-msg` hook may reject it for long lines. Rewrap and retry,
+   or pass `--no-verify` for a line that genuinely can't wrap — a code snippet,
+   pasted output, a long identifier — and is still inside the 120-char hard
+   limit.
 8. Check the notes before attaching them. No hooks fire on `git notes add`, so
    nothing else catches a long line, and checking first saves a rewrite:
    ```
