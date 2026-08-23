@@ -24,8 +24,10 @@ change's motivation can't be recovered — see step 3.
 1. Understand the change — read `git diff --cached` (staged) and/or `git diff`
    (unstaged). If nothing is staged or changed, ask the user what change they'd
    like a message for.
-2. Read `git log --oneline --no-merges -10` to detect the repo's subject line
-   convention. Look for patterns like:
+2. Read `git log --no-merges -10` — whole messages, not `--oneline`, because one
+   read answers two questions.
+
+   The first is the subject line convention. Look for patterns like:
    - **Conventional Commits**: `feat:`, `fix:`, `chore:`, `feat(scope):`, etc.
    - **Subsystem prefix**: `http: ...`, `odb: ...`
    - **No prefix**: bare imperative sentences
@@ -34,6 +36,18 @@ change's motivation can't be recovered — see step 3.
    With Conventional Commits that means type, optional scope, and description on
    the subject line. The repo's convention always takes priority over peff's raw
    prefix style.
+
+   The second is the trailers the *repo* requires: sign off where the log
+   signs off, carry a `Reviewed-by:` or ticket trailer where the log carries
+   one, and add nothing where it carries nothing. `PEFF-STYLE.md` ends with
+   `Signed-off-by:` because the Git project requires it of every submission,
+   not because every repo wants one — read the log to find out what this one
+   wants.
+
+   That's separate from marking that an LLM wrote the message. Always add a
+   `Generated-by:` trailer naming the model for that — never `Co-authored-by:`
+   or a human's `Signed-off-by:` on the model's behalf. See "Closing" in
+   `PEFF-STYLE.md`.
 
 3. Decide whether you can state _why_ the change was made. The motivation is
    missing when:
