@@ -1,7 +1,8 @@
-Dropping the field is a stronger move than the validator asks for. If
-you would rather keep a version visible in the registry, the three
-stale entries need 0.2.6, 0.4.0 and 0.2.1, and the versioning rule in
-cc-plugins/CLAUDE.md needs to say to bump both.
+This goes further than the validator's suggestion. If you'd rather keep
+a version in the registry, update the three stale entries to 0.2.6,
+0.4.0, and 0.2.1, and change the versioning rule in cc-plugins/CLAUDE.md
+to say both files must be updated together.
 
-I checked that a registry without any version field still validates
-before removing them, using a copy of the tree rather than the repo.
+Before removing the fields, I tested that a registry with no version
+field still validates. I ran this on a copy of the tree, not the real
+repo.
