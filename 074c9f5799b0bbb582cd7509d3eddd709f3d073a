@@ -1,9 +1,9 @@
-.git/ is a slightly odd place to put a working file, but the
-alternatives are worse: the worktree needs a gitignore entry the host
-repo has not agreed to, and a temp file outside the repo is gone by the
-time anyone wants to see what was scored. Git already keeps
-COMMIT_EDITMSG there.
+.git/ is not a typical place for a working file, but the alternatives
+are worse. A file in the worktree needs a .gitignore entry, and the
+host repo has not agreed to add one. A temp file outside the repo
+disappears before anyone can check the score. Git already keeps
+COMMIT_EDITMSG in .git/ for the same reason.
 
-The draft is left in place after the commit. It costs nothing and gives
-`git commit --amend -F` something to start from when the message needs a
+The draft file stays after the commit finishes. This costs nothing, and
+gives git commit --amend -F a starting point if the message needs a
 fix.
