@@ -1,0 +1,5 @@
+peff-review has the same key. I left it unchanged: this series covers only
+peff-commit, and the plugin version field separately.
+
+Erik does not agree with the removal — that is what the ~ in the subject
+marks.

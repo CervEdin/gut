@@ -1,0 +1,4 @@
+I did not test this. skill-creator can compare a description against queries
+that should and should not trigger it, which would show whether this
+description actually beats commit-commands:commit, instead of just looking
+like it should. I have not run that test.
