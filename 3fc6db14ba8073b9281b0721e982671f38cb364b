@@ -1,14 +1,16 @@
-This message trips its own detector: the quoted "utilize" costs the
-flat +8, so it scores 3.3 with the prose alone at -4.7. That is the
-exception step 5 keeps, and the new output made it obvious rather than
-leaving a bare 3.3 to interpret.
+This commit message itself trips its own detector. It quotes "utilize,"
+which costs the flat +8 penalty, so it scores 3.3 total while the prose
+alone scores -4.7. Step 5 treats this as the exception it is built to
+catch, and the new output shows it clearly instead of leaving a bare
+3.3 unexplained.
 
-I left the bands where they are. They were calibrated on messages that
-carried no phrase hits, so the total and the prose-only score are the
-same number for an honest draft, and re-anchoring them would have thrown
-away the calibration recorded in e39c59c.
+I left the score limits (5 and 10) unchanged. They were set using
+messages with no stock-phrase hits, so for an honest draft the total
+and the prose-only score are the same number. Changing the limits now
+would undo the calibration recorded in commit e39c59c.
 
-Removing phrase from the sum was the other option. Measured against the
-three caricatures in SLOP_VARIANTS it scores 24.0, 9.6 and 5.8 without
-it, and the last of those sits inside the range real messages occupy, so
-the detector would have lost the case it was built for.
+I also considered removing the phrase penalty from the total entirely.
+Tested against the three example messages in SLOP_VARIANTS, they score
+24.0, 9.6, and 5.8 without it. The 5.8 score falls inside the range of
+real commit messages, meaning the detector would miss the case it was
+built to catch.
