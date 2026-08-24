@@ -51,20 +51,20 @@ change's motivation can't be recovered — see step 3.
    the subject line format to match what you found in step 2. Then reread the
    draft and delete every clause that carries no fact, causal link, or decision
    — asides survive only if they report effort, confidence, or scope.
-5. Score the draft with the bundled slop scorer (needs the `textstat`
-   package), passing the draft as a file or on stdin:
+5. Score the draft with the bundled slop scorer (needs the `textstat` package),
+   passing the draft as a file or on stdin:
    ```
    python <skill base dir>/scripts/slop_score.py draft.txt
    ```
-   The combined z-score measures the draft's prose against a baseline fit
-   from 300 of peff's real commit messages, so 0 means "median peff" — that
-   is the target, not a minimum. Below ~5 is fine. 5–8 means the prose is
-   denser than nearly all of the corpus: break clause-chained sentences
-   into shorter ones, trade abstract nouns for verbs, and rescore. Above
-   ~10 is LLM-slop register; rewrite rather than touch up. The per-metric
-   table shows which signal fired. One known false positive: quoting slop
-   vocabulary verbatim (say, while writing about slop) trips the
-   stock-phrase detector — judge that hit by eye instead of chasing it.
+   The combined z-score measures the draft's prose against a baseline fit from
+   300 of peff's real commit messages, so 0 means "median peff" — that is the
+   target, not a minimum. Below ~5 is fine. 5–8 means the prose is denser than
+   nearly all of the corpus: break clause-chained sentences into shorter ones,
+   trade abstract nouns for verbs, and rescore. Above ~10 is LLM-slop register;
+   rewrite rather than touch up. The per-metric table shows which signal fired.
+   One known false positive: quoting slop vocabulary verbatim (say, while
+   writing about slop) trips the stock-phrase detector — judge that hit by eye
+   instead of chasing it.
 6. Write notes — caveats, alternatives you considered, things you're uncertain
    about. See the Notes section in `PEFF-STYLE.md`. Aim for 72 chars per line
    (soft limit), hard limit 120 — same as the commit body.
