@@ -1,8 +1,8 @@
-Minor rather than patch: step 2 gains a question it did not ask before,
-and the closing rule changes what lands in the message. The version
-decision is yours to correct.
+This is a minor bump, not a patch: step 2 now checks something new, and
+the closing rule changes the text of the commit message. Change the
+version if you disagree.
 
-Ten commits is a thin sample for a trailer census in a repo that only
-recently adopted one. I left the count alone rather than reading further
-back for this one question, on the grounds that a convention nobody has
-used in ten commits is not one the next commit should start.
+Ten commits is a small sample for checking trailer use, especially in a
+repo that adopted trailers recently. I did not read further back to
+check this one question. Reasoning: if a convention appears zero times
+in the last ten commits, the next commit should not start it either.
