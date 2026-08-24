@@ -122,7 +122,25 @@ performance.
 
 ## Closing
 
-End with a `Signed-off-by:` line using the actual author's identity.
+Peff ends with a `Signed-off-by:` line, but not by personal style — the Git
+project requires that trailer of every submission, from anyone. Follow the
+same logic rather than the letter of it: add whatever trailer the *target*
+project requires, which for most repos means matching what the recent log
+carries (sign off where it signs off, carry a `Reviewed-by:` or ticket
+trailer where the log carries one, add nothing where the log carries
+nothing).
+
+That's a question about the repo's requirements, not about who or what wrote
+the message. If an LLM drafted the commit, say so with its own trailer:
+
+```
+Generated-by: Claude (claude-opus-5)
+```
+
+Never fold that fact into `Co-authored-by:` or a human's `Signed-off-by:`.
+Both of those assert something the model didn't do — joint authorship, or a
+person's review and sign-off — and `Generated-by:` says the true thing
+instead: a model produced the text.
 
 If the change is a port of a fix from elsewhere, say so plainly: "Apply the same
 fix here."

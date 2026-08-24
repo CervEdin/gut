@@ -1,9 +1,13 @@
 ---
 name: peff-commit
-description:
+description: >-
   Write a commit message in the style of Jeff King (peff) from the Git mailing
-  list. Use when about to commit, or when the user wants to craft a thoughtful
-  commit message.
+  list — narrative prose that says why the change was made, and git notes
+  recording what was uncertain about it. Use it whenever a commit message is
+  about to be written or rewritten: committing staged work, amending or
+  rewording an existing message, fixing up a series before it is sent, or any
+  time the user asks for a good, careful, or detailed commit message. Prefer it
+  over writing the message unaided.
 disable-model-invocation: false
 ---
 
@@ -25,14 +29,31 @@ change's motivation can't be recovered — see step 3.
 1. Understand the change — read `git diff --cached` (staged) and/or `git diff`
    (unstaged). If nothing is staged or changed, ask the user what change they'd
    like a message for.
-2. Read `git log --oneline --no-merges -10` to detect the repo's subject line
-   convention. Look for patterns like:
+2. Read `git log --no-merges -10` — whole messages, not `--oneline`, because one
+   read answers two questions.
+
+   The first is the subject line convention. Look for patterns like:
    - **Conventional Commits**: `feat:`, `fix:`, `chore:`, `feat(scope):`, etc.
    - **Subsystem prefix**: `http: ...`, `odb: ...`
-   - **No prefix**: bare imperative sentences If the repo uses Conventional
-     Commits, use that format for the subject line (type, optional scope,
-     description) while keeping peff's narrative body style. The repo's
-     convention always takes priority over peff's raw prefix style.
+   - **No prefix**: bare imperative sentences
+
+   Follow whatever the log shows and keep peff's narrative body underneath it.
+   With Conventional Commits that means type, optional scope, and description on
+   the subject line. The repo's convention always takes priority over peff's raw
+   prefix style.
+
+   The second is the trailers the *repo* requires: sign off where the log
+   signs off, carry a `Reviewed-by:` or ticket trailer where the log carries
+   one, and add nothing where it carries nothing. `PEFF-STYLE.md` ends with
+   `Signed-off-by:` because the Git project requires it of every submission,
+   not because every repo wants one — read the log to find out what this one
+   wants.
+
+   That's separate from marking that an LLM wrote the message. Always add a
+   `Generated-by:` trailer naming the model for that — never `Co-authored-by:`
+   or a human's `Signed-off-by:` on the model's behalf. See "Closing" in
+   `PEFF-STYLE.md`.
+
 3. Decide whether you can state _why_ the change was made. The motivation is
    missing when:
    - nothing in the diff, the conversation, or the recent log explains why the
@@ -50,28 +71,49 @@ change's motivation can't be recovered — see step 3.
 4. Draft a commit message following peff's style (see `PEFF-STYLE.md`), adapting
    the subject line format to match what you found in step 2. Then reread the
    draft and delete every clause that carries no fact, causal link, or decision
-   — asides survive only if they report effort, confidence, or scope.
-5. Score the draft with the bundled slop scorer (needs the `textstat` package),
-   passing the draft as a file or on stdin:
+   — asides survive only if they report effort, confidence, or scope. Write the
+   result to `.git/peff-commit-draft`, which is untracked by construction; steps
+   5 and 7 both read the message from there.
+5. Score the draft with the bundled slop scorer:
+
    ```
-   python <skill base dir>/scripts/slop_score.py draft.txt
+   python3 <skill base dir>/scripts/slop_score.py .git/peff-commit-draft
    ```
+
+   It needs the `textstat` package and says so in one line if it is missing.
+   That is not worth installing anything over mid-commit: skip the step, and say
+   in your report that the draft went unscored.
+
    The combined z-score measures the draft's prose against a baseline fit from
    300 of peff's real commit messages, so 0 means "median peff" — that is the
-   target, not a minimum. Below ~5 is fine. 5–8 means the prose is denser than
-   nearly all of the corpus: break clause-chained sentences into shorter ones,
-   trade abstract nouns for verbs, and rescore. Above ~10 is LLM-slop register;
-   rewrite rather than touch up. The per-metric table shows which signal fired.
-   One known false positive: quoting slop vocabulary verbatim (say, while
-   writing about slop) trips the stock-phrase detector — judge that hit by eye
-   instead of chasing it.
+   target, not a minimum. Read the output in this order:
+
+   - **The stock-phrase penalty, if there is one.** A hit costs a flat +8
+     however mild it is, so one stray "utilize" carries an otherwise clean draft
+     into the bands below and the density advice there won't fix it. Delete the
+     word and rescore. The exception is quoting slop vocabulary on purpose —
+     writing about slop — where the hit is correct and stays.
+   - **Then the total, once no phrase penalty is in it.** Below ~5 is fine. 5–8
+     means the prose is denser than nearly all of the corpus: break
+     clause-chained sentences into shorter ones, trade abstract nouns for verbs,
+     and rescore. Above ~10 is LLM-slop register; rewrite rather than touch up.
+   - **Then the strongest prose signal, which the scorer names.** The total sums
+     signed z-scores, so a metric sitting low hides another one's spike. Real
+     messages rarely push a single metric past +3; past that, read what that
+     metric measures even when the total looks fine.
+
+   Under 40 words of prose the metrics are summarising three or four sentences
+   and the score reports noise. The scorer says so when it happens; judge a
+   message that short by eye.
+
 6. Write notes — caveats, alternatives you considered, things you're uncertain
    about. See the Notes section in `PEFF-STYLE.md`. Aim for 72 chars per line
    (soft limit), hard limit 120 — same as the commit body.
-7. Commit with the drafted message, then report — see Output Format. A
-   `commit-msg` hook may reject it for long lines. Rewrap and retry, or pass
-   `--no-verify` for a line that genuinely can't wrap — a code snippet, pasted
-   output, a long identifier — and is still inside the 120-char hard limit.
+7. Commit with `git commit -F .git/peff-commit-draft`, then report — see Output
+   Format. A `commit-msg` hook may reject it for long lines. Rewrap and retry,
+   or pass `--no-verify` for a line that genuinely can't wrap — a code snippet,
+   pasted output, a long identifier — and is still inside the 120-char hard
+   limit.
 8. Check the notes before attaching them. No hooks fire on `git notes add`, so
    nothing else catches a long line, and checking first saves a rewrite:
    ```
