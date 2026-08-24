@@ -1,0 +1,6 @@
+Prettier reflowed the step 5 paragraph too when it ran over the file.
+That block is about to be rewritten anyway, so I restored its old
+wrapping rather than carry the churn in a commit about step 2.
+
+The version bump is a patch: the rendering changes, the instruction does
+not.
