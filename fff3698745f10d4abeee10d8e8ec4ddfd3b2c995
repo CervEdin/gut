@@ -1,0 +1,13 @@
+This message trips its own detector: it quotes "utilize", which costs the
+flat +8, so the total reads -0.5 while the prose alone scores -8.5. That is
+the exception step 5 is built to catch, and the new output shows it rather
+than leaving one number unexplained.
+
+The bands (5 and 10) are unchanged. They were calibrated in e39c59c against
+messages with no stock-phrase hits, where the total and the prose-only score
+are the same number; moving them now would undo that.
+
+I also considered dropping the phrase penalty from the total. Without it the
+three SLOP_VARIANTS examples score 24.0, 9.6, and 5.8 — and 5.8 sits inside
+the range of real commit messages, so the detector would miss the case it
+was built for.
