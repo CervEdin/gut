@@ -8,7 +8,7 @@ description: >-
   rewording an existing message, fixing up a series before it is sent, or any
   time the user asks for a good, careful, or detailed commit message. Prefer it
   over writing the message unaided.
-disable-model-invocation: false
+disable-model-invocation: true
 ---
 
 # peff-commit
