@@ -3,3 +3,12 @@ convention, especially right after this rule started. I did not read
 further back to check. The Generated-by rule doesn't have the same
 problem, because it isn't inferred from the log at all — it can't drift
 the way a mirrored convention can.
+
+This is a minor bump, not a patch: step 2 now checks something new, and
+the closing rule changes the text of the commit message. Change the
+version if you disagree.
+
+Ten commits is a small sample for checking trailer use, especially in a
+repo that adopted trailers recently. I did not read further back to
+check this one question. Reasoning: if a convention appears zero times
+in the last ten commits, the next commit should not start it either.
