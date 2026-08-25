@@ -10,7 +10,7 @@ Whether the skill loader resolves ../peff-commit/COMPOSE.md across
 sibling skill directories is unverified. If it does not, the fallback is
 to have this skill read the shared files by an explicit path from its
 own base directory; duplicating them is the last resort, for the reason
-in dd69eef's notes.
+in the notes on "trigger the interview off the brief's tags".
 
 A separate commit-brief plugin was considered, which would let
 gut-mailing-list reuse the brief for cover letters. Rejected for now:
