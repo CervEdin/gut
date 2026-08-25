@@ -292,7 +292,8 @@ def cmd_score(args):
     if row["words"] < MIN_PROSE_WORDS:
         print(f"\nonly {row['words']} words of prose after stripping code."
               f" Under {MIN_PROSE_WORDS} the metrics are summarising too few"
-              f"\nsentences to mean much; judge a message this short by eye.")
+              f"\nsentences to mean much; judge a message this short by eye."
+              f"\nNot a deficiency: 12% of the baseline corpus is this short.")
 
 
 def cmd_fit(args):
