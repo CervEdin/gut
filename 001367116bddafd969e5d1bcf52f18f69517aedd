@@ -1,0 +1,10 @@
+peff-review ships its own PEFF-STYLE.md, 159 lines against the 197 here,
+and the two have drifted. This commit does not touch it. The overlap is
+the voice, which is genuinely shared, but the review copy has diverged
+toward what a reviewer needs and merging them now would be a second
+change wearing the same name.
+
+COMPOSE.md is read by peff-commit-auto from a sibling directory, so the
+paths inside it are written relative to COMPOSE.md rather than to the
+skill reading it. That is a footgun worth remembering if a third caller
+ever appears.
