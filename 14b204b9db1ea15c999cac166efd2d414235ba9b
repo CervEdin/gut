@@ -1,0 +1,20 @@
+Untested. The plugin was not installed in the session that wrote it, so
+none of the three skills has actually been run: the auto path in
+particular has never produced a commit. The thing to check first is a
+trivial staged diff in a session that says nothing about why, which
+should yield a subject line, an empty body, and an assumption in the
+notes. If it writes a paragraph instead, the quarantine rule is not
+holding.
+
+Whether the skill loader resolves ../peff-commit/COMPOSE.md across
+sibling skill directories is unverified. If it does not, the fallback is
+to have this skill read the shared files by an explicit path from its
+own base directory; duplicating them is the last resort, for the reason
+in dd69eef's notes.
+
+A separate commit-brief plugin was considered, which would let
+gut-mailing-list reuse the brief for cover letters. Rejected for now:
+two plugins that have to stay installed together to work is a worse
+failure than a missing reuse, and promoting it later costs nothing.
+Always-interviewing was also rejected, before the split existed, on the
+grounds that it would park unattended work.
