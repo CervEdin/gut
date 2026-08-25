@@ -1,5 +1,5 @@
-The obvious alternative was to split the checking half off instead of the
-gathering half, leaving peff-commit to draft and a second skill to
+The obvious alternative was to split the checking half off instead of
+the gathering half, leaving peff-commit to draft and a second skill to
 critique. That fails on file layout rather than on principle: drafting
 and checking both need PEFF-STYLE.md, so a third copy would exist and
 would drift the way peff-review's already has.
