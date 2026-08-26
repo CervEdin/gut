@@ -3,161 +3,77 @@ name: peff-commit
 description: >-
   Write a commit message in the style of Jeff King (peff) from the Git mailing
   list — narrative prose that says why the change was made, and git notes
-  recording what was uncertain about it. Use it whenever a commit message is
+  recording what was uncertain about it. Gathers the evidence first and
+  interviews you about whatever it could not source, so the message reports
+  your reasons rather than plausible ones. Use it whenever a commit message is
   about to be written or rewritten: committing staged work, amending or
-  rewording an existing message, fixing up a series before it is sent, or any
-  time the user asks for a good, careful, or detailed commit message. Prefer it
-  over writing the message unaided.
+  rewording an existing message, or fixing up a series before it is sent.
 disable-model-invocation: true
 ---
 
 # peff-commit
 
 Channel Jeff King (peff) — prolific Git contributor — when writing commit
-messages. The persona is the steering mechanism: peff's voice naturally produces
-commit messages that articulate reasoning, discuss alternatives, and stay honest
-about uncertainty. The goal is not impersonation; it's that this style forces
-you to actually think through and verbalize the reasoning behind a change.
+messages. The persona is the steering mechanism: peff's voice produces messages
+that explain a mechanism, discuss alternatives, and stay honest about
+uncertainty. The goal is not impersonation.
 
-See `PEFF-STYLE.md` for the full style reference.
+But the voice alone is not the discipline, and on its own it is actively
+dangerous: style is the easiest thing in the world to reproduce, and a message
+with peff's cadence and an invented reason is indistinguishable at a glance from
+one with peff's cadence and a real reason. So the reasons come first, from
+`commit-brief`, and from you where the repository cannot supply them.
 
-The default is to commit and then report. Interview the user first only when the
-change's motivation can't be recovered — see step 3.
+You invoked this by hand, which means you are here and can be asked. That is the
+whole reason this skill exists separately from `peff-commit-auto`: it spends a
+question of your time to avoid guessing.
 
 ## Process
 
-1. Understand the change — read `git diff --cached` (staged) and/or `git diff`
-   (unstaged). If nothing is staged or changed, ask the user what change they'd
-   like a message for.
-2. Read `git log --no-merges -10` — whole messages, not `--oneline`, because one
-   read answers two questions.
+1. **Gather.** Invoke the `commit-brief` skill. It writes `.git/commit-brief`
+   and reports which entries came back `unsourced`.
 
-   The first is the subject line convention. Look for patterns like:
-   - **Conventional Commits**: `feat:`, `fix:`, `chore:`, `feat(scope):`, etc.
-   - **Subsystem prefix**: `http: ...`, `odb: ...`
-   - **No prefix**: bare imperative sentences
+2. **Interview.** If any entry is `unsourced`, ask — one batched
+   `AskUserQuestion`, never a series. Always include `incident`: what prompted
+   this change, and why now. Nothing in a repository records that, so it is the
+   question worth spending.
 
-   Follow whatever the log shows and keep peff's narrative body underneath it.
-   With Conventional Commits that means type, optional scope, and description on
-   the subject line. The repo's convention always takes priority over peff's raw
-   prefix style.
+   Offer your candidate readings as the options, so answering is a click rather
+   than an essay; "Other" covers the case where all of them are wrong. Include
+   an explicit escape — "go with your read" — and honour it by quarantining
+   rather than by guessing into the body.
 
-   The second is the trailers the *repo* requires: sign off where the log
-   signs off, carry a `Reviewed-by:` or ticket trailer where the log carries
-   one, and add nothing where it carries nothing. `PEFF-STYLE.md` ends with
-   `Signed-off-by:` because the Git project requires it of every submission,
-   not because every repo wants one — read the log to find out what this one
-   wants.
+   The trigger is the tag in the file, not your sense of whether the motivation
+   feels recoverable. That judgment is what this skill used to make, and it made
+   it wrong nearly every time: a transcript almost always contains something
+   that pattern-matches a reason, so the bar was never met and the question was
+   never asked.
 
-   That's separate from marking that an LLM wrote the message. Always add a
-   `Generated-by:` trailer naming the model for that — never `Co-authored-by:`
-   or a human's `Signed-off-by:` on the model's behalf. See "Closing" in
-   `PEFF-STYLE.md`.
+   Record each answer in the brief as `asked`, with the question as its
+   citation. Answers count as load-bearing facts, so asking widens the budget in
+   §1 of `COMPOSE.md` — the fuller message is earned by having gone and got the
+   facts.
 
-3. Decide whether you can state _why_ the change was made. The motivation is
-   missing when:
-   - nothing in the diff, the conversation, or the recent log explains why the
-     change was made;
-   - two plausible motivations would produce materially different messages; or
-   - the change reads as a workaround or a tradeoff whose rationale lives
-     outside the code.
+   If the interview cannot run at all — headless, queued, no answer coming —
+   quarantine the remaining `unsourced` entries into notes exactly as
+   `peff-commit-auto` does, and say so in the report.
 
-   If any of those hold, interview the user before drafting — ask focused
-   questions (AskUserQuestion) about motivation, alternatives weighed, and
-   scope. Don't draft a speculative message first; a draft invites correction of
-   wording instead of supplying the reasoning that's missing. Otherwise go
-   straight on to step 4.
-
-4. Draft a commit message following peff's style (see `PEFF-STYLE.md`), adapting
-   the subject line format to match what you found in step 2. Then reread the
-   draft and delete every clause that carries no fact, causal link, or decision
-   — asides survive only if they report effort, confidence, or scope. Write the
-   result to `.git/peff-commit-draft`, which is untracked by construction; steps
-   5 and 7 both read the message from there.
-5. Score the draft with the bundled slop scorer:
-
-   ```
-   python3 <skill base dir>/scripts/slop_score.py .git/peff-commit-draft
-   ```
-
-   It needs the `textstat` package and says so in one line if it is missing.
-   That is not worth installing anything over mid-commit: skip the step, and say
-   in your report that the draft went unscored.
-
-   The combined z-score measures the draft's prose against a baseline fit from
-   300 of peff's real commit messages, so 0 means "median peff" — that is the
-   target, not a minimum. Read the output in this order:
-
-   - **The stock-phrase penalty, if there is one.** A hit costs a flat +8
-     however mild it is, so one stray "utilize" carries an otherwise clean draft
-     into the bands below and the density advice there won't fix it. Delete the
-     word and rescore. The exception is quoting slop vocabulary on purpose —
-     writing about slop — where the hit is correct and stays.
-   - **Then the total, once no phrase penalty is in it.** Below ~5 is fine. 5–8
-     means the prose is denser than nearly all of the corpus: break
-     clause-chained sentences into shorter ones, trade abstract nouns for verbs,
-     and rescore. Above ~10 is LLM-slop register; rewrite rather than touch up.
-   - **Then the strongest prose signal, which the scorer names.** The total sums
-     signed z-scores, so a metric sitting low hides another one's spike. Real
-     messages rarely push a single metric past +3; past that, read what that
-     metric measures even when the total looks fine.
-
-   Under 40 words of prose the metrics are summarising three or four sentences
-   and the score reports noise. The scorer says so when it happens; judge a
-   message that short by eye.
-
-6. Write notes — caveats, alternatives you considered, things you're uncertain
-   about. See the Notes section in `PEFF-STYLE.md`. Aim for 72 chars per line
-   (soft limit), hard limit 120 — same as the commit body.
-7. Commit with `git commit -F .git/peff-commit-draft`, then report — see Output
-   Format. A `commit-msg` hook may reject it for long lines. Rewrap and retry,
-   or pass `--no-verify` for a line that genuinely can't wrap — a code snippet,
-   pasted output, a long identifier — and is still inside the 120-char hard
-   limit.
-8. Check the notes before attaching them. No hooks fire on `git notes add`, so
-   nothing else catches a long line, and checking first saves a rewrite:
-   ```
-   printf '%s\n' "$notes" | grep -n '.\{121\}'
-   ```
-   Rewrap any lines it reports, then attach with
-   `printf '%s\n' "$notes" | git notes add -F -`.
-
-## Output Format
-
-Report the commit like this — the sha, the message as it landed, and the notes
-that went with it:
-
-> Committed as `1f3fd68`:
->
-> ```
-> (the commit message)
-> ```
->
-> **Notes** (plain text, no markdown, no bullet lists — aim 72 chars/line, hard
-> limit 120):
->
-> ```
-> Prose paragraphs here, every line hard-wrapped at 72 characters, just
-> like the commit body. Blank line between paragraphs. Caveats,
-> alternatives considered, uncertainties — whatever helps the user
-> verify your reasoning.
-> ```
->
-> `git commit --amend` to fix the message, `git notes edit` for the notes.
+3. **Compose, check, commit.** Follow `COMPOSE.md` in this directory: budget,
+   draft, check, commit, notes, report. `PEFF-STYLE.md` carries the voice.
 
 ## Why This Matters
 
-The commit message is a reasoning checkpoint. The narrative style forces you to
-articulate _why_ a change was made, not just _what_ changed. The notes surface
-the gaps — alternatives you weighed, things you're unsure about, scope
-decisions. If your understanding doesn't match the user's, this is where it
-becomes visible. A bad commit message that gets corrected is more valuable than
-a generic one that goes unquestioned.
+The commit message is a reasoning checkpoint. Writing down why a change was made
+is what exposes a misread change, and it only works if the why is real. A
+message that reports a motivation nobody held is worse than a terse one, because
+it answers the reviewer's question convincingly and wrongly, and it will be
+believed for years.
 
-That is why the message records the motivation you _believed_ you were acting
-on, and why it gets written even when you commit without asking. If you can't
-state the motivation, that is itself the signal — you may have misread the point
-of the change. And if the change later turns out to be wrong, the recorded why
-usually shows how you got there. Reviewing it after the commit exists costs
-nothing, since amending is cheap; stopping to ask when nothing needs deciding
-leaves the work parked.
+That is why the interview comes before the draft rather than after it. A draft
+written first invites correction of its wording, not supply of its missing
+reasoning — you end up polishing a sentence whose premise nobody checked.
+
+And it is why a short message is a legitimate outcome. If the reason for a
+change exists nowhere and nobody supplies it, the honest record of that is a
+subject line plus a note saying what was assumed. Reaching for a fuller message
+anyway is how the invention gets in.

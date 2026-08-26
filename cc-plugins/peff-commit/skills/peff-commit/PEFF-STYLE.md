@@ -64,10 +64,45 @@ changelog entry. Peff walks the reader through the mechanism:
 
 ### Paragraph Structure
 
-- Typically 2-4 paragraphs
-- First paragraph: the problem (longest, most detailed)
-- Middle paragraphs: context, history, or subtleties if needed
-- Final paragraph: the fix (often just 1-2 sentences)
+When there is enough to say, the shape is: the problem first and in most detail,
+context or history in the middle if it is needed, the fix last in a sentence or
+two.
+
+Read that as a description of a message whose facts were all available, not as a
+template to fill. The number of paragraphs follows the number of things you
+actually found out — see "How Long Should This Be?" below. A change with one
+sourced fact behind it gets one paragraph, and a change with none gets a subject
+line.
+
+### How Long Should This Be?
+
+Measured over 2000 of peff's commits, body length by size of diff (words,
+excluding subject and trailers):
+
+| diff size |   n | p25 | median | p75 |
+| --------- | --- | --- | ------ | --- |
+| 1-2 lines | 258 |  45 |     87 | 156 |
+| 3-5 lines | 313 |  48 |     90 | 155 |
+| 6-15      | 566 |  58 |    103 | 186 |
+| 16-50     | 622 |  85 |    148 | 251 |
+| 51-200    | 218 |  98 |    203 | 333 |
+
+Peff writes about 87 words — two paragraphs — for a two-line diff. **Do not copy
+that number.** It is the most misleading thing in this document if taken as a
+target.
+
+In his corpus, a small diff with a long message means the analysis was hard and
+the fix turned out small. The words are a *record of findings*; the diff is
+short precisely because the reasoning was long. His two-line changes are subtle
+bugs he chased down. Yours are usually small because they are trivial.
+
+Copy the length without the findings and there is only one way to reach it,
+which is to invent. That is the failure this whole skill is built to prevent,
+and it enters right here — through a well-meant attempt to sound like these
+numbers. Length is downstream of what you know. Establish the facts, then let
+them determine the size.
+
+Short is normal, including for him: 12% of these bodies are under 40 words.
 
 ### Discussing Alternatives
 
@@ -113,7 +148,15 @@ performance.
 - No "Fixes #123" GitHub shorthand in the body (reference PRs by URL or prose
   instead)
 - No restating what the diff already shows — explain the WHY
-- No false confidence — if you're not sure why something works, say so
+- No motivation you cannot source. If nothing in the diff, the code, the log,
+  the session, or an issue says why this change is being made, the message does
+  not say why. It is not improved by a guess, and it is not rescued by hedging
+  the guess — "I suspect this improves performance" asserts a finding while
+  looking like calibration, so the reviewer believes it and cannot tell it apart
+  from a real one. Omit it, and put the assumption in the notes
+- No false confidence — where you did investigate a mechanism and came away
+  unsure, say so. That hedge reports work you actually did, which is the
+  opposite of the one above
 - No editorializing asides ("Amusingly, ...", coined maxims, "Two asides.").
   Peff's asides report his own effort, confidence, or scope ("not urgent", "I
   punted on it for now") — they tell the reviewer how much scrutiny to apply. An
