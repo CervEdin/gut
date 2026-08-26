@@ -1,7 +1,7 @@
 The ~25 words on the zero row is invented. The other three rows were
-anchored to percentiles from the 2000-commit measurement in 9f50711
-(peff-commit: stop treating peff's length as a target, 2026-08-25); this
-one has nothing behind it but a guess at what a sentence or two comes to.
+anchored to percentiles from the commit that measured 2000 of peff's
+commits; this one has nothing behind it but a guess at what a sentence
+or two comes to.
 
 Whether the new shape actually reaches the subject-only outcome is
 untested. The argument is that a triviality has no findings and wants no
