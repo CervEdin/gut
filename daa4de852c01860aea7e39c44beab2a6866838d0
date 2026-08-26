@@ -1,12 +1,3 @@
-The check approximates "someone else already has this commit" with
-`@{upstream}`, or `main` where the branch has none. That is wrong for a
-branch published under a name it does not track: this one has no
-upstream and its own commits sit on origin/wip/cc-plugins, so the check
-reports them as needing rewriting when a reader may well have them.
-Verified with `git branch -r --contains`. A stricter test would ask
-which remote refs contain the sha, which is a fetch away from being
-accurate and was not worth it here.
-
 The body ran to about twice the range its finding count allows. Kept
 after re-running the provenance check on it, per the step the previous
 commit added. Two of the three sentences over the line map to `change`
