@@ -1,0 +1,9 @@
+The body ran to about twice the range its finding count allows. Kept
+after re-running the provenance check on it, per the step the previous
+commit added. Two of the three sentences over the line map to `change`
+entries, which earn no room by that section's own rule — an argument
+that a documentation change is the case where `change` is worth stating,
+since the diff is the prose.
+
+`uncertain` is not in the findings list, though finding out what you do
+not know takes the same work as the entries that are.
