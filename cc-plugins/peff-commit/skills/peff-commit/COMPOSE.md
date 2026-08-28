@@ -8,13 +8,19 @@ close the gaps in `.git/commit-brief`; everything after that is here.
 ## 1. Budget
 
 Count the **load-bearing facts** in the brief: sourced entries a reader could
-not get by reading the diff.
+not get by reading the diff, that you intend to put in the body.
 
-- `incident` and `alternatives` entries always count.
-- `today` counts when it says something the hunk alone does not show.
-- `blame` and `issue` entries count.
+- `incident` and `alternatives` entries always count, when they go in the body.
+- `today` counts when it says something the hunk alone does not show, and it
+  goes in the body.
+- `blame` and `issue` entries count, on the same condition.
 - `change` never counts. The diff is right there.
 - `unsourced` entries never count, in either skill.
+
+Counting and placement are two different decisions. `uncertain` entries and
+caveats belong in Notes (§5), not the body — an entry you route there doesn't
+count toward the body's budget just because its tag would otherwise qualify.
+Count only what the body is actually going to say.
 
 The count sets the body:
 
