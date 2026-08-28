@@ -34,14 +34,39 @@ question of your time to avoid guessing.
    and reports which entries came back `unsourced`.
 
 2. **Interview.** If any entry is `unsourced`, ask — one batched
-   `AskUserQuestion`, never a series. Always include `incident`: what prompted
-   this change, and why now. Nothing in a repository records that, so it is the
-   question worth spending.
+   `AskUserQuestion`, never a series.
 
-   Offer your candidate readings as the options, so answering is a click rather
-   than an essay; "Other" covers the case where all of them are wrong. Include
-   an explicit escape — "go with your read" — and honour it by quarantining
-   rather than by guessing into the body.
+   `incident` gets asked every time it is `unsourced`. Every `AskUserQuestion`
+   needs at least two options besides the automatic "Other," but for
+   `incident` those options must be neutral escapes ("nothing," "not sure,"
+   "skip") rather than a guessed narrative — the real answer belongs in
+   "Other," typed, not clicked. A guessed motive that "sounds right" and gets
+   a click is a confabulation wearing a human's sign-off — worse than an
+   honest gap, because it now looks sourced. Ask whichever of these bear on
+   the change:
+
+   - What happens if this never merges — what stays broken or unbuilt?
+   - What happens if it ships later than planned — who or what is stuck
+     waiting on it in the meantime?
+   - Who asked for this, and why? ("nobody, I noticed it" is a real answer.)
+   - Is there a business reason — an external stakeholder, deadline, or system
+     that depends on this? A change that mirrors existing code, or is "more
+     consistent," is a reason about the code, not about the business; it does
+     not answer this question.
+
+   `AskUserQuestion` allows at most four questions per call, and the four
+   above can fill it on their own. When they do, `alternatives`, `deferred`,
+   and `uncertain` stay `unsourced` this round rather than spilling into a
+   second call — that is what "one batched call, never a series" means in
+   practice. This matches `commit-brief`'s own rule that an absent
+   `alternatives`/`deferred` is the ordinary case, not a gap to chase. Only
+   spend a slot on one of those three if an incident question goes unused.
+
+   Other unsourced fields (`alternatives`, `deferred`, `uncertain`), when a
+   slot is available, can offer your candidate readings as clickable options
+   plus "Other" and an explicit "go with your read" escape, so answering
+   those is a click rather than an essay — unlike `incident`, a wrong guess
+   here just gets corrected via "Other," not silently accepted as a motive.
 
    The trigger is the tag in the file, not your sense of whether the motivation
    feels recoverable. That judgment is what this skill used to make, and it made

@@ -8,13 +8,19 @@ close the gaps in `.git/commit-brief`; everything after that is here.
 ## 1. Budget
 
 Count the **load-bearing facts** in the brief: sourced entries a reader could
-not get by reading the diff.
+not get by reading the diff, that you intend to put in the body.
 
-- `incident` and `alternatives` entries always count.
-- `today` counts when it says something the hunk alone does not show.
-- `blame` and `issue` entries count.
+- `incident` and `alternatives` entries always count, when they go in the body.
+- `today` counts when it says something the hunk alone does not show, and it
+  goes in the body.
+- `blame` and `issue` entries count, on the same condition.
 - `change` never counts. The diff is right there.
 - `unsourced` entries never count, in either skill.
+
+Counting and placement are two different decisions. `uncertain` entries and
+caveats belong in Notes (§5), not the body — an entry you route there doesn't
+count toward the body's budget just because its tag would otherwise qualify.
+Count only what the body is actually going to say.
 
 The count sets the body:
 
@@ -50,7 +56,9 @@ never `Co-authored-by:` and never a human's `Signed-off-by:` on the model's
 behalf. See "Closing" in `PEFF-STYLE.md`.
 
 Write the body from the load-bearing facts, in peff's voice, and from nothing
-else. Write it to `.git/peff-commit-draft`.
+else. Write it to the peff-commit-draft file — `git rev-parse --git-path
+peff-commit-draft` if you're in a worktree, where `.git/peff-commit-draft`
+doesn't resolve.
 
 ## 3. Check
 
@@ -71,7 +79,7 @@ invention; the rest catch presentation.
 5. **Slop score.**
 
    ```
-   python3 <dir holding this file>/scripts/slop_score.py .git/peff-commit-draft
+   python3 <dir holding this file>/scripts/slop_score.py "$(git rev-parse --git-path peff-commit-draft)"
    ```
 
    Paths in this document are relative to `COMPOSE.md` itself, not to the skill
@@ -98,7 +106,7 @@ invention; the rest catch presentation.
 
 ## 4. Commit
 
-`git commit -F .git/peff-commit-draft`.
+`git commit -F "$(git rev-parse --git-path peff-commit-draft)"`.
 
 A `commit-msg` hook may reject a long line. Rewrap and retry, or pass
 `--no-verify` for a line that genuinely cannot wrap — a code snippet, pasted

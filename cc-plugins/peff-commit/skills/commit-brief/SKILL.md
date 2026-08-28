@@ -57,7 +57,16 @@ must carry a citation**:
 If you cannot produce the citation, the tag is wrong and the entry is
 `unsourced`. This is the whole mechanism: a tag you cannot back is a guess
 wearing a label. `session` in particular is not "the conversation was broadly
-about this" — it is a sentence the user wrote.
+about this" — it is a sentence the user wrote, not one you wrote yourself.
+
+A long session accumulates your own plans, running commentary, and mid-task
+calls ("let's rename this because X") in the same context window as anything
+the user actually said, and by the time you write the brief they read just as
+settled either way — nothing marks "I decided this three turns ago" apart
+from "this was already true." Quoting your own earlier turn back to yourself
+is not a citation; it's the same inference wearing a timestamp. If the
+sentence you are about to cite came from an assistant turn rather than the
+user, the entry is `unsourced`.
 
 `asked` never appears in a brief this skill writes; it exists for callers that
 interview and re-tag afterwards.
@@ -65,7 +74,15 @@ interview and re-tag afterwards.
 ## Fields
 
 - `today` — what the code does now at the change site
-- `incident` — what prompted this change, and why now
+- `incident` — what prompted this change, and why now. Narrower legal tags
+  than the table above: `asked`, `session`, `issue`, or `unsourced` only —
+  never `diff`, `code`, or `blame`. Those three can tell you what the code
+  does and when it started; they cannot tell you why anyone wanted it to.
+  "This mirrors how an existing field already works" is a `code` fact about
+  the change, not a fact about the motive — tagging it `code` and calling
+  `incident` answered is exactly the mistake this rule exists to close. If
+  the only thing you have is a diff or the commit that introduced the
+  touched code, the entry is `unsourced`.
 - `change` — what the diff tells the code to do differently, imperative
 - `alternatives` — approaches weighed and rejected, with the reason
 - `deferred` — what follows naturally from this but is deliberately not done
@@ -84,8 +101,12 @@ as though someone had actually considered it. The same goes for `deferred`.
 
 ## Output
 
-Write `.git/commit-brief`. It is untracked by construction, the same way
-`.git/peff-commit-draft` is.
+Write the brief to the commit-brief file. `.git` is a plain directory in an
+ordinary checkout, but a *file* pointing elsewhere inside a worktree, so
+`.git/commit-brief` only works by accident there; resolve the real path with
+`git rev-parse --git-path commit-brief` and write to that instead. It is
+untracked by construction, the same way the `peff-commit-draft` file
+(`git rev-parse --git-path peff-commit-draft`) is.
 
 One entry per line, `field: [tag] (citation) text`, continuation lines indented
 two spaces:
