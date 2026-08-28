@@ -50,7 +50,9 @@ never `Co-authored-by:` and never a human's `Signed-off-by:` on the model's
 behalf. See "Closing" in `PEFF-STYLE.md`.
 
 Write the body from the load-bearing facts, in peff's voice, and from nothing
-else. Write it to `.git/peff-commit-draft`.
+else. Write it to the peff-commit-draft file — `git rev-parse --git-path
+peff-commit-draft` if you're in a worktree, where `.git/peff-commit-draft`
+doesn't resolve.
 
 ## 3. Check
 
@@ -71,7 +73,7 @@ invention; the rest catch presentation.
 5. **Slop score.**
 
    ```
-   python3 <dir holding this file>/scripts/slop_score.py .git/peff-commit-draft
+   python3 <dir holding this file>/scripts/slop_score.py "$(git rev-parse --git-path peff-commit-draft)"
    ```
 
    Paths in this document are relative to `COMPOSE.md` itself, not to the skill
@@ -98,7 +100,7 @@ invention; the rest catch presentation.
 
 ## 4. Commit
 
-`git commit -F .git/peff-commit-draft`.
+`git commit -F "$(git rev-parse --git-path peff-commit-draft)"`.
 
 A `commit-msg` hook may reject a long line. Rewrap and retry, or pass
 `--no-verify` for a line that genuinely cannot wrap — a code snippet, pasted

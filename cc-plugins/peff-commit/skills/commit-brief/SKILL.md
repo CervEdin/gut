@@ -101,8 +101,12 @@ as though someone had actually considered it. The same goes for `deferred`.
 
 ## Output
 
-Write `.git/commit-brief`. It is untracked by construction, the same way
-`.git/peff-commit-draft` is.
+Write the brief to the commit-brief file. `.git` is a plain directory in an
+ordinary checkout, but a *file* pointing elsewhere inside a worktree, so
+`.git/commit-brief` only works by accident there; resolve the real path with
+`git rev-parse --git-path commit-brief` and write to that instead. It is
+untracked by construction, the same way the `peff-commit-draft` file
+(`git rev-parse --git-path peff-commit-draft`) is.
 
 One entry per line, `field: [tag] (citation) text`, continuation lines indented
 two spaces:
