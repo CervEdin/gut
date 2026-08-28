@@ -57,7 +57,16 @@ must carry a citation**:
 If you cannot produce the citation, the tag is wrong and the entry is
 `unsourced`. This is the whole mechanism: a tag you cannot back is a guess
 wearing a label. `session` in particular is not "the conversation was broadly
-about this" — it is a sentence the user wrote.
+about this" — it is a sentence the user wrote, not one you wrote yourself.
+
+A long session accumulates your own plans, running commentary, and mid-task
+calls ("let's rename this because X") in the same context window as anything
+the user actually said, and by the time you write the brief they read just as
+settled either way — nothing marks "I decided this three turns ago" apart
+from "this was already true." Quoting your own earlier turn back to yourself
+is not a citation; it's the same inference wearing a timestamp. If the
+sentence you are about to cite came from an assistant turn rather than the
+user, the entry is `unsourced`.
 
 `asked` never appears in a brief this skill writes; it exists for callers that
 interview and re-tag afterwards.
