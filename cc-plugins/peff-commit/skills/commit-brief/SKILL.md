@@ -65,7 +65,15 @@ interview and re-tag afterwards.
 ## Fields
 
 - `today` — what the code does now at the change site
-- `incident` — what prompted this change, and why now
+- `incident` — what prompted this change, and why now. Narrower legal tags
+  than the table above: `asked`, `session`, `issue`, or `unsourced` only —
+  never `diff`, `code`, or `blame`. Those three can tell you what the code
+  does and when it started; they cannot tell you why anyone wanted it to.
+  "This mirrors how an existing field already works" is a `code` fact about
+  the change, not a fact about the motive — tagging it `code` and calling
+  `incident` answered is exactly the mistake this rule exists to close. If
+  the only thing you have is a diff or the commit that introduced the
+  touched code, the entry is `unsourced`.
 - `change` — what the diff tells the code to do differently, imperative
 - `alternatives` — approaches weighed and rejected, with the reason
 - `deferred` — what follows naturally from this but is deliberately not done
