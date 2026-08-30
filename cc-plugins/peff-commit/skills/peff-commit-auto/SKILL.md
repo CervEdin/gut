@@ -20,10 +20,10 @@ finished some work and want it committed. The user may be away, and stopping an
 unattended run to ask why the change is being made is exactly the friction that
 makes a commit step not worth having.
 
-The user is probably not watching. When you reach for this mid-task they may
-be away from the keyboard, or working in another session entirely, so a
-question does not come back quickly — it parks the work until they return.
-That is the whole reason this skill does not ask.
+The user is probably not watching. When you reach for this mid-task they may be
+away from the keyboard, or working in another session entirely, so a question
+does not come back quickly — it parks the work until they return. That is the
+whole reason this skill does not ask.
 
 **Never ask the user a question from this skill.** If a gap needs their input,
 the gap goes in the notes and the commit proceeds. `git commit --amend` is
@@ -49,14 +49,13 @@ A body asserting X is a thing they have to notice first.
    which is precisely the failure.
 
    Do not go looking for a different reason to say instead. If `incident` is
-   unsourced, the message simply does not state why the change was made. That
-   is an accurate message.
+   unsourced, the message simply does not state why the change was made. That is
+   an accurate message.
 
 3. **Compose, check, commit.** Follow `../peff-commit/COMPOSE.md`: budget,
    draft, check, commit, notes, report. `../peff-commit/PEFF-STYLE.md` carries
-   the voice, and the scorer is at
-   `../peff-commit/scripts/slop_score.py` — all three live in the
-   `peff-commit` skill directory alongside this one.
+   the voice, and the scorer is at `../peff-commit/scripts/slop_score.py` — all
+   three live in the `peff-commit` skill directory alongside this one.
 
    With `incident` quarantined the fact count is usually low, so the budget is
    usually one paragraph or none. Let it be short. A subject line with no body

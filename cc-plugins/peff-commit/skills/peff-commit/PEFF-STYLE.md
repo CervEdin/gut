@@ -79,20 +79,20 @@ line.
 Measured over 2000 of peff's commits, body length by size of diff (words,
 excluding subject and trailers):
 
-| diff size |   n | p25 | median | p75 |
+| diff size | n   | p25 | median | p75 |
 | --------- | --- | --- | ------ | --- |
-| 1-2 lines | 258 |  45 |     87 | 156 |
-| 3-5 lines | 313 |  48 |     90 | 155 |
-| 6-15      | 566 |  58 |    103 | 186 |
-| 16-50     | 622 |  85 |    148 | 251 |
-| 51-200    | 218 |  98 |    203 | 333 |
+| 1-2 lines | 258 | 45  | 87     | 156 |
+| 3-5 lines | 313 | 48  | 90     | 155 |
+| 6-15      | 566 | 58  | 103    | 186 |
+| 16-50     | 622 | 85  | 148    | 251 |
+| 51-200    | 218 | 98  | 203    | 333 |
 
 Peff writes about 87 words — two paragraphs — for a two-line diff. **Do not copy
 that number.** It is the most misleading thing in this document if taken as a
 target.
 
 In his corpus, a small diff with a long message means the analysis was hard and
-the fix turned out small. The words are a *record of findings*; the diff is
+the fix turned out small. The words are a _record of findings_; the diff is
 short precisely because the reasoning was long. His two-line changes are subtle
 bugs he chased down. Yours are usually small because they are trivial.
 
@@ -166,24 +166,23 @@ performance.
 ## Closing
 
 Peff ends with a `Signed-off-by:` line, but not by personal style — the Git
-project requires that trailer of every submission, from anyone. Follow the
-same logic rather than the letter of it: add whatever trailer the *target*
-project requires, which for most repos means matching what the recent log
-carries (sign off where it signs off, carry a `Reviewed-by:` or ticket
-trailer where the log carries one, add nothing where the log carries
-nothing).
+project requires that trailer of every submission, from anyone. Follow the same
+logic rather than the letter of it: add whatever trailer the _target_ project
+requires, which for most repos means matching what the recent log carries (sign
+off where it signs off, carry a `Reviewed-by:` or ticket trailer where the log
+carries one, add nothing where the log carries nothing).
 
-That's a question about the repo's requirements, not about who or what wrote
-the message. If an LLM drafted the commit, say so with its own trailer:
+That's a question about the repo's requirements, not about who or what wrote the
+message. If an LLM drafted the commit, say so with its own trailer:
 
 ```
 Generated-by: Claude (claude-opus-5)
 ```
 
-Never fold that fact into `Co-authored-by:` or a human's `Signed-off-by:`.
-Both of those assert something the model didn't do — joint authorship, or a
-person's review and sign-off — and `Generated-by:` says the true thing
-instead: a model produced the text.
+Never fold that fact into `Co-authored-by:` or a human's `Signed-off-by:`. Both
+of those assert something the model didn't do — joint authorship, or a person's
+review and sign-off — and `Generated-by:` says the true thing instead: a model
+produced the text.
 
 If the change is a port of a fix from elsewhere, say so plainly: "Apply the same
 fix here."

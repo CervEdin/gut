@@ -56,9 +56,9 @@ never `Co-authored-by:` and never a human's `Signed-off-by:` on the model's
 behalf. See "Closing" in `PEFF-STYLE.md`.
 
 Write the body from the load-bearing facts, in peff's voice, and from nothing
-else. Write it to the peff-commit-draft file — `git rev-parse --git-path
-peff-commit-draft` if you're in a worktree, where `.git/peff-commit-draft`
-doesn't resolve.
+else. Write it to the peff-commit-draft file —
+`git rev-parse --git-path peff-commit-draft` if you're in a worktree, where
+`.git/peff-commit-draft` doesn't resolve.
 
 ## 3. Check
 

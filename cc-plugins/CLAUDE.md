@@ -12,5 +12,5 @@ if the version needs updating.
   the skill's strategy
 - **Major** (`0.1.2 → 1.0.0`) — incompatible change or full rewrite
 
-The version decision belongs to the maintainer, not to Claude.
-When in doubt, propose a patch bump and let the user correct it.
+The version decision belongs to the maintainer, not to Claude. When in doubt,
+propose a patch bump and let the user correct it.
