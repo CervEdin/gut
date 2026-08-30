@@ -1,8 +1,21 @@
 ---
 name: git-rebase-i
 description:
-  Scripted git rebase -i — reword, edit, or drop commits without interactive
-  mode
+  Any change to a commit behind HEAD requires `git rebase -i` — and
+  interactive rebase opens an $EDITOR you cannot drive, so you MUST use this
+  skill, which scripts the entire rebase non-interactively. Invoke it as your
+  first step (before any git command) when the user wants to: reword or fix
+  the message of an earlier commit (named by SHA or "N commits back"); fold,
+  squash, or absorb a typo/fix/"oops" commit into the earlier commit it
+  belongs to; split one commit into several; strip debug logging, stray
+  hunks, or files out of an older commit while keeping the rest; drop a
+  commit; purge a file from the whole branch; restructure commits onto a side
+  branch merged back in; or tidy up a branch's commit series before review or
+  sending patches. Even if the request sounds like a small edit, if the
+  target commit isn't the tip, it's a history rewrite — use this skill. Do
+  not use it when only the newest commit changes (`git commit --amend`), or
+  for plain rebase-onto-upstream, cherry-pick, revert, or PR squash-merge.
+
 argument-hint: <operation> <sha> [new-message]
 allowed-tools: Bash
 ---
