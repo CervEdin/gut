@@ -241,9 +241,9 @@ happened when the resolution was first recorded.
    classification. Require it to report back — provenance (hand-resolved vs.
    rerere-replayed, and which cached resolution if identifiable), Judgment
    (mechanical vs. reconciled behavior from both sides — this is what step 2
-   below actually paces on, not provenance), the build result, anomalies (an
-   unapproved path, a surprising state), and the commit it created — or that it
-   is **blocked** and why.
+   below actually paces on, not provenance), the build result, anomalies (a
+   surprising state, a resolution it isn't confident in), and the commit it
+   created — or that it is **blocked** and why.
 
    The sub-agent's commit concludes the merge. **Do not** run `git add` or
    `git merge --continue` yourself afterward: `MERGE_HEAD` is already gone, so a
@@ -278,13 +278,25 @@ happened when the resolution was first recorded.
 
    - **Trivial** — build passed, no anomalies, and Judgment says mechanical
      (this covers a clean rerere replay _and_ a hand resolution that was an
-     unambiguous accept-one-side, an artifact regen, or a no-stakes add/delete):
-     show a one-line summary and continue without waiting.
-   - **Non-trivial** — build trouble, a flagged anomaly, Judgment says the
-     resolution reconciled behavior or intent from both sides, or a **blocked**
-     sub-agent: stop and surface the report and the committed resolution
-     (`git show`, or the git note) for explicit approval. A committed resolution
-     is fully reversible — reset it if you reject it.
+     unambiguous accept-one-side, an artifact regen, a no-stakes add/delete, or
+     a build fix in a conflict-free file that only carries one side's own change
+     into the line it missed): show a one-line summary and continue without
+     waiting.
+   - **Non-trivial** — the resolution is genuinely ambiguous: Judgment says it
+     reconciled behavior or intent from both sides, or more than one resolution
+     was defensible and the resolver picked one; the build is still red; the
+     resolver flagged an anomaly or is **blocked**. Stop and surface the report
+     and the committed resolution (`git show`, or the git note) for explicit
+     approval. A committed resolution is fully reversible — reset it if you
+     reject it.
+
+   Touching a file outside the conflicted set is not a pause trigger on its own.
+   A merge can leave a conflict-free file uncompilable
+   (`resolve-merge-conflicts` §3f); when the fix follows the incoming side's
+   change and the build goes green, that is the mechanical case above, and it
+   belongs in the one-line summary with the file named. Pausing there is the
+   "not rerere-resolved" mistake in another shape: the loop stops at every step
+   that took any work, instead of at the ones where the resolver had to choose.
 
    Provenance (structural/manual vs. rerere-replayed) is still worth relaying in
    the one-line summary as audit context, but it doesn't gate the pause decision
