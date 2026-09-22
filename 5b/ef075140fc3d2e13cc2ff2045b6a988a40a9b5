@@ -1,0 +1,11 @@
+Assumed, not sourced: I considered replacing the Trivial/Non-trivial
+example lists with a single ambiguity test instead of adding one more
+example to Trivial, and did not do it. Nobody weighed that with me; it
+is my read only, and 9398112 already noted that the lists were never
+meant to be complete.
+
+Judgment is still self-reported by the resolver, as the notes on
+17c3936 and ea7f5cb say. This commit makes the pause gate lean on it
+harder, since an anomaly that used to force a stop is now routed
+through Judgment when it is a build-forced edit. Nothing here checks
+that the resolver labels those honestly.
