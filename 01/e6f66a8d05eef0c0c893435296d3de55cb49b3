@@ -1,0 +1,14 @@
+Assumed, not sourced: I did not take the alternative of changing only
+the bulk-catchup loop and leaving this report contract alone. My
+reasoning was that the resolver is what labels the edit an anomaly and
+the loop only reads that label, so the fix belongs where the label is
+made. Nobody confirmed that; it is my read.
+
+Judgment stays self-reported, as the note on ea7f5cb already says. A
+resolver that calls a §3f fix mechanical when the line was actually
+contested slips past the caller the same way any mislabelled Judgment
+does. Nothing here checks that.
+
+The bulk-catchup loop still pauses on "a flagged anomaly" and still
+tells the resolver to report "an unapproved path". Its side of the
+change is the next commit.
