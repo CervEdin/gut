@@ -308,6 +308,13 @@ git grep -n "Foo\.bar"   # find remaining callers of a potentially-removed symbo
 
 But the check that matters is the build, not the grep.
 
+Fix it in the file the build names, even though that file was never conflicted.
+When the fix only completes what one side already did everywhere else — the
+incoming side renamed a type or changed a signature, and one call site was left
+behind because your side had touched the neighbouring lines — the fix is
+mechanical, and the report says so. It stops being mechanical when both sides
+have a claim on what the line should do.
+
 ## 4. Verify before staging
 
 After resolving but before `git add`:
@@ -492,11 +499,14 @@ it started as:
   the latter, say why. This is the signal a caller needs to decide whether the
   stop needs a second pair of eyes — provenance and conflict type don't tell it.
 - **Build** — the verify command you ran and its result.
-- **Anomalies** — anything outside the strategies in §3: an unapproved path, a
-  dirty or surprising state, a conflict shape you had to improvise for, or a
-  resolution you are not confident in. A `modify/delete` resolved via §3e is not
-  by itself an anomaly — its difficulty, if any, belongs in Judgment above, not
-  here.
+- **Anomalies** — anything outside the strategies in §3: a dirty or surprising
+  state, a conflict shape you had to improvise for, or a resolution you are not
+  confident in. A `modify/delete` resolved via §3e is not by itself an anomaly —
+  its difficulty, if any, belongs in Judgment above, not here. Neither is an
+  edit to a conflict-free file that the build forced (§3f): name the file and
+  the change under Judgment, and call it mechanical when the fix only carries
+  one side's own change (a rename or signature the incoming side converted
+  everywhere else) into the line it missed.
 - **Commit** — the SHA and subject you created.
 - Or, if you could not resolve it cleanly: **blocked**, and why — never commit a
   guessed or build-breaking resolution just to clear the stop.
