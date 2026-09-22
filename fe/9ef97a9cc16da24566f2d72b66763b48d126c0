@@ -1,0 +1,4 @@
+This always spends all four question slots on `incident`, so
+`alternatives`, `deferred`, and `uncertain` wait indefinitely
+whenever `incident` stays unsourced. Not exercised yet against a real
+brief carrying more than one gap at once.
