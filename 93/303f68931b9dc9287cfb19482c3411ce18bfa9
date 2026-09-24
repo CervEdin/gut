@@ -20,9 +20,7 @@ merge breaks the loop with "tree differs from <sha>". The ordering
 check lists a branch commit added after the merges, and prints
 nothing otherwise.
 
-The version bump 0.2.8 -> 0.3.0 is a proposal; the maintainer
-decides. Out of scope: the 07-02 --exec build gate and full-reactor
-items.
+Out of scope: the 07-02 --exec build gate and full-reactor items.
 
 The formatter also rewraps the line "Step 1:" in Prerequisites; that
 rewrap is included. make format-markdown rewraps three files under
