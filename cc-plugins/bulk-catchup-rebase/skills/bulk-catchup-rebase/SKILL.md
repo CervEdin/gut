@@ -51,8 +51,8 @@ cached resolution and `git rebase --continue` glides through.
 
 ## Prerequisites
 
-The prerequisites are those of the `bulk-catchup-merge` skill, which runs Step 1:
-`rerere.enabled` MUST be on, and every merge and rebase command carries the
+The prerequisites are those of the `bulk-catchup-merge` skill, which runs Step
+1: `rerere.enabled` MUST be on, and every merge and rebase command carries the
 `git -c merge.conflictstyle=zdiff3` prefix. See that skill's Prerequisites for
 the reasons. Keep the prefix on every rebase command below too; do not propose
 dropping it to "simplify" the commands.
@@ -145,11 +145,34 @@ MUST be done against the same upstream state as Step 1 — which means **no
 fetching**, not "fetch first." The remote-tracking refs you started with ARE the
 target; leave them alone until both passes are done (see Step 0).
 
-**Capture the merge SHAs in oldest-first order:**
+**Check that no branch commit comes after the first Step 1 merge:**
+
+```sh
+git log --no-merges --first-parent --format=%h \
+  $(git log --merges --first-parent --format=%H origin/HEAD..HEAD | tail -1)..HEAD
+```
+
+- Empty output: all the branch's own commits come before the Step 1 merges. Each
+  loop iteration must then give the same tree as its merge `$sha`, and the loop
+  below checks this.
+- Non-empty output: the capture and reset commands below assume the other order.
+  The capture finds only the merges after the newest branch commit, and the
+  reset needs a merge at `HEAD`. Stop and ask the user how to continue. If the
+  loop runs on a merge list made another way, the replayed trees also contain
+  the commits listed, so they do not match the earlier merges. Tell the user
+  that the per-iteration check does not apply. Remove the
+  `git diff --quiet $sha HEAD` line from the loop, and after the last iteration
+  compare with the old tip instead: `git diff --quiet $(cat /tmp/old-tip) HEAD`.
+
+**Capture the merge SHAs in oldest-first order, and the old tip:**
 
 ```sh
 git log --merges --format=%H $(git log --no-merges --format=%H -1 origin/HEAD..HEAD)..HEAD | tac > /tmp/merges
+git rev-parse HEAD > /tmp/old-tip
 ```
+
+`/tmp/old-tip` is the reference for the fallback tree check above and the
+`<old-tip>` for the `range-diff` in the sanity checks.
 
 **Reset to the first non-merge commit** (the original tip of your branch before
 any of the Step 1 merges):
@@ -158,13 +181,27 @@ any of the Step 1 merges):
 git reset --hard $(git log --no-merges --format=%H -1 HEAD^2..HEAD)
 ```
 
-**Rebase onto each merge point in order:**
+**Rebase onto each merge point in order, and check the tree after each one:**
 
 ```sh
 for sha in $(cat /tmp/merges); do
-  git -c merge.conflictstyle=zdiff3 rebase --no-rebase-merges $sha^2 || git rebase --continue
+  git -c merge.conflictstyle=zdiff3 rebase --no-rebase-merges $sha^2 || break
+  git diff --quiet $sha HEAD || { echo "tree differs from $sha"; break; }
 done
 ```
+
+The tree check must run on every iteration, not only at conflict stops. A clean
+replay never stops. A change that exists only in the merge, in a file that did
+not conflict, therefore goes through with no stop and no signal. rerere stores
+only conflict resolutions, and the rebase replays only the branch commit's diff,
+so nothing else carries such a change into Step 2. A difference means either a
+change that exists only in the merge (for example a KPI regeneration or a
+formatter run), or a rerere replay that does not match what Step 1 recorded. See
+"When the tree differs from the merge" below.
+
+When the loop stops, it does not continue by itself. After you handle the stop,
+start the loop again with only the merges that are not yet done, for example
+`sed -n '<n>,$p' /tmp/merges` in place of `cat /tmp/merges`.
 
 `git rebase` will stop at each conflict even when rerere has fully resolved it —
 this is expected, and it is still a conflict stop to be audited, not skipped.
@@ -172,15 +209,19 @@ this is expected, and it is still a conflict stop to be audited, not skipped.
 Step 1** (see step 1 of the loop in the `bulk-catchup-merge` skill): pass the
 operation type (`rebase`), the conflicted paths, and the conflict's
 classification (structural, manual, or rerere-resolved — same three categories
-as Step 1), and require the same report back. The sub-agent reads
-both sides — for a replay it runs the quick sanity checks rather than a full
-re-derivation: rerere matches on text fingerprints, so a clean text resolution
-can still reference a symbol the surrounding upstream delta removed in a
-different file (only the build catches that), and the source resolution itself
-can have misread the history it reconciled — here the Step 1 commit and its
-audit note make that check cheap, since the recorded reasoning is already
-written down and only needs to hold up, not be re-derived — build-verifies on
-the unstaged tree, writes the audit, and commits the replayed commit.
+as Step 1), and require the same report back. Also require the output of
+`git diff --cached --stat $sha` in the report. At a stop in the middle of a
+series, this also shows the differences from the branch commits that are not yet
+replayed, so it is information, not the decision. The check after the iteration
+decides. The sub-agent reads both sides — for a replay it runs the quick sanity
+checks rather than a full re-derivation: rerere matches on text fingerprints, so
+a clean text resolution can still reference a symbol the surrounding upstream
+delta removed in a different file (only the build catches that), and the source
+resolution itself can have misread the history it reconciled — here the Step 1
+commit and its audit note make that check cheap, since the recorded reasoning is
+already written down and only needs to hold up, not be re-derived —
+build-verifies on the unstaged tree, writes the audit, and commits the replayed
+commit.
 
 Unlike a merge, the sub-agent's commit does **not** conclude the operation —
 this loop owns the continue. After the sub-agent returns and you have applied
@@ -194,6 +235,13 @@ git rebase --continue
 `git rebase --continue` moves forward; if rerere left anything unresolved,
 `--continue` will tell you.
 
+When the rebase is complete, run the same tree check before you go on to the
+next `$sha`:
+
+```sh
+git diff --quiet $sha HEAD || echo "tree differs from $sha"
+```
+
 If `git rebase --continue` itself stops again, check `git status` and
 `git rerere status`. If rerere has no pending resolutions and the index is
 clean, the commit may have become empty — run `git rebase --skip` to drop it
@@ -202,6 +250,29 @@ porcelain (`git rerere diff`, `remaining`) rather than inspecting the cache
 directory; if you do need the directory, `git rev-parse --git-path rr-cache`
 locates it (not `.git/rr-cache`). See
 `../bulk-catchup-merge/references/rerere-cheatsheet.md`.
+
+### When the tree differs from the merge
+
+Show the paths that differ:
+
+```sh
+git diff --stat $sha HEAD
+```
+
+- **Generated files** (KPI JSON and similar): take the merge's version with
+  `git checkout $sha -- <paths>`. This agrees with the rule to regenerate and
+  never take a side, because the merge holds the regenerated output.
+- **Other files:** send them to the resolver sub-agent or to the user. Do not
+  take the merge's version without review.
+
+Where the fix goes:
+
+- At a conflict stop: fold the fix into the commit that is being replayed.
+- After a clean replay: add the fix as a fixup to the branch commit that touched
+  those paths (use the `git-rebase-i` skill), or as a separate commit when no
+  branch commit touched them. Ask the user which one.
+
+Then run the tree check again. Continue the loop only when it passes.
 
 ### Topology check — run before ANY rebase
 
@@ -233,7 +304,10 @@ whose commits came out byte-identical under `git range-diff`, and a full Step
 1 + Step 2 run that carried `--rebase-merges --update-refs` through the replay
 and the final rebase, preserving the internal merge across one real conflict
 stop. Evidence is still thin for conflict-heavy replays, so verify with
-`git range-diff` afterward and watch the merge commits closely.
+`git range-diff` afterward and watch the merge commits closely. The
+per-iteration tree check applies only to the linear `$sha^2` loop. For this
+variant, compare the final tree with the old tip:
+`git diff --quiet $(cat /tmp/old-tip) HEAD`.
 
 ## Step 3: triage before rebasing
 
@@ -322,7 +396,8 @@ git range-diff <old-base>..<old-tip> origin/HEAD..HEAD
 ```
 
 Replace `<old-base>` and `<old-tip>` with your branch's base and tip _before_
-the rebase — use `git reflog` to find them if needed.
+the rebase. Step 2 saved the old tip in `/tmp/old-tip`; use `git reflog` to find
+the base if needed.
 
 ## Pitfalls
 
@@ -336,6 +411,13 @@ are in the `bulk-catchup-merge` skill. The ones below belong to the rebase.
   2 re-conflict everywhere as if rerere never ran. Run the two passes close
   together; if a Step 2 that should replay is instead stopping manually
   throughout, redo the relevant Step 1 merges to re-record before rebasing.
+
+- **Changes that exist only in a Step 1 merge** — a KPI regeneration or an
+  anomaly fix made in the merge, in a file that did not conflict, has no carrier
+  into Step 2. rerere stores only conflict resolutions, and the rebase replays
+  only the branch commit's diff, so Step 2 drops the change without a stop. The
+  tree check after each iteration catches this; see "When the tree differs from
+  the merge".
 
 - **Treating `git diff @{1}` as a sanity check** — it shows upstream delta, not
   commit survival. Use `git range-diff` as described above.
