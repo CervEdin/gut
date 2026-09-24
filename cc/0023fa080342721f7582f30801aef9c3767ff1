@@ -1,0 +1,30 @@
+Sources: issues/bulk-catchup-rebase-2026-09-24.md (the KPI run) and
+issues/bulk-catchup-rebase-2026-07-02-2.md, "Fixes made inside a
+Step-1 merge commit have no carrier into Step 2". Both are untracked.
+
+Deviation from the plan: the plan ran the ordering check as
+`git log --no-merges --first-parent $(head -1 /tmp/merges)..HEAD`
+after the capture. A throwaway-repo test showed that it never fires.
+The capture only finds merges after the newest branch commit, so when
+a branch commit follows a merge, /tmp/merges is empty and the range
+becomes ..HEAD. The check now finds the first merge by itself and runs
+before the capture. On non-empty output it says to stop and ask,
+because the capture and the `HEAD^2` reset also assume the other
+order.
+
+Verified in a scratch repo: a conflicting first merge with an extra
+kpi.json change gives "tree differs" after --continue; taking the
+merge's file makes the check pass and the loop completes with the
+final tree equal to the old tip. The same change in a clean second
+merge breaks the loop with "tree differs from <sha>". The ordering
+check lists a branch commit added after the merges, and prints
+nothing otherwise.
+
+The version bump 0.2.8 -> 0.3.0 is a proposal; the maintainer
+decides. Out of scope: the 07-02 --exec build gate and full-reactor
+items.
+
+The formatter also rewraps the line "Step 1:" in Prerequisites; that
+rewrap is included. make format-markdown rewraps three files under
+bulk-catchup-merge too (wrapping only, no word changes); those are
+left out of this commit.
