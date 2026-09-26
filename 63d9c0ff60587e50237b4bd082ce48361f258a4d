@@ -1,0 +1,141 @@
+COMPOSE.md, section 1 (Budget)
+------------------------------
+
+Ours is 70b70ae (peff-commit: budget only what actually reaches the
+body), which kept the load-bearing-facts list but counted an entry only
+if it goes in the body, after an `uncertain` entry routed to notes
+inflated a budget. Theirs is b1d9bfb, which replaces the list with the
+ground/findings split. Kept theirs, and carried over ours' placement
+paragraph, reworded to "the findings the body is actually going to say",
+since the two rules are independent: one decides what counts, the other
+whether it is going in the body.
+
+COMPOSE.md, section 2 (Draft)
+-----------------------------
+
+67d4248 (peff-commit: draft from the brief and write provenance to a
+file) rewrote the paragraph and added the session-is-not-a-source text;
+b1d9bfb only dropped "the load-bearing facts" from it. Kept ours, with
+that one phrase removed.
+
+COMPOSE.md, section 3 (Check)
+-----------------------------
+
+67d4248 renumbered the checks (lint, provenance, coverage, budget) and
+turned provenance into a file. Kept ours whole and moved b1d9bfb's new
+budget wording onto check 4, pointing at the provenance check (now 2)
+instead of "check 1".
+---
+diff --git a/cc-plugins/peff-commit/skills/peff-commit/COMPOSE.md b/cc-plugins/peff-commit/skills/peff-commit/COMPOSE.md
+index 8eb4e58..a387335 100644
+--- a/cc-plugins/peff-commit/skills/peff-commit/COMPOSE.md
++++ b/cc-plugins/peff-commit/skills/peff-commit/COMPOSE.md
+@@ -7,24 +7,6 @@ close the gaps in `.git/commit-brief`; everything after that is here.
+
+ ## 1. Budget
+
+-<<<<<<< HEAD
+-Count the **load-bearing facts** in the brief: sourced entries a reader could
+-not get by reading the diff, that you intend to put in the body.
+-
+-- `incident` and `alternatives` entries always count, when they go in the body.
+-- `today` counts when it says something the hunk alone does not show, and it
+-  goes in the body.
+-- `blame` and `issue` entries count, on the same condition.
+-- `change` never counts. The diff is right there.
+-- `unsourced` entries never count, in either skill.
+-
+-Counting and placement are two different decisions. `uncertain` entries and
+-caveats belong in Notes (§5), not the body — an entry you route there doesn't
+-count toward the body's budget just because its tag would otherwise qualify.
+-Count only what the body is actually going to say.
+-
+-The count sets the body:
+-=======
+ A message is built out of two different things, and only one of them decides how
+ long it gets.
+
+@@ -42,13 +24,17 @@ a triviality does not turn on anything — explaining one is noise, and where th
+ subject already says what changes, saying it again in the body adds nothing. Nor
+ is any of it a finding: you did not go and learn it, it was in front of you. So
+ it earns the body no room.
+->>>>>>> b1d9bfb (peff-commit: count findings, not everything sourced)
+
+ **The findings** are what you had to go and get: `incident`, `alternatives`,
+ `blame`, `issue`, and anything the caller came back with as `asked`. These are
+ what make a message long, and they are what to count. `unsourced` entries are
+ not findings in either skill — a guess is not something you found out.
+
++Counting and placement are two different decisions. `uncertain` entries and
++caveats belong in Notes (§5), not the body — an entry you route there doesn't
++count toward the body's budget just because its tag would otherwise qualify.
++Count only the findings the body is actually going to say.
++
+ Count the findings:
+
+ | findings | body           | usual range |
+@@ -86,9 +72,8 @@ Separately from that, always add a `Generated-by:` trailer naming the model —
+ never `Co-authored-by:` and never a human's `Signed-off-by:` on the model's
+ behalf. See "Closing" in `PEFF-STYLE.md`.
+
+-<<<<<<< HEAD
+-Build the body by rewriting brief entries — the load-bearing facts, in peff's
+-voice — and from nothing else. Write it to the peff-commit-draft file —
++Build the body by rewriting brief entries, in peff's voice, and from nothing
++else. Write it to the peff-commit-draft file —
+ `git rev-parse --git-path peff-commit-draft` if you're in a worktree, where
+ `.git/peff-commit-draft` doesn't resolve.
+
+@@ -102,17 +87,12 @@ file"). It describes code the reader still has in front of them as though it
+ were gone. Draft with the brief open, one entry at a time. If you want a
+ sentence that no entry supports, go back to `commit-brief` and add the entry
+ with an honest tag, or leave the sentence out.
+-=======
+-Write the body from the brief, in peff's voice, and from nothing else. Write it
+-to `.git/peff-commit-draft`.
+->>>>>>> b1d9bfb (peff-commit: count findings, not everything sourced)
+
+ ## 3. Check
+
+ Run all of these before committing. Checks 2 and 3 are the ones that catch
+ invention; the rest catch format and presentation.
+
+-<<<<<<< HEAD
+ Each check leaves output behind: a tool's output, or a section of the provenance
+ file below. A check that is only done in your head is easy to skip without
+ noticing, and the checks that were skipped in practice were the ones that
+@@ -121,23 +101,6 @@ to the skill reading it — `peff-commit-auto` reads this from a sibling
+ directory.
+
+ 1. **Brief lint.**
+-=======
+-1. **Provenance.** Take each sentence of the body and name the brief entry it
+-   came from. A sentence that maps to no entry, or to an `unsourced` one, comes
+-   out. Do not rescue it by hedging — "I suspect this improves performance" is
+-   the same fabrication wearing a disclaimer, and it reads as calibration rather
+-   than as the guess it is.
+-2. **Diff coverage.** Every claim in the message corresponds to something in the
+-   diff, and every non-trivial hunk is either accounted for or deliberately
+-   passed over. This catches the message that describes a different change than
+-   the one staged.
+-3. **Budget.** Well over the range for the finding count? Re-read the paragraph
+-   that pushed it over and run check 1 on it sentence by sentence. If each one
+-   still names its entry, the length is earned and it stays. Padding fails
+-   check 1 first; this is the backstop for when it did not.
+-4. **Line length.** 72 characters soft, 120 hard, body and notes alike.
+-5. **Slop score.**
+->>>>>>> b1d9bfb (peff-commit: count findings, not everything sourced)
+
+    ```
+    python3 <dir holding this file>/../commit-brief/scripts/lint_brief.py "$(git rev-parse --git-path commit-brief)"
+@@ -191,7 +154,10 @@ directory.
+    asks the user whether to split before it commits. `peff-commit-auto` commits
+    anyway and puts the recommendation in the notes as a scope note.
+
+-4. **Budget.** Body word count is inside the cap for the fact count.
++4. **Budget.** Well over the range for the finding count? Re-read the paragraph
++   that pushed it over and check its sentences against their provenance records
++   (check 2). If each one still names its entry, the length is earned and it
++   stays. Padding fails check 2 first; this is the backstop for when it did not.
+ 5. **Line length.** 72 characters soft, 120 hard, body and notes alike.
+ 6. **Slop score.**
