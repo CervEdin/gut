@@ -13,7 +13,15 @@ import subprocess
 import sys
 from collections import Counter
 
-FIELDS = ("today", "incident", "change", "alternatives", "deferred", "uncertain")
+FIELDS = (
+    "today",
+    "incident",
+    "change",
+    "alternatives",
+    "series",
+    "deferred",
+    "uncertain",
+)
 TAGS = ("diff", "code", "blame", "session", "issue", "asked", "unsourced")
 INCIDENT_TAGS = ("asked", "session", "issue", "unsourced")
 
