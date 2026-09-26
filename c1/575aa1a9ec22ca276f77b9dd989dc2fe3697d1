@@ -1,0 +1,7 @@
+The incident is feedback/peff-commit-auto-skipped-checks-2026-09-26.md
+in the gut checkout (untracked). The rejected bodies are c56864e,
+eabcfff and 101a2c2 in ~/c/mail.
+
+The rule alone does not stop the drift; the report traces it to
+drafting from memory of the session. The next commits in this series
+address that part.
