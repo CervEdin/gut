@@ -55,35 +55,95 @@ Separately from that, always add a `Generated-by:` trailer naming the model —
 never `Co-authored-by:` and never a human's `Signed-off-by:` on the model's
 behalf. See "Closing" in `PEFF-STYLE.md`.
 
-Write the body from the load-bearing facts, in peff's voice, and from nothing
-else. Write it to the peff-commit-draft file —
+Build the body by rewriting brief entries — the load-bearing facts, in peff's
+voice — and from nothing else. Write it to the peff-commit-draft file —
 `git rev-parse --git-path peff-commit-draft` if you're in a worktree, where
 `.git/peff-commit-draft` doesn't resolve.
 
+The session is in your context, and it is not a source at this step. Everything
+from it that belongs in the message is already a brief entry, with a tag that
+says how well it is sourced. Drafting from the session skips that tag. It also
+changes the prose. In a long session you hold the facts as a story of events:
+what you tried, what broke, what you changed. A body drafted from that story is
+a retelling in the past tense ("the backup was queued", "the trap removed the
+file"). It describes code the reader still has in front of them as though it
+were gone. Draft with the brief open, one entry at a time. If you want a
+sentence that no entry supports, go back to `commit-brief` and add the entry
+with an honest tag, or leave the sentence out.
+
 ## 3. Check
 
-Run all of these before committing. The first two are the ones that catch
-invention; the rest catch presentation.
+Run all of these before committing. Checks 2 and 3 are the ones that catch
+invention; the rest catch format and presentation.
 
-1. **Provenance.** Take each sentence of the body and name the brief entry it
-   came from. A sentence that maps to no entry, or to an `unsourced` one, comes
-   out. Do not rescue it by hedging — "I suspect this improves performance" is
-   the same fabrication wearing a disclaimer, and it reads as calibration rather
-   than as the guess it is.
-2. **Diff coverage.** Every claim in the message corresponds to something in the
-   diff, and every non-trivial hunk is either accounted for or deliberately
-   passed over. This catches the message that describes a different change than
-   the one staged.
-3. **Budget.** Body word count is inside the cap for the fact count.
-4. **Line length.** 72 characters soft, 120 hard, body and notes alike.
-5. **Slop score.**
+Each check leaves output behind: a tool's output, or a section of the provenance
+file below. A check that is only done in your head is easy to skip without
+noticing, and the checks that were skipped in practice were the ones that
+printed nothing. Paths in this document are relative to `COMPOSE.md` itself, not
+to the skill reading it — `peff-commit-auto` reads this from a sibling
+directory.
+
+1. **Brief lint.**
+
+   ```
+   python3 <dir holding this file>/../commit-brief/scripts/lint_brief.py "$(git rev-parse --git-path commit-brief)"
+   ```
+
+   `commit-brief` already ran it, but the interview in `peff-commit` adds
+   `asked` entries afterwards, so run it again. Fix the brief until it passes.
+
+2. **Provenance.** Write the provenance file,
+   `$(git rev-parse --git-path peff-commit-provenance)`. Start with the subject
+   line, then each sentence of the body in order. Write the sentence, then on
+   indented lines the ID and text of each brief entry it came from:
+
+   ```
+   mbsync.service: run the backup after every sync
+     change-1: ExecStartPost -> ExecStopPost for the backup.
+
+   The backup is queued by the last ExecStartPost=, so a failed sync
+   skips it.
+     today-1: Backup queued via ExecStartPost=, after the scorer and
+       notmuch new.
+     incident-1: User noticed backups stall when syncs fail.
+   ```
+
+   A sentence with no entry, or only an `unsourced` one, gets `NONE` and comes
+   out of the draft. Leave the `NONE` record in the file, so the report shows
+   what was cut. Do not rescue the sentence by hedging — "I suspect this
+   improves performance" is the same fabrication wearing a disclaimer, and it
+   reads as calibration rather than as the guess it is.
+
+   Then read each sentence against its entries for drift. The usual kinds are: a
+   `today` entry in the present tense that became past tense in the sentence
+   (see "Tense" in `PEFF-STYLE.md`), a verb or a number that changed, and a
+   claim wider than its entry. Correct the sentence to match the entry, never
+   the other way.
+
+3. **Diff coverage.** List the changed files with `git diff --cached --stat`, or
+   `git show --stat <sha>` when rewording. Append a `coverage:` section to the
+   provenance file with one line per file: the ID of an entry cited above that
+   accounts for it, or `passed over:` and the reason.
+
+   ```
+   coverage:
+     systemd/mbsync.service: change-1
+     CLAUDE.md: passed over: documents the new ExecStopPost= order
+   ```
+
+   This catches a message that describes a different change from the one staged.
+   It also shows when the files span unrelated concerns — a config import, a bug
+   fix, and a new document in one commit. Then recommend a split. `peff-commit`
+   asks the user whether to split before it commits. `peff-commit-auto` commits
+   anyway and puts the recommendation in the notes as a scope note.
+
+4. **Budget.** Body word count is inside the cap for the fact count.
+5. **Line length.** 72 characters soft, 120 hard, body and notes alike.
+6. **Slop score.**
 
    ```
    python3 <dir holding this file>/scripts/slop_score.py "$(git rev-parse --git-path peff-commit-draft)"
    ```
-
-   Paths in this document are relative to `COMPOSE.md` itself, not to the skill
-   reading it — `peff-commit-auto` reads this from a sibling directory.
 
    It needs `textstat` and says so in one line if it is missing. That is not
    worth installing anything over mid-commit: skip it and say in the report that
@@ -101,7 +161,7 @@ invention; the rest catch presentation.
    Understand what this step does and does not do. The scorer reads the message
    and never sees the diff, so a wholly invented rationale written in clean peff
    register scores near zero. It measures register, not truth. Passing it is
-   necessary and not remotely sufficient; checks 1 and 2 are the ones doing the
+   necessary and not remotely sufficient; checks 2 and 3 are the ones doing the
    real work.
 
 ## 4. Commit
@@ -142,7 +202,14 @@ Committed as `1f3fd68`:
 Notes:
 
     (the notes, as attached)
+
+Provenance:
+
+    (the provenance file, including its coverage: section)
 ```
+
+The provenance file goes in the report whole. If a check was skipped, its
+section is missing, and the user can see that.
 
 When the brief holds `unsourced` entries, lead with them under **Assumed, not
 sourced** before the sha, one line each. That section is the point of the whole

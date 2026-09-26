@@ -83,7 +83,9 @@ question of your time to avoid guessing.
    `peff-commit-auto` does, and say so in the report.
 
 3. **Compose, check, commit.** Follow `COMPOSE.md` in this directory: budget,
-   draft, check, commit, notes, report. `PEFF-STYLE.md` carries the voice.
+   draft from the brief, check (brief lint, the provenance file with its
+   coverage section, budget, line length, slop score), commit, notes, report.
+   `PEFF-STYLE.md` carries the voice.
 
 ## Why This Matters
 
