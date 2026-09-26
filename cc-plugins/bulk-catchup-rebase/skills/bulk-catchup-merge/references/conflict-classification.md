@@ -2,9 +2,8 @@
 
 When the catch-up merge loop (or `bulk-catchup-rebase`'s replay) stops with
 `MERGE_HEAD` (or `REBASE_HEAD`) set, it's a real conflict, and it splits three
-ways. This covers
-why the checks run in this order and why two of them print output instead of
-staying quiet.
+ways. This covers why the checks run in this order and why two of them print
+output instead of staying quiet.
 
 ## The three categories
 
@@ -46,8 +45,8 @@ error); printing their output is a side effect, not a change in behavior.
 
 rerere skips add/delete conflicts unconditionally, no matter how many times the
 same shape recurs, so a structural stop says nothing about how much thought the
-resolution needs. And early in the merge loop the rerere cache starts empty, so nearly
-every stop is manual by construction — that's the normal shape of a first pass,
-not a run of hard calls. Neither label is a difficulty signal; see the pacing
-decision (step 2 of the loop in bulk-catchup-merge's SKILL.md) for what
+resolution needs. And early in the merge loop the rerere cache starts empty, so
+nearly every stop is manual by construction — that's the normal shape of a first
+pass, not a run of hard calls. Neither label is a difficulty signal; see the
+pacing decision (step 2 of the loop in bulk-catchup-merge's SKILL.md) for what
 actually is.

@@ -5,11 +5,11 @@ description: >
   upstream in steps — through tagged releases or other intermediate points —
   with `git rerere` recording each conflict resolution, then taking one final
   merge of the upstream tip. Use this skill whenever the user wants to merge
-  main into a stale branch, catch a branch up by merging, has too many
-  conflicts merging upstream in one go, or wants to break a big upstream merge
-  into smaller chunks. Also the rerere-priming merge pass that
-  bulk-catchup-rebase runs before its rebase. Do NOT use when the user wants a
-  linear history — that is bulk-catchup-rebase.
+  main into a stale branch, catch a branch up by merging, has too many conflicts
+  merging upstream in one go, or wants to break a big upstream merge into
+  smaller chunks. Also the rerere-priming merge pass that bulk-catchup-rebase
+  runs before its rebase. Do NOT use when the user wants a linear history — that
+  is bulk-catchup-rebase.
 allowed-tools: Bash, Read, Edit, Write, Agent
 ---
 
@@ -25,9 +25,8 @@ merge of the upstream tip then completes in one shot.
 
 Use this skill when the branch is far enough behind that a one-shot merge is
 unmanageable — tens to hundreds of upstream commits, possibly spanning months or
-years — and a merge commit is an acceptable result: the branch's commit
-identity isn't worth preserving, or the project's workflow prefers merge
-commits.
+years — and a merge commit is an acceptable result: the branch's commit identity
+isn't worth preserving, or the project's workflow prefers merge commits.
 
 Do NOT use for:
 
@@ -61,9 +60,9 @@ git -c merge.conflictstyle=zdiff3 merge  ...
 ```
 
 All merge commands in the sections below are written with this prefix. Keep it
-on every command, even when the user's config already sets zdiff3 globally —
-the flag is idempotent, costs nothing, and makes each command
-self-documenting. Do not propose dropping it to "simplify" the commands.
+on every command, even when the user's config already sets zdiff3 globally — the
+flag is idempotent, costs nothing, and makes each command self-documenting. Do
+not propose dropping it to "simplify" the commands.
 
 ## Orientation: test merge first
 
@@ -157,13 +156,13 @@ only add ~50–100ms of delay each — they aren't the cost to optimize.
 
 **But bail out when the loop turns into pure ceremony.** If iteration after
 iteration merges clean with no conflict in sight, stop walking and _try_ the
-final merge of `origin/HEAD` from where you are (see Finish), with
-`--no-commit` so a conflict costs nothing. If it conflicts,
-`git merge --abort` and resume the loop where you left off. When
-`bulk-catchup-rebase` is driving, return to it instead — it tries a one-shot
-rebase at this point. This is not the preemptive shortcutting warned against
-above — the trigger is observed evidence (a streak of clean merges), not
-tag-count anxiety, and the try costs one abort if it turns out wrong.
+final merge of `origin/HEAD` from where you are (see Finish), with `--no-commit`
+so a conflict costs nothing. If it conflicts, `git merge --abort` and resume the
+loop where you left off. When `bulk-catchup-rebase` is driving, return to it
+instead — it tries a one-shot rebase at this point. This is not the preemptive
+shortcutting warned against above — the trigger is observed evidence (a streak
+of clean merges), not tag-count anxiety, and the try costs one abort if it turns
+out wrong.
 
 **The real goal is decomposing conflicts.** Fine strides keep each conflict set
 small and coherent — one intermediate point's worth of upstream changes at a
@@ -357,12 +356,12 @@ as above.
 - **Forgetting `rerere.enabled`** — no resolutions are cached; every iteration
   re-conflicts from scratch. Enable it before the loop, not after.
 
-- **Fetching mid-run** — a fetch moves remote-tracking refs, so the merge
-  target shifts and the loop's conflict fingerprints may not match the
-  conflicts the final merge (or `bulk-catchup-rebase`'s replay) presents. The
-  "same upstream state throughout" invariant is achieved by not fetching at all
-  — not by fetching early. Don't bundle a fetch into orientation; if the refs
-  look stale, ask the user before starting (see Orientation).
+- **Fetching mid-run** — a fetch moves remote-tracking refs, so the merge target
+  shifts and the loop's conflict fingerprints may not match the conflicts the
+  final merge (or `bulk-catchup-rebase`'s replay) presents. The "same upstream
+  state throughout" invariant is achieved by not fetching at all — not by
+  fetching early. Don't bundle a fetch into orientation; if the refs look stale,
+  ask the user before starting (see Orientation).
 
 - **`CONFLICT (modify/delete)` is never cached by rerere** — rerere only caches
   three-way content conflicts. Add/remove conflicts (`CONFLICT (modify/delete)`)
@@ -405,7 +404,7 @@ git diff
 ```
 
 If after orientation an approach is not converging — same error recurring,
-command doing the wrong thing, merges failing the build — bring the situation
-to the user. If the question is genuinely a knowledge gap (e.g., "what does
-this merge error mean?"), consulting the advisor is fine, but most of the time
-the right escalation is to the user.
+command doing the wrong thing, merges failing the build — bring the situation to
+the user. If the question is genuinely a knowledge gap (e.g., "what does this
+merge error mean?"), consulting the advisor is fine, but most of the time the
+right escalation is to the user.
