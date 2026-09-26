@@ -29,7 +29,9 @@ is missing. Whoever calls it decides what to do about the gaps.
 Work from cheapest to most expensive and stop when a field is answered:
 
 1. `git diff --cached` (or `git diff` if nothing is staged). This always answers
-   `change`, and usually `today`.
+   `change`, and usually `today`. When rewording an existing commit, use
+   `git show <sha>`, one brief per commit; see "Rewording existing commits" in
+   `../peff-commit/COMPOSE.md`.
 2. The source around each hunk — enough to say what the code does now, not just
    what the patch touches.
 3. `git log -10 --no-merges` on the repo, and `git blame`/`git log -L` on the

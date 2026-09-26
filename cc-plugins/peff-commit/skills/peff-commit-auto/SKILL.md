@@ -59,6 +59,10 @@ A body asserting X is a thing they have to notice first.
    `../peff-commit/scripts/slop_score.py` — all three live in the `peff-commit`
    skill directory alongside this one.
 
+   To rewrite the messages of existing commits, follow "Rewording existing
+   commits" in `../peff-commit/COMPOSE.md`. This skill is the one to use when
+   you reword your own commits; `peff-commit` cannot be invoked by a model.
+
    With `incident` quarantined the fact count is usually low, so the budget is
    usually one paragraph or none. Let it be short. A subject line with no body
    is the correct output for a change whose reason is not recorded anywhere, and
