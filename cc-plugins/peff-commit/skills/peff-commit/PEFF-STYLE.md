@@ -90,9 +90,10 @@ two.
 
 Read that as a description of a message whose facts were all available, not as a
 template to fill. The number of paragraphs follows the number of things you
-actually found out — see "How Long Should This Be?" below. A change with one
-sourced fact behind it gets one paragraph, and a change with none gets a subject
-line.
+actually went and found out — see "How Long Should This Be?" below. Saying what
+the code does today is not one of them. Where you write it, write it because the
+message has to stand without the diff beside it, not because a paragraph wants
+filling.
 
 ### How Long Should This Be?
 

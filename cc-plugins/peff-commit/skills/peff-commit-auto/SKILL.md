@@ -63,10 +63,11 @@ A body asserting X is a thing they have to notice first.
    commits" in `../peff-commit/COMPOSE.md`. This skill is the one to use when
    you reword your own commits; `peff-commit` cannot be invoked by a model.
 
-   With `incident` quarantined the fact count is usually low, so the budget is
-   usually one paragraph or none. Let it be short. A subject line with no body
-   is the correct output for a change whose reason is not recorded anywhere, and
-   12% of peff's real commit bodies are under 40 words.
+   With `incident` quarantined the finding count is usually low, so the budget
+   is usually one paragraph or none. Let it be short. Saying what the code does
+   today and what changes, and stopping there, is the correct output for a
+   change whose reason is not recorded anywhere; 12% of peff's real commit
+   bodies are under 40 words.
 
 4. **Report**, leading with the **Assumed, not sourced** section. That section
    is why this skill is allowed to run without asking: it moves the interview
