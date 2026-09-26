@@ -107,19 +107,42 @@ ordinary checkout, but a _file_ pointing elsewhere inside a worktree, so
 untracked by construction, the same way the `peff-commit-draft` file
 (`git rev-parse --git-path peff-commit-draft`) is.
 
-One entry per line, `field: [tag] (citation) text`, continuation lines indented
-two spaces:
+One entry per line, `field-N: [tag] (citation) text`, continuation lines
+indented two spaces. The ID is the field name and a number that counts up per
+field — `today-1`, `today-2`, `incident-1` — and it is how `COMPOSE.md` traces
+each sentence of the message back to the entry it came from. Lines starting with
+`#` are comments.
 
 ```
-today: [code] (odb/loose.c:412) We mmap the object file and keep the result
+today-1: [code] (odb/loose.c:412) We mmap the object file and keep the result
   in `map`, unmapping it at the `out` label.
-incident: [session] ("this segfaults on a truncated pack") Reported against
+incident-1: [session] ("this segfaults on a truncated pack") Reported against
   a pack truncated mid-write.
-change: [diff] (odb/loose.c) Clear `map` after unmapping so the error path
+change-1: [diff] (odb/loose.c) Clear `map` after unmapping so the error path
   cannot unmap it a second time.
-uncertain: [diff] (odb/loose.c) Whether the v2 reader has the same pattern;
-  not checked.
+uncertain-1: [unsourced] Whether the v2 reader has the same pattern; not
+  checked.
 ```
+
+A gap goes under the field it belongs to, tagged `[unsourced]`. There is no
+`unsourced` field. This form is wrong, because it loses which question the gap
+leaves open:
+
+```
+unsourced: Why Drafts was orphaned comes from my IMAP checks.
+```
+
+Write it as `incident-2: [unsourced] Why Drafts was orphaned ...` instead.
+
+Then lint the file:
+
+```
+python3 <dir holding this file>/scripts/lint_brief.py "$(git rev-parse --git-path commit-brief)"
+```
+
+It prints `line N: reason` for each malformed entry and exits non-zero. Fix the
+file and run it again until it passes; do not report a brief it rejects. On a
+pass it prints the entry count by tag.
 
 Then report to the caller, in two lines: the count of entries by tag, and the
 `unsourced` entries in full. The caller needs to see the gaps without opening
