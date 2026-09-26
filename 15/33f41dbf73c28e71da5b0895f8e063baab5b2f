@@ -1,0 +1,5 @@
+Tested on Linux with a sed shim that emulates BSD -i (the next
+argument is always the suffix): before, a run leaves a.txt"" behind;
+after, only a.txt, edited. Plain GNU sed behaves the same before and
+after. There is no test suite on main to add a regression test to.
+shellcheck is clean on the script after this.
