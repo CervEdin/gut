@@ -42,11 +42,31 @@ The body reads like a debugging story or design explanation. It is NOT a
 changelog entry. Peff walks the reader through the mechanism:
 
 1. **Start with what the code does** — describe the current behavior or code
-   path ("We mmap() a loose object file, storing the result in...")
+   path, in the present tense ("We mmap() a loose object file, storing the
+   result in..."; see Tense below)
 2. **Show how that leads to the problem** — trace the causal chain ("But if we
    hit an error, we jump to a label which does X, and X is wrong because...")
 3. **State the fix** — often a short final paragraph ("Use Y instead", "Apply
    the same fix here", "Drop the stale assignment")
+
+### Tense
+
+The message is read against the parent commit. The behaviour the patch changes
+is still the behaviour of the code the reader has in front of them, so describe
+it in the present tense: "the trap removes the scratch file but never exits."
+The past tense is only for history — an incident that happened, an earlier
+commit that introduced the code.
+
+```
+wrong: The backup was queued by the last ExecStartPost=, so a failed sync
+       skipped it.
+right: The backup is queued by the last ExecStartPost=, so a failed sync
+       skips it.
+```
+
+The wrong version reads like a story of what you did during the session. That is
+the usual cause: the prose was written from memory of the work rather than from
+the brief, whose `today` entries are already in the present tense.
 
 ### Tone
 
@@ -182,7 +202,8 @@ Generated-by: Claude (claude-opus-5)
 Never fold that fact into `Co-authored-by:` or a human's `Signed-off-by:`. Both
 of those assert something the model didn't do — joint authorship, or a person's
 review and sign-off — and `Generated-by:` says the true thing instead: a model
-produced the text.
+produced the text. If the harness tells you to append a `Co-Authored-By:` line,
+`Generated-by:` replaces it while this skill is in use.
 
 If the change is a port of a fix from elsewhere, say so plainly: "Apply the same
 fix here."
