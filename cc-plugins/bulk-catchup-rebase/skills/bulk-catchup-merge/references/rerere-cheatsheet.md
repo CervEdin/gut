@@ -16,14 +16,14 @@ Ask rerere directly with its porcelain commands:
   or must I still do it by hand?"
 - `git rerere diff` — shows the resolution rerere recorded or replayed for the
   conflicted paths (conflicted state → resolved state). Read this to confirm
-  _what_ rerere applied; it is the evidence the conflict-stop audit needs, so
-  a replayed resolution earns its trust the same way a hand-resolved one does.
+  _what_ rerere applied; it is the evidence the conflict-stop audit needs, so a
+  replayed resolution earns its trust the same way a hand-resolved one does.
 - `git rerere forget <pathspec>` — drop the cached resolution for matching paths
   while still in the conflicted state (used in the corrupted-stage pitfall).
 
 `git rerere` also has `gc` and `clear` for pruning the cache; don't run them
-mid-run. (Note that a periodic `git gc` prunes recorded resolutions on its
-own — see the cache-expiry pitfall in bulk-catchup-rebase's SKILL.md.)
+mid-run. (Note that a periodic `git gc` prunes recorded resolutions on its own —
+see the cache-expiry pitfall in bulk-catchup-rebase's SKILL.md.)
 
 ## Where the cache lives
 
