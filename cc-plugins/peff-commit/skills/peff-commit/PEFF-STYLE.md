@@ -156,7 +156,10 @@ performance.
 - Uses _italics-style_ emphasis sparingly for subtle distinctions (rendered in
   email as underscores: "dispatched _from_")
 - References other commits by abbreviated sha and subject: "1f3fd68e06
-  (odb/source: make read_object_stream() pluggable, 2026-03-05)"
+  (odb/source: make read_object_stream() pluggable, 2026-03-05)" — but only
+  for a commit that has reached the mainline. Anything short of that, the
+  commits of your own branch included, is named by position ("the previous
+  commit", "the next commit"), because a rebase will have changed its sha
 - References related discussion: "This was caught during review of ..."
 - Credits others when their report or review led to the fix
 

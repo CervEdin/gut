@@ -30,6 +30,11 @@ it earns the body no room.
 what make a message long, and they are what to count. `unsourced` entries are
 not findings in either skill — a guess is not something you found out.
 
+A `series` entry is not one either. It comes off the branch's own log, and
+nearly every commit on a topic branch has one, so counting it would give nearly
+every commit an extra paragraph. Write it where it helps, like the ground, and
+fit it in the room the findings earned.
+
 Counting and placement are two different decisions. `uncertain` entries and
 caveats belong in Notes (§5), not the body — an entry you route there doesn't
 count toward the body's budget just because its tag would otherwise qualify.
@@ -71,6 +76,11 @@ ticket trailer where the log carries one, add nothing where it carries nothing.
 Separately from that, always add a `Generated-by:` trailer naming the model —
 never `Co-authored-by:` and never a human's `Signed-off-by:` on the model's
 behalf. See "Closing" in `PEFF-STYLE.md`.
+
+A `series` entry keeps the positional wording it was written with — "the
+previous commit", "the next commit". A sha is worth writing only for a commit
+that has reached the mainline. Anything else is one rebase away from a different
+sha, including the commits of the branch you are on.
 
 Build the body by rewriting brief entries, in peff's voice, and from nothing
 else. Write it to the peff-commit-draft file —
@@ -169,8 +179,24 @@ directory.
    could not. The range is a guideline, and the line is how an overrun reaches
    the report instead of being waved through in your head.
 
-5. **Line length.** 72 characters soft, 120 hard, body and notes alike.
-6. **Slop score.**
+5. **Commit references.** Every sha in the draft is on the mainline.
+   `git rev-list origin/HEAD..HEAD` lists the ones that are not: those get
+   rewritten, so a sha naming one of them is a name for nothing.
+
+   ```
+   grep -oE '\b[0-9a-f]{7,40}\b' "$(git rev-parse --git-path peff-commit-draft)" |
+     while read -r sha; do
+       git merge-base --is-ancestor "$sha" origin/HEAD 2>/dev/null ||
+         echo "not on the mainline, rewrite positionally: $sha"
+     done
+   ```
+
+   Use whatever the mainline is called here — `origin/HEAD`, `origin/main`,
+   `main`. Rewrite anything it reports as "the previous commit", or however
+   else the commit sits relative to this one.
+
+6. **Line length.** 72 characters soft, 120 hard, body and notes alike.
+7. **Slop score.**
 
    ```
    python3 <dir holding this file>/scripts/slop_score.py "$(git rev-parse --git-path peff-commit-draft)"

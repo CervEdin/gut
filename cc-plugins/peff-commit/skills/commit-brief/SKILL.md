@@ -37,9 +37,14 @@ Work from cheapest to most expensive and stop when a field is answered:
 3. `git log -10 --no-merges` on the repo, and `git blame`/`git log -L` on the
    touched lines. Commits that introduced the code being changed often carry the
    reason it looked that way.
-4. The conversation so far. What did the user actually say about this change?
-5. Any issue, PR, or mail thread already in context. Do not go fetch one that is
-   not.
+4. The rest of this branch: `git log --oneline @{upstream}..HEAD`, or
+   `main..HEAD` where there is no upstream. These are the commits a `series`
+   entry can point back to; anything older is ordinary history.
+5. The conversation so far. What did the user actually say about this change?
+   This is also the only place a _following_ commit can come from — the repo
+   cannot know what has not been written yet.
+6. Any issue, PR, or mail thread already in context. Do not go fetch one that
+   is not.
 
 ## Tags
 
@@ -86,6 +91,7 @@ interview and re-tag afterwards.
   diff or the commit that introduced the touched code, the entry is `unsourced`.
 - `change` — what the diff tells the code to do differently, imperative
 - `alternatives` — approaches weighed and rejected, with the reason
+- `series` — what a neighbouring commit on this branch does, by position
 - `deferred` — what follows naturally from this but is deliberately not done
 - `uncertain` — what you do not know
 
@@ -99,6 +105,19 @@ move on.
 none were weighed, which is the ordinary case; an `alternatives` entry invented
 to look thorough is worse than nothing, because it will be repeated downstream
 as though someone had actually considered it. The same goes for `deferred`.
+
+`series` is for work that spans commits: a preparation whose payoff lands in the
+next one, a fix that only reads as a fix because the previous one moved the
+code. Write it by position — "the previous commit", "the next commit" — and
+never by sha. A topic gets rebased before anyone else sees it, so every sha in
+it is provisional while the position holds.
+
+The citation is a separate question from the text. A commit already on the
+branch is evidence you can go and read, so cite it however you found it; a sha
+in the citation is fine, because the citation never reaches the message — only
+a sha on the mainline is fit to be written into one. A commit that does not
+exist yet is not in the repository at all, so it is `session` with the sentence
+that promised it, or it is `unsourced`.
 
 ## Output
 
@@ -122,6 +141,8 @@ incident-1: [session] ("this segfaults on a truncated pack") Reported against
   a pack truncated mid-write.
 change-1: [diff] (odb/loose.c) Clear `map` after unmapping so the error path
   cannot unmap it a second time.
+series-1: [session] ("then do the same for the v2 reader") The next commit
+  applies the same fix to the v2 reader.
 uncertain-1: [unsourced] Whether the v2 reader has the same pattern; not
   checked.
 ```

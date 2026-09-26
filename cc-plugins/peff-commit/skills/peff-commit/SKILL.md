@@ -33,8 +33,9 @@ question of your time to avoid guessing.
 1. **Gather.** Invoke the `commit-brief` skill. It writes `.git/commit-brief`
    and reports which entries came back `unsourced`.
 
-2. **Interview.** If any entry is `unsourced`, ask — one batched
-   `AskUserQuestion`, never a series.
+2. **Interview.** Ask when the brief holds an `unsourced` entry, or when the
+   `series` test below fires — one batched `AskUserQuestion`, never one question
+   after another.
 
    `incident` gets asked every time it is `unsourced`. Every `AskUserQuestion`
    needs at least two options besides the automatic "Other," but for `incident`
@@ -60,6 +61,17 @@ question of your time to avoid guessing.
    This matches `commit-brief`'s own rule that an absent
    `alternatives`/`deferred` is the ordinary case, not a gap to chase. Only
    spend a slot on one of those three if an incident question goes unused.
+
+   Ask about `series` when the branch has commits above its fork point
+   (`git rev-list --count @{upstream}..HEAD`, or `main..HEAD` where there is no
+   upstream, comes back non-zero) and the brief holds no `series` entry — the
+   commit sits in a series and nothing recorded how it relates to its
+   neighbours. What the _next_ commit does is, like `incident`, a fact only you
+   have; the repository cannot hold a commit nobody has written yet. It takes
+   the first slot the incident questions leave free, ahead of `alternatives`,
+   `deferred`, and `uncertain`. Its options can be candidate readings ("prepares
+   the next commit", "stands alone"): a wrong position gets corrected, not
+   silently accepted as a motive.
 
    Other unsourced fields (`alternatives`, `deferred`, `uncertain`), when a slot
    is available, can offer your candidate readings as clickable options plus
