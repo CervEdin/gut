@@ -52,10 +52,12 @@ A body asserting X is a thing they have to notice first.
    unsourced, the message simply does not state why the change was made. That is
    an accurate message.
 
-3. **Compose, check, commit.** Follow `../peff-commit/COMPOSE.md`: budget,
-   draft, check, commit, notes, report. `../peff-commit/PEFF-STYLE.md` carries
-   the voice, and the scorer is at `../peff-commit/scripts/slop_score.py` — all
-   three live in the `peff-commit` skill directory alongside this one.
+3. **Compose, check, commit.** Follow `../peff-commit/COMPOSE.md`: budget, draft
+   from the brief, check (brief lint, the provenance file with its coverage
+   section, budget, line length, slop score), commit, notes, report.
+   `../peff-commit/PEFF-STYLE.md` carries the voice, and the scorer is at
+   `../peff-commit/scripts/slop_score.py` — all three live in the `peff-commit`
+   skill directory alongside this one.
 
    With `incident` quarantined the fact count is usually low, so the budget is
    usually one paragraph or none. Let it be short. A subject line with no body
