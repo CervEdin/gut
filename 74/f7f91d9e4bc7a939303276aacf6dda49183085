@@ -1,0 +1,15 @@
+Tested with git 2.56.0-rc2 in scratch repos, with GIT_CONFIG_GLOBAL
+unset to /dev/null so "unset" meant unset: history reword lost the
+note with notes.rewriteRef unset and set to refs/notes/commits; rebase
+-i reword lost it unset and kept it with refs/notes/commits. Under the
+real global config (refs/notes/*) history reword lost it too. A
+descendant's note was lost as well. The code blocks in the new section
+were then run verbatim on a four-commit repo, rewording one commit with
+each tool, and both notes ended up on the new shas.
+
+The first rebase attempt did not reword at all: the sed matched
+^pick, and the global rebase.abbreviateCommands=true writes `p`.
+
+Pairing by position assumes a linear range, and the section says so.
+A range with merges would need rev-list --topo-order on both sides at
+the least; not attempted.
