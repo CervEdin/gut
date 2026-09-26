@@ -7,37 +7,54 @@ close the gaps in `.git/commit-brief`; everything after that is here.
 
 ## 1. Budget
 
-Count the **load-bearing facts** in the brief: sourced entries a reader could
-not get by reading the diff, that you intend to put in the body.
+A message is built out of two different things, and only one of them decides how
+long it gets.
 
-- `incident` and `alternatives` entries always count, when they go in the body.
-- `today` counts when it says something the hunk alone does not show, and it
-  goes in the body.
-- `blame` and `issue` entries count, on the same condition.
-- `change` never counts. The diff is right there.
-- `unsourced` entries never count, in either skill.
+**The ground** is `today` and `change`: what the code does now at the site, and
+what the patch tells it to do instead. It is usually worth writing, and usually
+worth writing first — it is what lets the message be read without the diff open
+beside it, and it is where a misread change gets caught, since a reader who
+knows the code can only tell you that you have it wrong if you wrote down how
+you think it works.
+
+It is not a section to fill, though. A typo fix wants no account of what the
+line said before, and a mechanical rename wants none of what the old name meant.
+The ground is worth writing where the change turns on how the code behaves, and
+a triviality does not turn on anything — explaining one is noise, and where the
+subject already says what changes, saying it again in the body adds nothing. Nor
+is any of it a finding: you did not go and learn it, it was in front of you. So
+it earns the body no room.
+
+**The findings** are what you had to go and get: `incident`, `alternatives`,
+`blame`, `issue`, and anything the caller came back with as `asked`. These are
+what make a message long, and they are what to count. `unsourced` entries are
+not findings in either skill — a guess is not something you found out.
 
 Counting and placement are two different decisions. `uncertain` entries and
 caveats belong in Notes (§5), not the body — an entry you route there doesn't
 count toward the body's budget just because its tag would otherwise qualify.
-Count only what the body is actually going to say.
+Count only the findings the body is actually going to say.
 
-The count sets the body:
+Count the findings:
 
-| load-bearing facts | body           | cap       |
-| ------------------ | -------------- | --------- |
-| 0                  | subject only   | no body   |
-| 1-2                | one paragraph  | 60 words  |
-| 3-4                | two paragraphs | 140 words |
-| 5+                 | three or more  | 250 words |
+| findings | body           | usual range |
+| -------- | -------------- | ----------- |
+| 0        | the ground     | ~25 words   |
+| 1-2      | one paragraph  | ~60 words   |
+| 3-4      | two paragraphs | ~140 words  |
+| 5+       | three or more  | ~250 words  |
 
-These are ceilings, not targets. Coming in far under one is normal and good.
+The paragraph count is the rule; the word ranges describe what that many
+paragraphs usually come to. Coming in far under one is normal and good. Going
+well over is a signal to check the prose, not a violation to trim — a single
+subtle mechanism can genuinely want a hundred words, and cutting it to fit a
+number loses something that was actually sourced.
 
-**Zero facts means a subject line and nothing else.** That is a finished,
-correct result, not a degraded one — 12% of peff's real commit bodies are under
-40 words, and a change whose reason is not recorded anywhere is exactly the case
-that should produce a short message. If the body feels thin, the repair is to go
-find another fact, never to widen the ones you have.
+**No findings means the ground and nothing else** — however much of it the
+change actually wants, which is often a sentence or two and sometimes nothing at
+all. That is a finished, correct result and not a degraded one: 12% of peff's
+real commit bodies are under 40 words. If the body feels thin, the repair is to
+go and find something out, never to widen what you have.
 
 ## 2. Draft
 
@@ -55,8 +72,8 @@ Separately from that, always add a `Generated-by:` trailer naming the model —
 never `Co-authored-by:` and never a human's `Signed-off-by:` on the model's
 behalf. See "Closing" in `PEFF-STYLE.md`.
 
-Build the body by rewriting brief entries — the load-bearing facts, in peff's
-voice — and from nothing else. Write it to the peff-commit-draft file —
+Build the body by rewriting brief entries, in peff's voice, and from nothing
+else. Write it to the peff-commit-draft file —
 `git rev-parse --git-path peff-commit-draft` if you're in a worktree, where
 `.git/peff-commit-draft` doesn't resolve.
 
@@ -137,7 +154,21 @@ directory.
    asks the user whether to split before it commits. `peff-commit-auto` commits
    anyway and puts the recommendation in the notes as a scope note.
 
-4. **Budget.** Body word count is inside the cap for the fact count.
+4. **Budget.** Append a `budget:` line to the provenance file: the findings
+   the body says, the range for that count, and the body's word count, subject
+   and trailers excluded.
+
+   ```
+   budget: 2 findings, ~60 words, body 71 words
+   ```
+
+   Well over the range? Re-read the paragraph that pushed it over and check its
+   sentences against their provenance records (check 2). If each one still names
+   its entry, the length can stay. Past twice the range, it can still stay, but
+   the line has to say why: what the extra words explain that a shorter body
+   could not. The range is a guideline, and the line is how an overrun reaches
+   the report instead of being waved through in your head.
+
 5. **Line length.** 72 characters soft, 120 hard, body and notes alike.
 6. **Slop score.**
 
@@ -205,7 +236,7 @@ Notes:
 
 Provenance:
 
-    (the provenance file, including its coverage: section)
+    (the provenance file, including its coverage: and budget: lines)
 ```
 
 The provenance file goes in the report whole. If a check was skipped, its
