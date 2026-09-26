@@ -1,5 +1,5 @@
 Tested with git 2.56.0-rc2 in scratch repos, with GIT_CONFIG_GLOBAL
-unset to /dev/null so "unset" meant unset: history reword lost the
+set to /dev/null so "unset" meant unset: history reword lost the
 note with notes.rewriteRef unset and set to refs/notes/commits; rebase
 -i reword lost it unset and kept it with refs/notes/commits. Under the
 real global config (refs/notes/*) history reword lost it too. A
