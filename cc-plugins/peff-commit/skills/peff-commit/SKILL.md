@@ -74,9 +74,9 @@ question of your time to avoid guessing.
    never asked.
 
    Record each answer in the brief as `asked`, with the question as its
-   citation. Answers count as load-bearing facts, so asking widens the budget in
-   §1 of `COMPOSE.md` — the fuller message is earned by having gone and got the
-   facts.
+   citation. An answer is a finding — you went and got it — so asking widens the
+   budget in §1 of `COMPOSE.md`. The fuller message is earned rather than
+   assumed.
 
    If the interview cannot run at all — headless, queued, no answer coming —
    quarantine the remaining `unsourced` entries into notes exactly as
