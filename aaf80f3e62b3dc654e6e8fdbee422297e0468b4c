@@ -1,0 +1,246 @@
+commit-brief/SKILL.md, Gather list and Output example
+-----------------------------------------------------
+
+8a34055 (commit-brief: give entries IDs and lint the brief) rewrapped
+the gather list and moved the example to `field-N:` IDs; 7841a70 added a
+branch-history step and a `series` example line. Kept 7841a70's list and
+wrote its example line as `series-1:` in 8a34055's format, keeping
+8a34055's `uncertain-1: [unsourced]` line. `series` was also added to
+FIELDS in lint_brief.py, which would otherwise reject the example.
+
+COMPOSE.md, Draft and Check
+---------------------------
+
+Ours is the 67d4248 draft paragraph and renumbered checks; theirs
+prepends the positional-wording paragraph and adds a commit-references
+check. Kept ours, prepended the paragraph, and inserted the check as 5
+after budget, reading the draft from `git rev-parse --git-path` like
+the other checks do.
+
+peff-commit/SKILL.md, Interview
+-------------------------------
+
+a43a46b (peff-commit: ask four real incident questions, not one)
+reserved the four AskUserQuestion slots for incident questions; 7841a70
+added an always-on series question and an upstream-only trigger. Kept
+ours and added the series rule after it, taking the first free slot
+ahead of alternatives/deferred/uncertain, with the gather step's
+main..HEAD fallback for branches with no upstream.
+---
+diff --git a/cc-plugins/peff-commit/skills/commit-brief/SKILL.md b/cc-plugins/peff-commit/skills/commit-brief/SKILL.md
+index 79048e3..604aef7 100644
+--- a/cc-plugins/peff-commit/skills/commit-brief/SKILL.md
++++ b/cc-plugins/peff-commit/skills/commit-brief/SKILL.md
+@@ -37,20 +37,14 @@ Work from cheapest to most expensive and stop when a field is answered:
+ 3. `git log -10 --no-merges` on the repo, and `git blame`/`git log -L` on the
+    touched lines. Commits that introduced the code being changed often carry the
+    reason it looked that way.
+-<<<<<<< HEAD
+-4. The conversation so far. What did the user actually say about this change?
+-5. Any issue, PR, or mail thread already in context. Do not go fetch one that is
+-   not.
+-=======
+ 4. The rest of this branch: `git log --oneline @{upstream}..HEAD`, or
+    `main..HEAD` where there is no upstream. These are the commits a `series`
+    entry can point back to; anything older is ordinary history.
+ 5. The conversation so far. What did the user actually say about this change?
+-   This is also the only place a *following* commit can come from — the repo
++   This is also the only place a _following_ commit can come from — the repo
+    cannot know what has not been written yet.
+ 6. Any issue, PR, or mail thread already in context. Do not go fetch one that
+    is not.
+->>>>>>> 7841a70 (peff-commit: record how a commit relates to its neighbours)
+
+ ## Tags
+
+@@ -147,15 +141,10 @@ incident-1: [session] ("this segfaults on a truncated pack") Reported against
+   a pack truncated mid-write.
+ change-1: [diff] (odb/loose.c) Clear `map` after unmapping so the error path
+   cannot unmap it a second time.
+-<<<<<<< HEAD
++series-1: [session] ("then do the same for the v2 reader") The next commit
++  applies the same fix to the v2 reader.
+ uncertain-1: [unsourced] Whether the v2 reader has the same pattern; not
+   checked.
+-=======
+-series: [session] ("then do the same for the v2 reader") The next commit
+-  applies the same fix to the v2 reader.
+-uncertain: [diff] (odb/loose.c) Whether the v2 reader has the same pattern;
+-  not checked.
+->>>>>>> 7841a70 (peff-commit: record how a commit relates to its neighbours)
+ ```
+
+ A gap goes under the field it belongs to, tagged `[unsourced]`. There is no
+diff --git a/cc-plugins/peff-commit/skills/commit-brief/scripts/lint_brief.py b/cc-plugins/peff-commit/skills/commit-brief/scripts/lint_brief.py
+index 52fbbd6..59a0913 100644
+--- a/cc-plugins/peff-commit/skills/commit-brief/scripts/lint_brief.py
++++ b/cc-plugins/peff-commit/skills/commit-brief/scripts/lint_brief.py
+@@ -13,7 +13,15 @@ import subprocess
+ import sys
+ from collections import Counter
+
+-FIELDS = ("today", "incident", "change", "alternatives", "deferred", "uncertain")
++FIELDS = (
++    "today",
++    "incident",
++    "change",
++    "alternatives",
++    "series",
++    "deferred",
++    "uncertain",
++)
+ TAGS = ("diff", "code", "blame", "session", "issue", "asked", "unsourced")
+ INCIDENT_TAGS = ("asked", "session", "issue", "unsourced")
+
+diff --git a/cc-plugins/peff-commit/skills/peff-commit/COMPOSE.md b/cc-plugins/peff-commit/skills/peff-commit/COMPOSE.md
+index 2de686e..78dfb2c 100644
+--- a/cc-plugins/peff-commit/skills/peff-commit/COMPOSE.md
++++ b/cc-plugins/peff-commit/skills/peff-commit/COMPOSE.md
+@@ -73,7 +73,11 @@ Separately from that, always add a `Generated-by:` trailer naming the model —
+ never `Co-authored-by:` and never a human's `Signed-off-by:` on the model's
+ behalf. See "Closing" in `PEFF-STYLE.md`.
+
+-<<<<<<< HEAD
++A `series` entry keeps the positional wording it was written with — "the
++previous commit", "the next commit". A sha is worth writing only for a commit
++that has reached the mainline. Anything else is one rebase away from a different
++sha, including the commits of the branch you are on.
++
+ Build the body by rewriting brief entries, in peff's voice, and from nothing
+ else. Write it to the peff-commit-draft file —
+ `git rev-parse --git-path peff-commit-draft` if you're in a worktree, where
+@@ -89,22 +93,12 @@ file"). It describes code the reader still has in front of them as though it
+ were gone. Draft with the brief open, one entry at a time. If you want a
+ sentence that no entry supports, go back to `commit-brief` and add the entry
+ with an honest tag, or leave the sentence out.
+-=======
+-A `series` entry keeps the positional wording it was written with — "the
+-previous commit", "the next commit". A sha is worth writing only for a commit
+-that has reached the mainline. Anything else is one rebase away from a different
+-sha, including the commits of the branch you are on.
+-
+-Write the body from the brief, in peff's voice, and from nothing else. Write it
+-to `.git/peff-commit-draft`.
+->>>>>>> 7841a70 (peff-commit: record how a commit relates to its neighbours)
+
+ ## 3. Check
+
+ Run all of these before committing. Checks 2 and 3 are the ones that catch
+ invention; the rest catch format and presentation.
+
+-<<<<<<< HEAD
+ Each check leaves output behind: a tool's output, or a section of the provenance
+ file below. A check that is only done in your head is easy to skip without
+ noticing, and the checks that were skipped in practice were the ones that
+@@ -113,38 +107,6 @@ to the skill reading it — `peff-commit-auto` reads this from a sibling
+ directory.
+
+ 1. **Brief lint.**
+-=======
+-1. **Provenance.** Take each sentence of the body and name the brief entry it
+-   came from. A sentence that maps to no entry, or to an `unsourced` one, comes
+-   out. Do not rescue it by hedging — "I suspect this improves performance" is
+-   the same fabrication wearing a disclaimer, and it reads as calibration rather
+-   than as the guess it is.
+-2. **Diff coverage.** Every claim in the message corresponds to something in the
+-   diff, and every non-trivial hunk is either accounted for or deliberately
+-   passed over. This catches the message that describes a different change than
+-   the one staged.
+-3. **Budget.** Well over the range for the finding count? Re-read the paragraph
+-   that pushed it over and run check 1 on it sentence by sentence. If each one
+-   still names its entry, the length is earned and it stays. Padding fails
+-   check 1 first; this is the backstop for when it did not.
+-4. **Commit references.** Every sha in the draft is on the mainline.
+-   `git rev-list origin/HEAD..HEAD` lists the ones that are not: those get
+-   rewritten, so a sha naming one of them is a name for nothing.
+-
+-   ```
+-   grep -oE '\b[0-9a-f]{7,40}\b' .git/peff-commit-draft |
+-     while read -r sha; do
+-       git merge-base --is-ancestor "$sha" origin/HEAD 2>/dev/null ||
+-         echo "not on the mainline, rewrite positionally: $sha"
+-     done
+-   ```
+-
+-   Use whatever the mainline is called here — `origin/HEAD`, `origin/main`,
+-   `main`. Rewrite anything it reports as "the previous commit", or however
+-   else the commit sits relative to this one.
+-5. **Line length.** 72 characters soft, 120 hard, body and notes alike.
+-6. **Slop score.**
+->>>>>>> 7841a70 (peff-commit: record how a commit relates to its neighbours)
+
+    ```
+    python3 <dir holding this file>/../commit-brief/scripts/lint_brief.py "$(git rev-parse --git-path commit-brief)"
+@@ -202,8 +164,24 @@ directory.
+    that pushed it over and check its sentences against their provenance records
+    (check 2). If each one still names its entry, the length is earned and it
+    stays. Padding fails check 2 first; this is the backstop for when it did not.
+-5. **Line length.** 72 characters soft, 120 hard, body and notes alike.
+-6. **Slop score.**
++5. **Commit references.** Every sha in the draft is on the mainline.
++   `git rev-list origin/HEAD..HEAD` lists the ones that are not: those get
++   rewritten, so a sha naming one of them is a name for nothing.
++
++   ```
++   grep -oE '\b[0-9a-f]{7,40}\b' "$(git rev-parse --git-path peff-commit-draft)" |
++     while read -r sha; do
++       git merge-base --is-ancestor "$sha" origin/HEAD 2>/dev/null ||
++         echo "not on the mainline, rewrite positionally: $sha"
++     done
++   ```
++
++   Use whatever the mainline is called here — `origin/HEAD`, `origin/main`,
++   `main`. Rewrite anything it reports as "the previous commit", or however
++   else the commit sits relative to this one.
++
++6. **Line length.** 72 characters soft, 120 hard, body and notes alike.
++7. **Slop score.**
+
+    ```
+    python3 <dir holding this file>/scripts/slop_score.py "$(git rev-parse --git-path peff-commit-draft)"
+diff --git a/cc-plugins/peff-commit/skills/peff-commit/SKILL.md b/cc-plugins/peff-commit/skills/peff-commit/SKILL.md
+index 5b9c6d8..01f70d8 100644
+--- a/cc-plugins/peff-commit/skills/peff-commit/SKILL.md
++++ b/cc-plugins/peff-commit/skills/peff-commit/SKILL.md
+@@ -33,21 +33,9 @@ question of your time to avoid guessing.
+ 1. **Gather.** Invoke the `commit-brief` skill. It writes `.git/commit-brief`
+    and reports which entries came back `unsourced`.
+
+-<<<<<<< HEAD
+-2. **Interview.** If any entry is `unsourced`, ask — one batched
+-   `AskUserQuestion`, never a series.
+-=======
+ 2. **Interview.** Ask when the brief holds an `unsourced` entry, or when the
+-   test below fires — one batched `AskUserQuestion`, never one question after
+-   another. Always include `incident`: what prompted this change, and why now.
+-   Nothing in a repository records that, so it is the question worth spending.
+-
+-   Include `series` too when `git rev-list --count @{upstream}..HEAD` comes back
+-   non-zero and the brief holds no `series` entry — the commit sits in a series
+-   and nothing recorded how it relates to its neighbours. What the *next* commit
+-   does is, like `incident`, a fact only you have; the repository cannot hold a
+-   commit nobody has written yet.
+->>>>>>> 7841a70 (peff-commit: record how a commit relates to its neighbours)
++   `series` test below fires — one batched `AskUserQuestion`, never one question
++   after another.
+
+    `incident` gets asked every time it is `unsourced`. Every `AskUserQuestion`
+    needs at least two options besides the automatic "Other," but for `incident`
+@@ -74,6 +62,17 @@ question of your time to avoid guessing.
+    `alternatives`/`deferred` is the ordinary case, not a gap to chase. Only
+    spend a slot on one of those three if an incident question goes unused.
+
++   Ask about `series` when the branch has commits above its fork point
++   (`git rev-list --count @{upstream}..HEAD`, or `main..HEAD` where there is no
++   upstream, comes back non-zero) and the brief holds no `series` entry — the
++   commit sits in a series and nothing recorded how it relates to its
++   neighbours. What the _next_ commit does is, like `incident`, a fact only you
++   have; the repository cannot hold a commit nobody has written yet. It takes
++   the first slot the incident questions leave free, ahead of `alternatives`,
++   `deferred`, and `uncertain`. Its options can be candidate readings ("prepares
++   the next commit", "stands alone"): a wrong position gets corrected, not
++   silently accepted as a motive.
++
+    Other unsourced fields (`alternatives`, `deferred`, `uncertain`), when a slot
+    is available, can offer your candidate readings as clickable options plus
+    "Other" and an explicit "go with your read" escape, so answering those is a
