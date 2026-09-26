@@ -1,0 +1,14 @@
+Tested against the brief in the appendix of the feedback report: it
+reports the five bare `unsourced:` lines and every entry without an
+ID. A corrected copy, split into one brief per commit, passes, as does
+the SKILL.md example. A hand-written file of negative cases (duplicate
+ID, incident from code, cited unsourced, missing and empty citation,
+unknown field and tag) gets one error each.
+
+The field list has no `series`. cc/peff-commit-brief adds one; when
+that topic is reworked on top of this, the linter's FIELDS needs it.
+
+Citations are matched with nested parentheses and double quotes
+skipped, because session quotes can hold a "(" of their own. A quote
+with an odd number of double quotes inside it will confuse that;
+none of the real briefs has one.
