@@ -1,0 +1,12 @@
+Fixed git-parents sorting for annotated tags.
+
+Problem: Annotated tags don't have a committerdate, only creatordate. When
+sorting by committerdate alone, annotated tags weren't sorted correctly.
+
+Solution: Added secondary sort by creatordate to handle both:
+- Commit refs: sorted by committerdate (when it was committed)
+- Annotated tags: sorted by creatordate (when the tag was created)
+
+This ensures both types of refs sort correctly in git-parents output.
+
+/Claude-haiku@4.5

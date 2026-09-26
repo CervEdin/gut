@@ -1,0 +1,7 @@
+Added .vim swap files to .gitignore.
+
+Ignores Vim swap files (*.swp) generated when editing files in Vim.
+
+Prevents accidental commits of editor temporary files, keeping the repository clean.
+
+/Claude-haiku@4.5

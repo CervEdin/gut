@@ -1,0 +1,14 @@
+Made debug output conditional on bash debug mode (set -x).
+
+Problem: The script always prints debug information to stderr about argument
+parsing and file specs, which clutters output unless debugging is specifically
+enabled.
+
+Solution: Wrapped all printf debug statements with [[ $- =~ x ]] check, which
+tests if the x flag is set in $- (bash options). This means debug output only
+prints when the script is run with 'bash -x' or 'set -x' is enabled.
+
+This allows users to get verbose output when needed without cluttering normal
+script execution.
+
+/Claude-haiku@4.5

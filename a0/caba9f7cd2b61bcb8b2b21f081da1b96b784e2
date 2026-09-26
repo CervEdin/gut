@@ -1,0 +1,15 @@
+Consolidated SHA extraction to pure awk (removed sed pipeline).
+
+Refactored to use awk alone instead of sed piped to awk:
+- Old: sed -n '/^[a-f0-9]\{40\} /{s@ .*@@;p}' | awk '...'
+- New: awk with -e flags for pattern matching and aggregation
+
+Benefits:
+- Simpler pipeline (fewer tools)
+- Pure awk regex syntax (no sed-specific escaping needed)
+- Single pass through data instead of two separate tools
+
+The awk pattern /^[a-f0-9]{40} / matches SHA lines directly (note: awk uses
+standard regex, not sed extended regex), improving clarity and efficiency.
+
+/Claude-haiku@4.5

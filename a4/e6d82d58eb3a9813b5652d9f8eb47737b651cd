@@ -1,0 +1,5 @@
+Merge branch 'make' into main: Integrated Makefile fixes.
+
+Merged make branch with ${HOME} variable expansion fix.
+
+/Claude-haiku@4.5

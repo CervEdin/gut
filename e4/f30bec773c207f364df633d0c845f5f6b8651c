@@ -1,0 +1,8 @@
+Improved readability of git-delorean xargs invocation.
+
+Split the xargs command arguments across multiple lines with proper indentation
+for better readability in git-delorean's git commit --fixup invocation.
+
+This is a style-only change that makes the pipeline easier to follow.
+
+/Claude-haiku@4.5

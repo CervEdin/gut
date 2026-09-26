@@ -1,0 +1,14 @@
+Add git-pp: Interactive push helper with force-push support.
+
+git-pp facilitates pushing by:
+1. Showing a graph log of commits that differ between HEAD and upstream
+2. Prompting user to confirm push
+3. If push fails, detecting non-fatal errors and offering force-push option
+
+Designed primarily to enable safe force pushing - shows the changes before
+committing to the push, allows recovery if something goes wrong.
+
+Useful for workflows where force-pushing is common (e.g., interactive rebase
+workflows, amended commits).
+
+/Claude-haiku@4.5

@@ -1,0 +1,17 @@
+Refactored Makefile with GNU Make best practices.
+
+Major Makefile improvements including:
+- Wildcard expansion for .sh and .sed files
+- Proper build directory structure (bin/)
+- Pattern rules for .sh and .sed files
+- INSTALL_DIR variable with ~/bin/ default
+- Symlink creation removing .sh extension
+- uninstall and clean targets
+- debug target for adding strict mode with -x
+- Added .gitignore for bin/ directory
+- Updated README with detailed installation instructions
+
+Follows professional Make standards with proper rules, prerequisites, recipes,
+and variable usage.
+
+/Claude-haiku@4.5

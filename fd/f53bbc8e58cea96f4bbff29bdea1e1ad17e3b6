@@ -1,0 +1,15 @@
+Improved code readability by breaking long lines in git-fetch-ff script.
+
+Problem: Long lines in git for-each-ref, sed, and awk scripts make diffs harder
+to review and reduce code readability.
+
+Changes: Reformatted to improve line-by-line readability:
+- Split git for-each-ref format string across multiple lines with explicit quotes
+- Expanded sed regex script across multiple lines with proper indentation
+- Expanded awk BEGIN/END blocks with proper indentation and comments
+
+This is a style-only change (no functional impact) that makes the complex pipeline
+easier to understand and review. Each logical step is now clearly separated and
+indented appropriately.
+
+/Claude-haiku@4.5

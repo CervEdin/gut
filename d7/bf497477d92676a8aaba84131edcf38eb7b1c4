@@ -1,0 +1,14 @@
+Added git-stash-drop-range.sh: Drop a range of stashes.
+
+New script to delete multiple stashes by index range instead of one at a time.
+
+Usage: git stash-drop-range <start> <end>
+
+Implementation: Loops from start to end inclusive, dropping the stash at
+index start each iteration (since dropping shifts indices down).
+
+Reference: Stack Overflow answer #72288570
+
+Useful for bulk cleanup of accumulated stashes.
+
+/Claude-haiku@4.5

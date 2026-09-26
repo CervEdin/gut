@@ -1,0 +1,15 @@
+About the sed command quoting:
+
+Old: sed -i s@"$search_for"@"$replace_with"@g
+New: $SED_INPLACE "s@$search_for@$replace_with@g"
+
+The change removes quotes around the variables inside the sed command and instead
+quotes the entire sed script. This is better because:
+
+1. Sed doesn't recognize quotes within addresses/patterns - they become literal
+2. The @ delimiter is used (instead of /) to avoid conflicts with slashes in search/replace strings
+3. Variables expand before sed sees them, so quoting the whole script is sufficient
+4. With duck typing, we can use xargs directly instead of sh -c, eliminating a layer of quoting complexity
+
+Note: This approach works because @ is used as delimiter. If the search/replace
+strings contain @, users would need to choose a different delimiter or escape it.

@@ -1,0 +1,6 @@
+Merge branch 'git-arch': Integrated custom decoration support.
+
+Merged git-arch branch with support for custom decoration types beyond just
+"archive", making it a generic decorated tag utility.
+
+/Claude-haiku@4.5

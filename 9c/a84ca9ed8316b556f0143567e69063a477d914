@@ -1,0 +1,16 @@
+Added support for diff3 and zdiff3 conflict marker styles.
+
+Problem: git-resolve only handled the default "merge" conflict style markers
+(<<<<<<, =======, >>>>>>). Git supports alternative conflict styles like:
+- diff3: adds ||||||| marker with original text before =======
+- zdiff3: variant of diff3
+
+Solution: Updated sed script patterns to handle both merge and diff3/zdiff3:
+- Changed simple = pattern to [|=] (pipe or equals) to match both = and ||||||
+- Updated range patterns for "ours" mode to /^[|=]\{7\}/,/^>\{7\}/
+
+This allows git-resolve to work with diff3 conflict style which includes more
+context about the original state before the conflict, useful for understanding
+how the conflict arose.
+
+/Claude-haiku@4.5

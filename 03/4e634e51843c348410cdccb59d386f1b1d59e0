@@ -1,0 +1,15 @@
+Fixed git-fetch-ff to handle branches with local upstream tracking.
+
+Problem: Local branches with local upstreams (tracking another local branch)
+would fail because their remote is represented as '.' (current repo). The sed
+regex and parsing logic didn't handle this edge case.
+
+Solution: Changed format string in git for-each-ref:
+- Now uses %(upstream:remotename) to get just the remote name explicitly
+- Uses %(upstream:remoteref) for the full upstream reference (already includes remote:branch)
+- Updated sed regex to handle tab-delimited format more robustly
+
+This allows git-fetch-ff to handle the edge case of local branches with local
+upstreams, though the author notes these might be worth excluding entirely.
+
+/Claude-haiku@4.5

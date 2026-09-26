@@ -1,0 +1,6 @@
+Merge branch 'resolve': Integrated diff3 conflict style support.
+
+Merged resolve branch with support for diff3 and zdiff3 conflict marker styles
+in git-resolve.
+
+/Claude-haiku@4.5

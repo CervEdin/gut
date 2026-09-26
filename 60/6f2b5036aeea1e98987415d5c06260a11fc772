@@ -1,0 +1,3 @@
+It worked before. This only removes the TODO, verifying it works.
+Not sure if this is because of changed behavior or not. If it's part of fixed
+behavior it should be a fixup of whatever fixed the issue.

@@ -1,0 +1,12 @@
+Changed base branch from hardcoded 'main' to 'origin/HEAD' for PR messages.
+
+This makes the script more portable across repositories that use different
+default branch names (master, main, develop, trunk, etc.).
+
+origin/HEAD is a symbolic ref that points to the default branch of the remote,
+automatically set during 'git clone' and updated with 'git remote set-head'.
+
+This change means the script will work correctly regardless of the repository's
+default branch naming convention.
+
+/Claude-haiku@4.5
