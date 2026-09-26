@@ -4,6 +4,7 @@ files=$(wildcard *.sh *.sed)
 shell_files=$(wildcard *.sh)
 md_files:=$(shell git ls-files -co --exclude-standard '*.md')
 py_files:=$(shell git ls-files -co --exclude-standard '*.py')
+sh_files:=$(shell git ls-files -co --exclude-standard '*.sh')
 programs=$(addprefix bin/, $(files))
 shell_programs=$(addprefix bin/, $(shell_files))
 INSTALL_DIR=${HOME}/bin
@@ -103,5 +104,5 @@ lint: \
 
 .PHONY: lint-shell
 ## Run shellcheck on all shell scripts.
-lint-shell: **/*.sh
-	shellcheck -f gcc $^
+lint-shell: $(sh_files)
+	[ -z "$^" ] || shellcheck -f gcc $^
