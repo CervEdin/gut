@@ -5,6 +5,7 @@ shell_files=$(wildcard *.sh)
 md_files:=$(shell git ls-files -co --exclude-standard '*.md')
 py_files:=$(shell git ls-files -co --exclude-standard '*.py')
 sh_files:=$(shell git ls-files -co --exclude-standard '*.sh')
+PRETTIER=npx --yes prettier@3.9.9
 programs=$(addprefix bin/, $(files))
 shell_programs=$(addprefix bin/, $(shell_files))
 INSTALL_DIR=${HOME}/bin
@@ -84,7 +85,7 @@ format: \
 .PHONY: format-markdown
 ## Format markdown files.
 format-markdown: $(md_files)
-	npx --no-install prettier --print-width 80 --prose-wrap always --write $^
+	[ -z "$^" ] || $(PRETTIER) --print-width 80 --prose-wrap always --write $^
 
 .PHONY: format-python
 ## Run autopep8 on python files and fix the following errors:
