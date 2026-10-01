@@ -1,0 +1,13 @@
+Added explicit -a/--add flag to git-resolve (default: don't auto-add).
+
+Previously git-resolve automatically staged resolved files, making it harder
+to chain commands or manipulate files before staging.
+
+Now:
+- Default behavior: resolve conflicts but don't stage files
+- With -a/--add flag: automatically stage resolved files after resolution
+
+This gives users more control over the workflow and allows chaining with
+other commands before deciding to stage.
+
+/Claude-haiku@4.5

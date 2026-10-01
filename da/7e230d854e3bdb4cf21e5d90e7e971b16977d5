@@ -1,0 +1,16 @@
+Added git-branch-status.sh: Show status similar to git branch -vv.
+
+Displays branch status with tracking information, inspired by multiple Stack
+Overflow solutions and the bill-auger/git-branch-status project, but optimized
+for speed.
+
+Shows three columns:
+- Branch name
+- Upstream tracking status ([ahead x], [behind y], [gone], etc.)
+- Remote name
+
+Uses git for-each-ref for efficient querying and column command for formatting.
+
+/Claude-haiku@4.5
+
+A lot (all?) seems redundant.

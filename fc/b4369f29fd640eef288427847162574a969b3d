@@ -1,0 +1,18 @@
+Improved git-fetch-ff to handle multiple local branches tracking same remote.
+
+Problem: The previous implementation assumed a 1:1 mapping between local and remote
+branches, but git supports multiple local branches tracking the same remote branch.
+For example:
+  local branch 'a' tracks 'origin/A'
+  local branch 'b' also tracks 'origin/A'
+
+Solution: Refactored to track relationships as upstream[remote][local]=upstream_branch:
+- sed now captures local, remote, and upstream branch separately
+- awk builds an associative array with remote/local pairs
+- Generates fetch commands like: git fetch origin A:a A:b
+
+This supports complex tracking configurations where multiple local branches track
+the same remote branch, and ensures git fetch is called once per remote with all
+applicable ref mappings.
+
+/Claude-haiku@4.5

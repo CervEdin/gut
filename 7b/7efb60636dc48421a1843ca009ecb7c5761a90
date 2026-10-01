@@ -1,0 +1,23 @@
+How the script works:
+
+The script tracks all historical names of file(s) by:
+
+1. Using 'git log --follow -M' to track files across renames
+   - --follow: Continues history beyond renames
+   - -M: Detects renames (default threshold 50% similarity)
+   - --name-status: Shows R (rename) status with old/new names
+
+2. AWK processing filters the rename history:
+   - R[0-9]+ matches rename entries (R100, R95, etc. show % similarity)
+   - For each rename, extracts both old name ($2) and new name ($3)
+   - Uses seen[] array to track unique names and avoid duplicates
+   - Handles other status codes (A/M/D) by extracting the filename ($2)
+
+3. Optional start commit:
+   - If first arg is a valid commit-ish, uses START..HEAD range
+   - Otherwise searches entire history (HEAD)
+
+Output shows the current path followed by all historical names it had,
+useful for finding where code moved from or tracking file evolution.
+
+/Claude-haiku@4.5

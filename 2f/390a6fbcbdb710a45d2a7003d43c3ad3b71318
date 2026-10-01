@@ -1,0 +1,5 @@
+Merge branch 'git-parents': Integrated annotated tag sorting fix.
+
+Merged git-parents branch with creatordate fallback for proper tag sorting.
+
+/Claude-haiku@4.5

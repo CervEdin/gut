@@ -1,0 +1,7 @@
+Merge branch 'git-ignore': Resolved conflict and integrated latest improvements.
+
+Merged git-ignore branch with proper sort flags (--ignore-case --unique) for
+improved handling of .gitignore entries. Includes conflict resolution from
+parallel development.
+
+/Claude-haiku@4.5

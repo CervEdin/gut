@@ -1,0 +1,19 @@
+Confirmed the process-substitution failure empirically before writing
+it down: diff3 on <(git show ...) reported the entire "ours" stage as
+changed and the other two as empty, while the same three stages
+extracted to real temp files produced the expected one-region diff.
+That is why the skill spends a clause on it — the wrong form fails
+silently rather than erroring, which is the dangerous kind.
+
+Dropped the old "most resolution mistakes come from skipping the base"
+line. The sentiment is right but the quantifier was unprovable; the
+replacement keeps the point — weigh each side against the base, via
+both its diff and its commit message — without the false precision.
+
+Left `git checkout --conflict=zdiff3 file` duplicated in section 2 and
+section 3a. Different framings (inspect vs. hand-edit) and the skill
+already cross-references, so deduping felt like more indirection than
+it is worth. Easy to revisit if it drifts.
+
+Patch version bump (0.1.9 -> 0.1.10): refines one section's guidance,
+does not change what the skill does or how it triggers.

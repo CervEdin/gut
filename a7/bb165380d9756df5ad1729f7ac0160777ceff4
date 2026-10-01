@@ -1,0 +1,13 @@
+Improved Makefile ls target output using $(info) function.
+
+Changed ls target from using 'echo' to using Make's built-in $(info) function:
+- $(info) prints during evaluation, not during execution
+- Provides clearer labeled output with descriptive messages
+- Added .PHONY declaration for ls to ensure it always runs
+
+Before: Bare echo output
+After: Labeled output like "installed programs are: ..."
+
+This improves the user experience when checking what's installed.
+
+/Claude-haiku@4.5

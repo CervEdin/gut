@@ -1,0 +1,13 @@
+Enhanced git-pp to offer force-push at the first prompt, not just after
+a failed push attempt. This is useful when you know upfront that a force-push
+is needed (e.g., after rebase or amendment).
+
+Options:
+- Push normally
+- Force push immediately
+
+Note: Cancel option is implicit in the prompt.
+
+TODO: We should probably explain this implicit behavior.
+
+/Claude-sonnet@4.5

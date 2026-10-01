@@ -1,0 +1,22 @@
+Refactored Makefile to use order-only prerequisites for directories.
+
+Major Makefile cleanup using order-only prerequisites (| syntax):
+
+Problem: Directory targets (bin/, $(INSTALL_DIR)) were regular prerequisites, so
+updated timestamps would trigger unnecessary rebuilds even when directory didn't
+change.
+
+Solution: Changed to order-only prerequisites using |:
+- Directories only trigger builds if they're missing (not if newer)
+- Excluded from automatic variables like $^
+- Removed trailing slashes from directory names (added back in rules)
+- Consolidated directory creation with mkdir -p
+- Moved pipe syntax to individual rules
+
+Example: bin/%.sh : %.sh | bin (bin only matters if missing, not if changed)
+
+Also simplified directory creation targets with ; syntax for one-liners.
+
+This is a Makefile best-practice improvement that reduces unnecessary rebuilds.
+
+/Claude-haiku@4.5

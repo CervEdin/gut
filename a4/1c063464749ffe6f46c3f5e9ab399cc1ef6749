@@ -1,0 +1,7 @@
+This goes further than the validator's suggestion. If you'd rather keep a
+version in the registry, update the three stale entries to 0.2.6, 0.2.15,
+and 0.2.1, and change the versioning rule in cc-plugins/CLAUDE.md to say
+both files must be updated together.
+
+Before removing the fields, I tested that a registry with no version field
+still validates. I ran this on a copy of the tree, not the real repo.

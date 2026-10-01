@@ -1,0 +1,9 @@
+This is a minor version bump, not a patch, because it changes when the
+skill triggers, and our versioning rule treats that as more than a
+patch. This series already has one other minor bump. Squash the series
+if you want a single minor bump instead of two.
+
+I did not test this. skill-creator can compare a description against
+queries that should and should not trigger it, which would show whether
+this description actually beats commit-commands:commit, instead of just
+looking like it should. I have not run that test.

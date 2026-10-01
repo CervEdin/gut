@@ -1,0 +1,12 @@
+The measurement is 2000 commits by "Jeff King" in a local git.git clone,
+bucketed by insertions plus deletions, counting body words after
+dropping the subject and any trailer line. Medians by bucket: 87 words
+for 1-2 lines, 90 for 3-5, 103 for 6-15, 148 for 16-50, 203 for 51-200.
+The numbers in the table are reproducible from that clone, but they are
+one author in one project with a mailing-list review culture, so they
+describe peff rather than commit messages in general.
+
+The budget bands in COMPOSE.md are anchored to those percentiles rather
+than derived from them, which is a judgement call. They are meant as
+ceilings on invention and will want revisiting once there is any
+evidence about what they do in practice.

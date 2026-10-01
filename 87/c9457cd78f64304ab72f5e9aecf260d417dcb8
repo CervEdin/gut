@@ -1,0 +1,10 @@
+The original sed command was checking if the output had only 1 line (meaning HEAD and upstream are the same commit).
+The new approach using 'wc -l' is more readable and doesn't rely on GNU sed extensions.
+
+Old logic: sed -n -e '${1p}' -e '2q 1'
+- Prints line 1 if it's the last line (${1p})
+- Quits with exit code 1 if there's a 2nd line (2q 1)
+
+New logic: test "$(... | wc -l)" -eq 1
+- Simply counts lines and checks if count equals 1
+- More explicit and easier to understand

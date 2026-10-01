@@ -1,0 +1,5 @@
+Added Vim swap files to .gitignore.
+
+Prevents .swp files from being tracked in git.
+
+/Claude-haiku@4.5

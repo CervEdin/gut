@@ -1,0 +1,7 @@
+Prettier also reformatted the step 5 paragraph when it ran on this
+file. Step 5 is about to be rewritten in a later commit, so I restored
+its original line wrapping here, to keep that unrelated change out of a
+commit about step 2.
+
+This is a patch bump: the rendered text changes, but the instruction
+itself does not.

@@ -1,0 +1,29 @@
+Added make help target with documented target listing.
+
+Enhancement: Replaced 'ls' target with 'help' that provides user-friendly
+documentation.
+
+Added two new features:
+1. help target with clear descriptions of installation info
+2. list-make-targets.awk script that parses Makefile for documented targets
+
+Documentation format: Target documentation is marked with ## comments preceding
+the target:
+```
+## This is what the target does
+target:
+  command
+```
+
+The awk script:
+- Parses Makefile for ^## documentation lines
+- Extracts target names and associates with docs
+- Formats with color (green for targets)
+- Displays relevant targets users are likely to run
+
+Documented targets in this commit: all, uninstall, help, debug
+
+This gives users accessible documentation within 'make help' without needing to
+read the Makefile directly.
+
+/Claude-haiku@4.5

@@ -1,0 +1,8 @@
+Minor again, since this changes how the skill triggers, which the
+versioning rule puts outside a patch bump. Two minors in one series is
+noisy; squash the series if you would rather it land as one.
+
+Untested. skill-creator can measure a description against
+should-trigger and should-not-trigger queries, which would say whether
+this actually wins against commit-commands:commit rather than just
+reading as though it should. I did not run it.

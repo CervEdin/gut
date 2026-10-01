@@ -1,0 +1,9 @@
+Fixed unbound variable FILES in git-resolve.
+
+Initialize FILES variable to empty string to prevent undefined variable errors
+when running git-resolve without a file-spec argument.
+
+This fix prevents 'unbound variable' errors from strict mode (set -u) when
+the optional file-spec argument is not provided.
+
+/Claude-haiku@4.5

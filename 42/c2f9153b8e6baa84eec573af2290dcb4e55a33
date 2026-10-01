@@ -1,0 +1,12 @@
+Added proper error handling for branch rename failures in git-mark.sh.
+
+Previously, if 'git branch -m' failed (e.g., due to branch name conflicts or
+invalid branch names), the script would silently continue. Now it:
+- Captures the exit code
+- Prints an error message to stderr indicating which branch failed
+- Exits with the same error code from git
+
+This makes debugging easier and prevents the script from appearing to succeed
+when it actually failed.
+
+/Claude-haiku@4.5

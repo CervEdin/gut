@@ -1,0 +1,25 @@
+Why duck typing instead of alternatives:
+
+1. Platform detection (uname) would require enumerating all BSD variants
+2. Testing for --version flag is a proxy test, not testing the actual behavior
+3. sed -i.bak approach leaves backup files that need cleanup (tricky with xargs)
+4. Duck typing tests the exact behavior we need with negligible overhead
+
+The test creates a temp file and tries 'sed -i' (GNU syntax). If it succeeds,
+we use GNU syntax; if it fails, we use BSD syntax 'sed -i ""'. This works
+across all platforms without needing to know which platform we're on.
+
+---
+
+Null-delimited xargs pattern (tr '\n' '\0' | xargs -0):
+
+This approach properly handles filenames with:
+- Spaces
+- Newlines
+- Other special characters
+
+xargs -d '\n' (GNU-specific) only handles newlines in filenames but fails on
+other special characters. The null-delimited approach is:
+- Fully portable (works on BSD and GNU)
+- More robust (null bytes can't appear in filenames)
+- Standard practice for handling arbitrary filenames in shell scripts

@@ -1,0 +1,13 @@
+Added idempotency check to git-arch - only creates tag if it doesn't exist.
+
+Changes prevent creating duplicate archive tags for the same commit:
+- Before: Would always create a new tag even if one already exists
+- After: Checks if tag exists first, returns existing tag name if found
+
+Also outputs the tag name (created or existing) to stdout:
+- Allows the tag name to be captured and piped to other commands
+- Enables scripting workflows that depend on the tag identifier
+
+This makes git-arch safer and more composable in shell pipelines.
+
+/Claude-haiku@4.5

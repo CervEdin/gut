@@ -1,0 +1,9 @@
+Fixed git-delorean to skip new files.
+
+Problem: git-delorean can't create fixup commits for new files (they have
+no prior commits to fix up against).
+
+Solution: Added --diff-filter to only process modified files, excluding
+additions. This prevents errors when staged changes include new files.
+
+/Claude-haiku@4.5

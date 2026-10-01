@@ -1,0 +1,9 @@
+Include tags in git-parents output.
+
+Extended git-parents to list both local branches and local tags as potential
+rebase targets. Previously only branches were included.
+
+This gives more options when using git-parents to find suitable rebase targets,
+allowing rebasing onto tagged commits in addition to branch tips.
+
+/Claude-haiku@4.5

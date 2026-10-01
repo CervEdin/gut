@@ -1,0 +1,12 @@
+Added blank line after shebang for style consistency.
+
+Added blank lines after shebangs in multiple scripts for improved code style:
+- git-gone-local.sh
+- git-prune-local.sh
+- git-rebase-indent.sed
+
+This follows Python and other language style conventions where a blank line
+after the shebang improves readability and separates the script declaration
+from the logic.
+
+/Claude-haiku@4.5

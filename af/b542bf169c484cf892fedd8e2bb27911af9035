@@ -1,0 +1,12 @@
+Added help/usage documentation to git-arch script.
+
+Enhanced git-arch with comprehensive usage information:
+- Added usage string explaining what archive tags are
+- Added explanation of the naming convention: archive/<refname>/<date>
+- Explained use cases (archiving old branches, persistent snapshots)
+- Added help text handling for -h flag
+
+This improves discoverability and usability of the script by providing users
+with quick reference information about what archive tags do and how they work.
+
+/Claude-haiku@4.5

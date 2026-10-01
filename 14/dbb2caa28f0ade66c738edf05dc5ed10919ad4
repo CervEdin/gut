@@ -1,0 +1,9 @@
+Applied bash variable naming convention to git-delorean.
+
+Changed all local variables in git-delorean.sh to lowercase to follow bash
+conventions as documented in the commit message.
+
+Convention: Environment variables and shell internals are UPPERCASE, local
+variables are lowercase to avoid conflicts.
+
+/Claude-haiku@4.5

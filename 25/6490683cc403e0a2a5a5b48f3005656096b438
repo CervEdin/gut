@@ -1,0 +1,5 @@
+Fixed shebang in git-ignore.sh (fixup commit).
+
+Corrected broken shebang from '#/bin/sh' to '#!/bin/sh'.
+
+/Claude-haiku@4.5

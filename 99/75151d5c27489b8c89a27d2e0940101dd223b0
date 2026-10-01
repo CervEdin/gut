@@ -1,0 +1,13 @@
+Fixed unbound variable check in git-search-replace.
+
+Problem: Used unquoted '$3' in parameter expansion test [ -z "$3" ], which
+violates bash strict mode (set -u). With strict mode enabled, accessing an
+undefined variable causes a script exit.
+
+Solution: Changed to [ -z "${3}" ] syntax which properly references the variable
+with brace expansion, making the intent explicit and satisfying strict mode.
+
+This is a safeguard for scripts running under strict mode (-u flag) which treats
+unset variables as errors. The braces make variable expansion explicit.
+
+/Claude-haiku@4.5

@@ -1,0 +1,10 @@
+Added git-search-replace.sh: Search and replace across repository.
+
+Simple script for bulk search and replace operations across tracked files.
+
+Usage: git search-replace <search-string> <replace-string> [path]
+- Uses git grep to find files containing search string
+- Uses sed to replace in all matched files
+- Optional path parameter restricts to specific directory
+
+/Claude-haiku@4.5

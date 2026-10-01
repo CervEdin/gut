@@ -1,0 +1,8 @@
+Minor rather than patch: step 2 gains a question it did not ask before,
+and the closing rule changes what lands in the message. The version
+decision is yours to correct.
+
+Ten commits is a thin sample for a trailer census in a repo that only
+recently adopted one. I left the count alone rather than reading further
+back for this one question, on the grounds that a convention nobody has
+used in ten commits is not one the next commit should start.

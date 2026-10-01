@@ -1,0 +1,13 @@
+Fixed git-arch to accept revspec argument.
+
+Previously git-arch only worked on implicit symbolic-ref HEAD or detached HEAD.
+Now accepts a revspec parameter to specify which ref to create archive tags for.
+
+Usage examples:
+- git arch (archives current HEAD)
+- git arch master (archives master branch)
+- git arch abc123 (archives specific commit)
+
+Renamed TARGET variable to refname for clarity.
+
+/Claude-haiku@4.5

@@ -1,0 +1,9 @@
+Made 'all' the default Makefile target.
+
+Added explicit 'default: all' target to Makefile to make 'all' the default
+target that runs when just 'make' is invoked without arguments.
+
+This is a usability improvement so users don't need to specify 'make all' - they
+can just run 'make' and get the expected behavior of building everything.
+
+/Claude-haiku@4.5

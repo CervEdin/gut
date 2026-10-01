@@ -1,0 +1,9 @@
+.git/ is not a typical place for a working file, but the alternatives
+are worse. A file in the worktree needs a .gitignore entry, and the
+host repo has not agreed to add one. A temp file outside the repo
+disappears before anyone can check the score. Git already keeps
+COMMIT_EDITMSG in .git/ for the same reason.
+
+The draft file stays after the commit finishes. This costs nothing, and
+gives git commit --amend -F a starting point if the message needs a
+fix.

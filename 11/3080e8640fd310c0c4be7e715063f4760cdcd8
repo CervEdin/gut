@@ -1,0 +1,16 @@
+Fixed printf format string vulnerabilities (SC2059 shellcheck).
+
+Problem: Used variables in printf format strings, which is unsafe and can cause
+unexpected behavior if variables contain format specifiers.
+
+Solution: Changed to use format specifiers in the format string, pass variables
+as arguments:
+- Before: printf "Invalid option: -$OPTARG\n" >&2
+- After: printf -- 'Invalid option: -%s\n' "$OPTARG" >&2
+- Also added -- to terminate option processing
+
+Applied to: git-arch.sh, git-mebase.sh
+
+This is a security best practice that prevents format string attacks.
+
+/Claude-haiku@4.5

@@ -1,0 +1,7 @@
+Cherry-picked from wip/w34 (ba5a323), where it was never posted.
+
+Tested on Linux with a sed shim that emulates BSD -i (the next
+argument is always the suffix), on a real merge conflict: main leaves
+f.txt"" behind after --ours; with this, only f.txt. GNU sed behaves
+the same before and after. There is no test suite on main to add a
+regression test to. shellcheck is clean on the script after this.

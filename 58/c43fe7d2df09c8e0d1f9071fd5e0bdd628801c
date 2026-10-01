@@ -1,0 +1,13 @@
+Fixed missing git-rebase-indent.sed script.
+
+Added the previously missing rebase-indent sed script that's used by
+git-rebase-retag for formatting rebase todos.
+
+Also:
+- Updated git-rebase-retag to reference the script (currently hardcoded to ~/bin/)
+- Updated Makefile to include .sed files in install target
+
+TODO: Consider embedding the sed script directly in the .sh file instead of
+requiring an external file dependency.
+
+/Claude-sonnet@4.5

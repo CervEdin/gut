@@ -1,0 +1,18 @@
+Walked through by hand on the rejected ~/c/mail commits, using the
+report's appendix brief with IDs added. For c56864e the provenance
+file puts "The backup was queued" under today-1 "Backup queued via
+ExecStartPost=", and the stat shows a CLAUDE.md change that no
+sentence covers. For 101a2c2 the coverage section has no entry in the
+body for category-filters.md or the new CLAUDE.md sections, and the
+file list separates into an import, a trap fix and two documents,
+which is the split the check should recommend.
+
+That is a walkthrough, not a run of the skill by a fresh agent. Whether
+an agent writes the file rather than skipping it too is untested; the
+bet is that a missing section in the report is harder to skip than a
+judgment is.
+
+peff-commit asking about a split is a second question after the
+one-batched-call interview. It happens only when coverage shows
+unrelated concerns, and it comes after the draft, so it did not seem
+to conflict with "never a series", which is about the gap questions.

@@ -1,0 +1,5 @@
+Removed debug flag from git-resolve (fixup commit).
+
+Removed 'set -x' debug flag that was left in git-resolve.sh.
+
+/Claude-haiku@4.5
