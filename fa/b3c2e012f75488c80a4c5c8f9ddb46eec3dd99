@@ -1,0 +1,33 @@
+The text follows the draft in the approved plan, adapted from the
+analysis pasted while planning. It is 667 characters, under the 1024
+limit.
+
+Assumed, not sourced: whether the new description triggers better than
+the old one. A small trigger eval (old vs new description, Sonnet,
+single-turn queries) is planned but waits on sign-off for its cost;
+its scores go in this note when it runs. Even then it is weak
+evidence: the harness counts a trigger only when the first tool call
+is the skill, and a single-turn query does not reproduce a correction
+in the middle of a session.
+
+"The previous two commits" in the message are the split section and
+the commit step.
+
+Trigger eval, 2026-10-01: skill-creator's run_eval, claude-sonnet-5-5,
+one run per query, 120 s timeout, one worker at a time, from a scratch
+project with interactive-staging@gut disabled. 12 queries, 6 that
+should trigger and 6 that should not. Both descriptions score 8 of 12,
+and neither triggers on any of the 6 that should not.
+
+The positives differ. The old description triggers on "six files,
+three logical changes, three discrete commits" and on "stage only the
+logging lines". The new one triggers on the session-style "the regroup
+is its own commit" and on "split the last commit". Neither triggers on
+a rename plus a fix in one file, or on "don't amend that in, it's
+unrelated".
+
+Each cell is a single run, so a one-query difference is within noise,
+and the harness counts a miss whenever the first tool call is not the
+skill. My reading, not tested further: the new text dropped the
+across-files and up-front `git add -p` wording that the two old hits
+match.
