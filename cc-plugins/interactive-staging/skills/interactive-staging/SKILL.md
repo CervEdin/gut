@@ -60,38 +60,44 @@ git add -- <path>
 When only some changes in a file belong to this commit:
 
 1. **Once per file** (at the start of the session), save the current index
-   version (the base) and a working copy:
+   version (the base) and a working copy. Both go in a `stage` directory inside
+   the git dir (one per worktree), never in the work tree:
 
    ```bash
-   ${CLAUDE_SKILL_DIR}/scripts/git-stage-partial --base <path> > .stage-base-<name>
-   cp .stage-base-<name> .stage-<name>
+   d=$(git rev-parse --path-format=absolute --git-path stage)
+   mkdir -p "$d" && echo "$d"
+   ${CLAUDE_SKILL_DIR}/scripts/git-stage-partial --base <path> > "$d/base-<name>"
+   cp "$d/base-<name>" "$d/<name>"
    ```
 
    `--base` resolves `<path>` the same way as staging does: relative to the
    current directory, or absolute. For a new file that is not in the index yet,
    it prints nothing, so the base is empty.
 
-2. Edit `.stage-<name>` to apply **only** the changes relevant to this commit.
+   Shell variables do not carry over between commands. Where the steps below say
+   `$d`, use the path that `echo` printed.
+
+2. Edit `$d/<name>` to apply **only** the changes relevant to this commit.
 
 3. Stage via the helper script:
 
    ```bash
-   ${CLAUDE_SKILL_DIR}/scripts/git-stage-partial <path> .stage-<name>
+   ${CLAUDE_SKILL_DIR}/scripts/git-stage-partial <path> "$d/<name>"
    ```
 
-4. For subsequent commits to the same file, just keep editing `.stage-<name>` —
-   it already reflects all changes staged so far, so there's no need to
-   re-extract from the index.
+4. For subsequent commits to the same file, just keep editing `$d/<name>` — it
+   already reflects all changes staged so far, so there's no need to re-extract
+   from the index.
 
-5. Keep `.stage-base-<name>` for the duration of the session — it allows
-   reverting a stage:
+5. Keep `$d/base-<name>` for the duration of the session — it allows reverting a
+   stage:
 
    ```bash
    # To undo partial staging:
-   ${CLAUDE_SKILL_DIR}/scripts/git-stage-partial <path> .stage-base-<name>
+   ${CLAUDE_SKILL_DIR}/scripts/git-stage-partial <path> "$d/base-<name>"
    ```
 
-6. Clean up both temp files after the last commit for that file.
+6. After the last commit, remove the directory: `rm -r "$d"`.
 
 ### Deleted files
 
