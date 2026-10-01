@@ -67,7 +67,11 @@ Understand what has changed and group changes into logical commits.
 
 ## Step 2: Present Plan
 
-Show the user the proposed commit grouping:
+If the user already said how to split the changes ("the regroup is its own
+commit"), restate that grouping in one line and start staging. Do not ask them
+to confirm it again.
+
+Otherwise, show the user the proposed commit grouping:
 
 ```
 Proposed commits:
@@ -157,14 +161,10 @@ file to revert (see above) or `git reset HEAD -- <path>` to fully unstage.
 
 ### Commit
 
-Hand off to the user. Do **not** commit automatically — the user may use
-`/commit`, `/peff-commit`, or their own preferred workflow. Simply inform them
-that the changes are staged and ready.
-
-### Repeat
-
-After the user commits, proceed to stage the next group. Run `git diff --stat`
-to confirm remaining changes match expectations before continuing.
+When the staged diff looks right, commit the group through the commit skill the
+session uses (peff-commit, peff-commit-auto, `/commit`), or with `git commit` if
+there is none. Then run `git diff --stat` to confirm the remaining changes match
+the grouping, and stage the next group.
 
 ## Edge Cases
 
