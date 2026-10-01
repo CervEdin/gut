@@ -1,0 +1,19 @@
+The probe behind the second paragraph, from a subdirectory with f at
+the top and sub/g tracked: `git show :0:./g` and `git show :0:../f`
+print the blobs, `git show :0:g` fails ("path 'sub/g' is in the
+index, but not 'g'"), and `git show :0:<absolute>/f` fails ("exists
+on disk, but not in the index"). git 2.56.0.
+
+--base on an intent-to-add entry prints nothing, because the entry
+holds the empty blob. That is the right base for the next commit's
+split section, where `git reset -N` leaves new files in that state.
+
+Assumed, not sourced: an unmerged path has no stage-0 entry, so
+--base fails with git's own "is in the index, but not at stage 0".
+Whether a conflicted file should give stage 2 instead is open; I left
+the failure in place rather than guess.
+
+The matrix from the previous commit gained five --base rows (from a
+subdirectory with ../f and an absolute path, a new file, a path that
+is nowhere, and a top-level name from a subdirectory). All 26 rows
+pass.
