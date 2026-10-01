@@ -1,0 +1,14 @@
+The step now prints the directory and says to use the printed path,
+because the Bash tool in Claude Code starts a fresh shell for each
+command, so `d` from one command is gone in the next. The Edit tool
+also needs an absolute path, which the printed one is.
+
+Assumed, not sourced: whether Claude Code asks for permission before
+the Edit or Write tool writes under .git/. peff-commit already has the
+model write its draft and brief under the git dir, so this is not a
+new kind of write, but I did not check how the permission modes treat
+it.
+
+The file names inside the directory drop the leading `.stage-`
+(base-<name> and <name>), since the directory already says what they
+are.
