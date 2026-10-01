@@ -63,12 +63,13 @@ When only some changes in a file belong to this commit:
    version (the base) and a working copy:
 
    ```bash
-   git show :0:<path> > .stage-base-<name>
+   ${CLAUDE_SKILL_DIR}/scripts/git-stage-partial --base <path> > .stage-base-<name>
    cp .stage-base-<name> .stage-<name>
    ```
 
-   For new files not yet in the index, the base is empty (`/dev/null` or empty
-   file).
+   `--base` resolves `<path>` the same way as staging does: relative to the
+   current directory, or absolute. For a new file that is not in the index yet,
+   it prints nothing, so the base is empty.
 
 2. Edit `.stage-<name>` to apply **only** the changes relevant to this commit.
 

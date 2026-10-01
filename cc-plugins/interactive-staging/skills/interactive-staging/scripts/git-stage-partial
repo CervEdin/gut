@@ -2,6 +2,10 @@
 # git-stage-partial: stage a constructed file version into the index
 # Usage: git-stage-partial <path> <tempfile>
 #        git-stage-partial --remove <path>
+#        git-stage-partial --base <path>
+#
+# --base prints the index version of <path>, or nothing for a file that
+# is not in the index yet.
 #
 # <path> is relative to the current directory, or absolute, as for other
 # git commands.
@@ -33,6 +37,20 @@ if [ "${1:-}" = "--remove" ]; then
   fi
   git update-index --force-remove -- "$path"
   exit
+fi
+
+if [ "${1:-}" = "--base" ]; then
+  path="${2:?Usage: git-stage-partial --base <path>}"
+  name=$(resolve "$path" --cached) || exit 1
+  if [ -n "$name" ]; then
+    exec git cat-file blob ":0:$name"
+  fi
+  name=$(resolve "$path" --others) || exit 1
+  if [ -z "$name" ]; then
+    echo "error: $path: not in the index or the work tree (cwd: $PWD)" >&2
+    exit 1
+  fi
+  exit 0
 fi
 
 path="${1:?Usage: git-stage-partial <path> <tempfile>}"
