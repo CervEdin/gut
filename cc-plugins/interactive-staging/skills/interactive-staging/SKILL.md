@@ -1,9 +1,16 @@
 ---
-description:
-  Selectively stage changes into discrete commits. Use when multiple logical
-  changes have accumulated across files and need to be committed separately.
-  Replaces interactive `git add -p` with git plumbing (hash-object +
-  update-index).
+description: >-
+  Split changes into separate, discrete commits without editing the working tree
+  back and forth, a scriptable `git add -p`. Use whenever a change, or part of
+  one, belongs in a different commit: several logical changes across files need
+  committing separately, the user wants only some lines or hunks of a file
+  staged, the user says something is "its own commit", asks to separate or split
+  changes or the last commit, or one file holds two logical changes (a reorder
+  plus a new entry, a refactor plus a fix). Also use before amending a commit
+  with a change unrelated to it, and instead of reset + edit + commit + re-edit.
+  Stages exact intermediate file contents through git hash-object +
+  update-index. For a commit behind HEAD, git-rebase-i stops at the commit and
+  this skill stages the pieces.
 ---
 
 # Interactive Staging
