@@ -1,33 +1,41 @@
-The text follows the draft in the approved plan, adapted from the
-analysis pasted while planning. It is 667 characters, under the 1024
-limit.
+The text started from the draft in the approved plan, adapted from the
+analysis pasted while planning, and was revised after the first
+trigger eval below. It is 790 characters, under the 1024 limit.
 
-Assumed, not sourced: whether the new description triggers better than
-the old one. A small trigger eval (old vs new description, Sonnet,
-single-turn queries) is planned but waits on sign-off for its cost;
-its scores go in this note when it runs. Even then it is weak
-evidence: the harness counts a trigger only when the first tool call
-is the skill, and a single-turn query does not reproduce a correction
-in the middle of a session.
+Trigger eval, 2026-10-01: skill-creator's run_eval, claude-sonnet-5-5,
+120 s timeout, one worker at a time, from a scratch project with
+interactive-staging@gut disabled. 12 queries, 6 that should trigger
+and 6 that should not.
+
+First pass, one run per query, old text vs the plan's draft: both
+scored 8 of 12. The draft gained "the regroup is its own commit" and
+"split the last commit" but lost "six files, three logical changes,
+three discrete commits" and "stage only the logging lines". So the
+across-files case and partial staging went back in, with `git add -p`
+moved to the first sentence.
+
+Second pass, three runs per query, old text vs this one (triggers per
+three runs):
+
+  should trigger                        old   this
+  the regroup is its own commit         0/3   3/3
+  rename plus a fix in one file         0/3   3/3
+  split the last commit                 0/3   3/3
+  stage only the logging lines          3/3   2/3
+  six files, three logical changes      3/3   0/3
+  don't amend that in, it's unrelated   0/3   0/3
+
+That is 8 of 12 queries passing for the old text and 10 of 12 for
+this one. Neither triggered in any of the 18 runs of the six that
+should not (commit everything, amend config.go, reword, drop a WIP
+commit, rebase onto main, show what's staged).
+
+Still weak evidence. The harness counts a miss whenever the first tool
+call is not the skill, so a model that runs `git status` first and
+then loads the skill scores 0. It keeps no transcripts, so I could not
+tell which happened on the six-files query, which this text misses
+3 of 3 times although it names the across-files case. Single-turn
+queries also do not reproduce a correction in the middle of a session.
 
 "The previous two commits" in the message are the split section and
 the commit step.
-
-Trigger eval, 2026-10-01: skill-creator's run_eval, claude-sonnet-5-5,
-one run per query, 120 s timeout, one worker at a time, from a scratch
-project with interactive-staging@gut disabled. 12 queries, 6 that
-should trigger and 6 that should not. Both descriptions score 8 of 12,
-and neither triggers on any of the 6 that should not.
-
-The positives differ. The old description triggers on "six files,
-three logical changes, three discrete commits" and on "stage only the
-logging lines". The new one triggers on the session-style "the regroup
-is its own commit" and on "split the last commit". Neither triggers on
-a rename plus a fix in one file, or on "don't amend that in, it's
-unrelated".
-
-Each cell is a single run, so a one-query difference is within noise,
-and the harness counts a miss whenever the first tool call is not the
-skill. My reading, not tested further: the new text dropped the
-across-files and up-front `git add -p` wording that the two old hits
-match.
