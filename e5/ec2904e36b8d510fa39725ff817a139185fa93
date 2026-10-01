@@ -1,0 +1,14 @@
+The text follows the draft in the approved plan, adapted from the
+analysis pasted while planning. It is 667 characters, under the 1024
+limit.
+
+Assumed, not sourced: whether the new description triggers better than
+the old one. A small trigger eval (old vs new description, Sonnet,
+single-turn queries) is planned but waits on sign-off for its cost;
+its scores go in this note when it runs. Even then it is weak
+evidence: the harness counts a trigger only when the first tool call
+is the skill, and a single-turn query does not reproduce a correction
+in the middle of a session.
+
+"The previous two commits" in the message are the split section and
+the commit step.
