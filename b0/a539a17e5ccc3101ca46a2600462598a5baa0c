@@ -1,0 +1,11 @@
+Assumed, not sourced: when Claude proposed the grouping and the user
+confirmed it, the new Commit step has Claude commit as well. The
+planning answer ("Claude commits") was about the case where the user
+gave the split; I read a confirmed proposal as the same case.
+
+peff-commit itself has disable-model-invocation set, so a model
+cannot invoke it; it is listed as an example of a session's commit
+skill, for when the user runs it.
+
+The separate Repeat step is folded into Commit, since the only thing
+it waited for was the user's commit.
