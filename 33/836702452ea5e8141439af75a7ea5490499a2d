@@ -1,0 +1,24 @@
+Depends on the "Split committed work" section from the
+interactive-staging topic (cc/interactive-staging-split); merge that
+first.
+
+Tested in throwaway repos with a target commit that edits f1 in two
+places and adds n1 and n2, and a child that edits f1 and n1. Split:
+the stop ends in two commits, `git diff <orig> HEAD` is empty, and
+the rebase finishes with the original tip's tree. Removal (keep hunk 1
+and n1): after `git restore --staged --worktree -- :/` the break stop
+shows exactly the dropped hunk and n2, and the rebase finishes.
+
+What does not work, from the same tests: `git restore -- .` and
+`git checkout -- .` keep the intent-to-add entry, and
+`git rebase --continue` refuses with a merge-conflict message although
+there is no conflict. `git rm --cached` removes the entry but leaves
+the file untracked; when a later commit touches it, the pick fails
+with "untracked working tree files would be overwritten by merge".
+The plan expected `git rm --cached` to be the answer; it is only half
+of it.
+
+Assumed, not sourced: `git reset --hard` discards the same leftovers
+and also worked. I used restore so the command names what it discards
+and does not touch HEAD; that is my preference, not something the
+tests decide.
