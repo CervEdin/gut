@@ -240,9 +240,10 @@ Verify with `git diff $(cat .rebase/ORIGINAL_HEAD)` after each rebase.
 If the fixup also needs a message change, do the fixup first, then use
 `git reword` in a second pass to update the target's message.
 
-## Edit (remove parts of a commit)
+## Edit (split a commit, or remove parts of it)
 
-Stop at the commit, reset, selectively re-stage only what you want to keep.
+Stop at the commit, take it apart with the interactive-staging skill, and commit
+the pieces you keep.
 
 ### 1. Write the sed script
 
@@ -260,18 +261,27 @@ EOF
 GIT_SEQUENCE_EDITOR="sed -i '' -E -f .rebase/edit.sed" git rebase -i <sha>^
 ```
 
-### 3. Reset, re-stage, and continue
+### 3. Split, commit the pieces, and continue
+
+At the stop, follow the "Split committed work" section of the
+interactive-staging skill. It takes the commit apart without touching the work
+tree, and stages and commits each piece. Then run `git rebase --continue`.
+
+To remove part of the commit, commit only the pieces you keep, then discard the
+rest before you continue:
 
 ```bash
-git reset HEAD^                  # undo commit, unstage all changes
-# Edit the worktree to keep only what you want
-git add <files>                  # stage the desired changes
-git commit -m "new message"
+git restore --staged --worktree -- :/
 git rebase --continue
 ```
 
+A bare `git restore -- .` is not enough: it leaves the intent-to-add entries of
+dropped new files, and `git rebase --continue` refuses with "You must edit all
+merge conflicts". `--staged --worktree` removes those entries and their files.
+
 Expect downstream conflicts on lines that were removed — resolve by dropping the
-removed content from the incoming side.
+removed content from the incoming side. A later commit that changes a removed
+new file stops with a modify/delete conflict; `git rm <path>` keeps it removed.
 
 ## Purge files from history
 
