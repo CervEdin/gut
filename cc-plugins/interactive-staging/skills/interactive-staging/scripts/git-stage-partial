@@ -2,18 +2,69 @@
 # git-stage-partial: stage a constructed file version into the index
 # Usage: git-stage-partial <path> <tempfile>
 #        git-stage-partial --remove <path>
+#        git-stage-partial --base <path>
+#
+# --base prints the index version of <path>, or nothing for a file that
+# is not in the index yet.
+#
+# <path> is relative to the current directory, or absolute, as for other
+# git commands.
+
+# Print the index name of <path>. The remaining arguments say where to
+# look: --cached for the index, --others for untracked files. Prints
+# nothing when <path> is in neither.
+resolve() {
+  local path=$1 name
+  shift
+  # A pathspec also matches everything below a directory of that name.
+  if [ -d "$path" ] ||
+    [ -n "$(git --literal-pathspecs ls-files --cached -- "$path/")" ]; then
+    echo "error: $path: is a directory" >&2
+    return 1
+  fi
+  # An unmerged path has one entry per stage; --deduplicate lists it once.
+  IFS= read -r -d '' name < <(git --literal-pathspecs ls-files -z \
+    --deduplicate --full-name "$@" -- "$path")
+  printf '%s' "$name"
+}
 
 if [ "${1:-}" = "--remove" ]; then
   path="${2:?Usage: git-stage-partial --remove <path>}"
+  name=$(resolve "$path" --cached) || exit 1
+  if [ -z "$name" ]; then
+    echo "error: $path: not in the index (cwd: $PWD)" >&2
+    exit 1
+  fi
   git update-index --force-remove -- "$path"
+  exit
+fi
+
+if [ "${1:-}" = "--base" ]; then
+  path="${2:?Usage: git-stage-partial --base <path>}"
+  name=$(resolve "$path" --cached) || exit 1
+  if [ -n "$name" ]; then
+    exec git cat-file blob ":0:$name"
+  fi
+  name=$(resolve "$path" --others) || exit 1
+  if [ -z "$name" ]; then
+    echo "error: $path: not in the index or the work tree (cwd: $PWD)" >&2
+    exit 1
+  fi
   exit 0
 fi
 
 path="${1:?Usage: git-stage-partial <path> <tempfile>}"
 tempfile="${2:?Usage: git-stage-partial <path> <tempfile>}"
 
+name=$(resolve "$path" --cached --others) || exit 1
+if [ -z "$name" ]; then
+  echo "error: $path: not in the index or the work tree (cwd: $PWD)" >&2
+  exit 1
+fi
+
 # Detect file mode: prefer index entry, fall back to filesystem
-mode=$(git ls-files --stage -- "$path" 2>/dev/null | awk '{print $1}')
+mode=$(git --literal-pathspecs ls-files --stage -- "$path" |
+  awk '{print $1; exit}')
 if [ -z "$mode" ]; then
   # New file — detect from filesystem permissions
   if [ -x "$path" ]; then
@@ -28,7 +79,5 @@ sha=$(git hash-object -w -- "$tempfile") || {
   exit 1
 }
 
-# --cacheinfo takes literal index paths (no CWD prefix resolution),
-# unlike most git commands. Prepend the prefix so it works from subdirectories.
-prefix=$(git rev-parse --show-prefix)
-git update-index --add --cacheinfo "$mode,$sha,$prefix$path"
+# --cacheinfo takes the name relative to the top of the work tree.
+git update-index --add --cacheinfo "$mode,$sha,$name"
