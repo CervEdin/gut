@@ -1,0 +1,12 @@
+Assumed, not sourced: the section sits before Step 1 rather than at
+the end, because it is where work starts when the changes are already
+committed. The plan only said to turn the appendix into a section.
+
+Assumed, not sourced: the `git diff <orig> HEAD` check assumes every
+group gets committed. When part of the change is meant to be dropped
+(git-rebase-i's removal case), the diff shows exactly that part, which
+is still a useful check but not an empty one.
+
+The reason for -N is the appendix's, reworded from "instead of
+dropping them to untracked" to "all the way to untracked" to match
+the message of the commit that added it.
