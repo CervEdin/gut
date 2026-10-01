@@ -19,6 +19,42 @@ Uses the same technique as vim-fugitive: write desired content as a blob via
 `${CLAUDE_SKILL_DIR}/scripts/git-stage-partial` wraps this into a single atomic
 operation.
 
+## Split committed work
+
+When the changes are already committed — the user asks to split the last commit,
+or says part of it is its own commit — take them back out of the commit, then
+continue at Step 1. The work tree does not change.
+
+1. Record the commit, so its message and notes stay reachable:
+
+   ```bash
+   git rev-parse HEAD
+   ```
+
+   Call the printed sha `<orig>`. `git log -1 <orig>` shows the old message, and
+   `git notes show <orig>` its notes.
+
+2. Undo the commit, keeping its changes, and unstage them:
+
+   ```bash
+   git reset --soft HEAD~1    # or <base>, to split a squashed range
+   git reset -N
+   ```
+
+   Use `-N`, not a bare `git reset`. A bare reset moves paths that don't exist
+   in HEAD all the way to untracked. `-N` marks them as intent-to-add instead,
+   so new files keep showing up in `git status` as `A` and in `git diff` with
+   their content — they can't get lost among unrelated untracked files, and
+   diff-based tooling still sees them.
+
+   If the changes are staged but not committed, run only `git reset -N`.
+
+3. Continue at Step 1. After the last group is committed, `git diff <orig> HEAD`
+   prints nothing: together the new commits hold exactly the old change.
+
+For a commit behind HEAD, git-rebase-i stops at that commit, and this section
+applies there.
+
 ## Step 1: Analysis
 
 Understand what has changed and group changes into logical commits.
@@ -143,17 +179,3 @@ to confirm remaining changes match expectations before continuing.
   detects from filesystem for new files.
 - **Renamed files:** Stage as deletion of old path + addition of new path
   (partial or whole as appropriate).
-
-## Appendix: Starting from a fully staged index
-
-Occasionally the session starts with everything already in the index (e.g. after
-`git reset --soft <base>` to split up squashed work). Unstage with:
-
-```bash
-git reset -N
-```
-
-`-N` marks paths that don't exist in HEAD as intent-to-add instead of dropping
-them to untracked, so new files keep showing up in `git status` as `A` and in
-`git diff` with their content — they can't get lost among unrelated untracked
-files, and diff-based tooling still sees them.
