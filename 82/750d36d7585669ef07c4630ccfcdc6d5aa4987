@@ -1,0 +1,30 @@
+Tested with a 21-row matrix in throwaway repos: cwd at the top and in
+a subdirectory, `../f`, absolute paths spelled through /tmp and
+/private/tmp, new files with and without the executable bit, `a*.txt`,
+directories (present, and deleted with one file left in the index),
+--remove cases, an unmerged path, a linked worktree, and a name with a
+space. The previous script fails 12 rows; this one fails none. The
+matrix script lives in the session scratchpad, not in the repo.
+
+Assumed, not sourced: normalizing the path in shell (strip the
+toplevel, prepend the prefix, fold `..`) was the other option. I did
+not take it because /tmp and /private/tmp spell the same repo
+differently, and ls-files resolves both spellings.
+
+Assumed, not sourced: a first draft joined the -z output with
+`tr -d '\0'`. On the unmerged path it turned three `f` entries into
+`fff` and staged a bogus entry. The script now passes --deduplicate
+and reads only the first NUL-terminated name.
+
+The directory check asks the index for "$path/" as well as testing -d,
+because a directory deleted from the work tree with one file left in
+the index would otherwise resolve to that file.
+
+`--remove` now ends with a bare `exit`, so a failing update-index is
+no longer reported as success.
+
+Untested: case-insensitive file systems (core.ignorecase), where `F`
+may or may not resolve to an index entry `f`.
+
+Left alone: hash-object still looks up attributes by the tempfile's
+name rather than the destination path (no --path).
