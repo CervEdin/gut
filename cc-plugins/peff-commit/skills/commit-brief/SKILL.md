@@ -42,9 +42,10 @@ Work from cheapest to most expensive and stop when a field is answered:
    entry can point back to; anything older is ordinary history.
 5. The conversation so far. What did the user actually say about this change?
    This is also the only place a _following_ commit can come from — the repo
-   cannot know what has not been written yet.
-6. Any issue, PR, or mail thread already in context. Do not go fetch one that
-   is not.
+   cannot know what has not been written yet. If the session was handed off from
+   another, its transcript counts too; see "Tags".
+6. Any issue, PR, or mail thread already in context. Do not go fetch one that is
+   not.
 
 ## Tags
 
@@ -74,6 +75,23 @@ settled either way — nothing marks "I decided this three turns ago" apart from
 citation; it's the same inference wearing a timestamp. If the sentence you are
 about to cite came from an assistant turn rather than the user, the entry is
 `unsourced`.
+
+What counts is who wrote the sentence, not which turn it arrived in. Some text a
+model wrote reaches you as a user turn: a hand-off plan that opens a session
+("Implement the following plan: ..."), the summary that continues a compacted
+session, a note relayed from another agent, the expanded body of a skill or
+command. None of it is the user's voice, and a plan the user approved is no
+exception — approving a plan accepts its approach, not every reason it gives.
+"Not optimized, because these cases are rare" in such a plan is a model's call,
+so the entry is `unsourced`. Cite only what the user typed; if you cannot tell
+who wrote a sentence, treat it as not the user.
+
+Such text is a lead, though, not a dead end. A plan's "the user wants X" usually
+restates something the user did say in the session that wrote the plan, and both
+a plan hand-off and a compaction summary name that session's transcript ("read
+the full transcript at: ..."). Read it and quote the user from there. The entry
+is `unsourced` only when their words are not in it, or nothing names a
+transcript.
 
 `asked` never appears in a brief this skill writes; it exists for callers that
 interview and re-tag afterwards.
@@ -114,10 +132,10 @@ it is provisional while the position holds.
 
 The citation is a separate question from the text. A commit already on the
 branch is evidence you can go and read, so cite it however you found it; a sha
-in the citation is fine, because the citation never reaches the message — only
-a sha on the mainline is fit to be written into one. A commit that does not
-exist yet is not in the repository at all, so it is `session` with the sentence
-that promised it, or it is `unsourced`.
+in the citation is fine, because the citation never reaches the message — only a
+sha on the mainline is fit to be written into one. A commit that does not exist
+yet is not in the repository at all, so it is `session` with the sentence that
+promised it, or it is `unsourced`.
 
 ## Output
 
