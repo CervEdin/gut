@@ -7,12 +7,18 @@ Assumed, not sourced: a patch bump. cc-plugins/CLAUDE.md calls new
 behaviour a minor bump (0.3.0); the patch bump follows the plan and the
 memory rule to always patch-bump unless told otherwise.
 
-Tested only in a toy scratch repo: C and E conflicting with the branch,
-D, F and G clean, and a conflicting H for the negative case. The probe
-stopped at C and then E, Step 2 left the branch on E with the tree equal
-to the old tip, and the completion check passed; a real rebase onto the
-tip then completed without stops. With H added, both the replay check
-and the worktree fallback failed. Not run on a real long-lived branch.
+Tested only in toy scratch repos. In the first, C and E conflict with
+the branch, D, F and G are clean, and a conflicting H is the negative
+case. The probe stopped at C and then E, Step 2 left the branch on E
+with the tree equal to the old tip, and the completion check (then
+git replay) passed; a real rebase onto the tip then completed without
+stops. With H added, the replay check and a throwaway-worktree rebase
+both failed. The in-place check that replaced them was tested on its
+own: it exited 0 for a clean rebase and 1 for a conflicting one, and
+both times left the branch on its old commit with a clean tree. The
+C/E/H scenario was not rerun with it. Another scratch repo showed
+git replay exiting 1 where the rebase was clean, after a branch commit
+had been cherry-picked upstream. Not run on a real long-lived branch.
 
 Not addressed: the sanity checks' old range <old-base>..<old-tip> uses
 /tmp/old-tip, the Step 1 merge tip, so range-diff also lists the
