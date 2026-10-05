@@ -1,0 +1,21 @@
+Assumed, not sourced: conflict means textual (git merge-tree reports
+one), not "touches the same files". This comes from the plan; the
+user's "yes it's what i mean" answered an assistant drawing, and the
+planning transcript has no user sentence that states it.
+
+Assumed, not sourced: a patch bump. cc-plugins/CLAUDE.md calls new
+behaviour a minor bump (0.3.0); the patch bump follows the plan and the
+memory rule to always patch-bump unless told otherwise.
+
+Tested only in a toy scratch repo: C and E conflicting with the branch,
+D, F and G clean, and a conflicting H for the negative case. The probe
+stopped at C and then E, Step 2 left the branch on E with the tree equal
+to the old tip, and the completion check passed; a real rebase onto the
+tip then completed without stops. With H added, both the replay check
+and the worktree fallback failed. Not run on a real long-lived branch.
+
+Not addressed: the sanity checks' old range <old-base>..<old-tip> uses
+/tmp/old-tip, the Step 1 merge tip, so range-diff also lists the
+upstream commits reachable through the merges. This applies to tip mode
+too. Using the last non-merge branch commit as the old tip gave a clean
+comparison in the test.
