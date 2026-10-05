@@ -159,7 +159,10 @@ iteration merges clean with no conflict in sight, stop walking and _try_ the
 final merge of `origin/HEAD` from where you are (see Finish), with `--no-commit`
 so a conflict costs nothing. If it conflicts, `git merge --abort` and resume the
 loop where you left off. When `bulk-catchup-rebase` is driving, return to it
-instead — it tries a one-shot rebase at this point. This is not the preemptive
+instead — it tries a one-shot rebase at this point. In `bulk-catchup-rebase`'s
+last-conflict mode, the bail-out does not apply, because the merge-tree probe
+already skips clean commits (see "Conflicting upstream commits" in "Choosing
+iteration points"). This is not the preemptive
 shortcutting warned against above — the trigger is observed evidence (a streak
 of clean merges), not tag-count anxiety, and the try costs one abort if it turns
 out wrong.
@@ -330,6 +333,29 @@ Tagged releases are ideal when upstream tags regularly. If they don't:
   chronological order
 - **Merge commits** — `git log --merges --first-parent --format=%H origin/HEAD`
   for projects that merge feature branches into main
+- **Conflicting upstream commits** — for `bulk-catchup-rebase`'s last-conflict
+  mode. Every first-parent commit is a candidate, and an in-memory
+  `git merge-tree` probe skips the clean ones without a checkout. This replaces
+  the `for` line and adds the probe as the first line of the loop body; the rest
+  of the body does not change:
+
+  ```sh
+  for v in $(git rev-list --reverse --first-parent HEAD..origin/HEAD); do
+    git merge-tree --write-tree --quiet HEAD "$v" && continue   # clean: skip, no checkout
+    if git -c merge.conflictstyle=zdiff3 merge --no-commit --no-ff "$v"; then
+    ...   # classification body as in the loop above
+  done
+  ```
+
+  The probe makes per-commit candidates cheap, so the loop stops only at
+  conflicting commits. It runs against the current HEAD each time. After you
+  commit a resolution at a commit, the merge base moves there, so the next stop
+  is the next commit that conflicts _given_ the earlier resolutions. The rerun
+  in step 3 still advances: `HEAD..origin/HEAD` excludes commits already merged.
+  A merge-tree exit code above 1 (an error) goes on to the real merge, where the
+  "non-conflict reason" branch catches it. The stride guidance above still
+  applies: for a run of back-to-back conflicting commits, you can merge the last
+  commit of the run in one step.
 
 Smaller steps mean smaller conflict sets per iteration. The tradeoff is more
 iterations. For a one-year gap, monthly or per-release granularity is usually

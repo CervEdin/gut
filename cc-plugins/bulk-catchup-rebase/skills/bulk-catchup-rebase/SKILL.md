@@ -7,7 +7,10 @@ description: >
   rebase. Use this skill whenever the user mentions a stale or long-lived
   branch, a branch that is far behind main/master, hundreds of commits behind
   upstream, a rebase that produced too many conflicts to handle in one pass, or
-  wants to break a big upstream catch-up into smaller chunks. For merge-only
+  wants to break a big upstream catch-up into smaller chunks. Also use it when
+  the user wants to rebase only as far as the last upstream commit the branch
+  conflicts with, or to make sure the branch rebases cleanly onto main without
+  moving it to the tip (last-conflict mode). For merge-only
   catch-up (one final merge commit, no rebase) use bulk-catchup-merge. Do NOT
   use for short-range interactive rebases (reorder/squash/reword) — those belong
   to claude-rebase or git-rebase-i.
@@ -48,6 +51,74 @@ from one release worth of upstream history rather than all of it at once.
 replays the branch commits one-by-one via `git rebase`, stopping at each
 conflict point — but because rerere already has the answer, it auto-applies the
 cached resolution and `git rebase --continue` glides through.
+
+## Modes
+
+- **Tip mode (default):** the branch lands on the tip of `origin/HEAD`.
+- **Last-conflict mode:** the branch moves forward only to the last upstream
+  commit that it conflicts with. The branch then reads as if it was written on
+  top of that conflicting work. Upstream commits after that point touch
+  unrelated code, so the branch does not need them.
+
+```
+A---B---C*--D---E*--F---G   origin/HEAD          * = conflicts with branch
+                 \
+                  x'--y'--z'                      (tip mode would land on G)
+```
+
+Last-conflict mode guarantees one property: from the finished state,
+`git rebase origin/HEAD` has no conflicts. "Conflict" is textual:
+`git merge-tree` reports a conflict. Two sides that change the same files
+without a textual conflict do not count.
+
+Use last-conflict mode only when the user asks for it. Otherwise use tip mode.
+Last-conflict mode changes three things, each in its own step below:
+
+- **Iteration points** (Step 1): every first-parent commit in
+  `HEAD..origin/HEAD`, not tags. A `git merge-tree` probe skips each clean
+  commit, so the loop stops only at conflicting commits.
+- **No move to the tip** (Step 2): no final rebase onto `origin/HEAD`, and no
+  one-shot rebase exits.
+- **Definition of done:** the completion check below passes.
+
+### Completion check (last-conflict mode)
+
+Try the rebase onto the tip on a detached HEAD, then go back to the branch:
+
+```sh
+orig=$(git symbolic-ref -q --short HEAD || git rev-parse HEAD)
+git switch -q --detach
+git -c merge.conflictstyle=zdiff3 -c rerere.enabled=false \
+  rebase --no-update-refs origin/HEAD; rc=$?   # --rebase-merges per the topology answer
+[ $rc != 0 ] && git rebase --abort
+git checkout -q "$orig"
+[ $rc = 0 ] && echo "rebases cleanly onto origin/HEAD"
+```
+
+This is the real rebase, so it checks the property itself. It replays commit by
+commit, so it also finds per-commit conflicts that a tip-vs-tip probe does not
+see (see Step 0). It also skips commits that upstream already has, and it uses
+the user's merge config. Do not replace it with `git replay`. `git replay` does
+not skip commits that upstream already has, so it reports conflicts that the
+rebase does not have. It also cannot replay merge commits.
+
+- The detached HEAD keeps the branch ref where it is. Keep `--no-update-refs`:
+  the branch points into the rebased range, so with `rebase.updateRefs` set in
+  the user's config the rebase would otherwise move the branch.
+- `rerere.enabled=false` makes the check see the conflicts of a plain rebase,
+  and keeps the check out of the rr-cache.
+- Pass `--rebase-merges` only if the user chose to keep merges at the topology
+  check (Step 2). The check must test the rebase that the user would run.
+- A non-zero exit fails the check. Read the output: a dirty working tree or
+  another error is not a conflict. The working tree must be clean, as for any
+  rebase.
+- The check rewrites the files that differ between the branch and `origin/HEAD`
+  two times. Their mtimes change, so the next incremental build rebuilds them.
+- If the check is interrupted, the branch is unchanged. Run `git rebase --abort`
+  if a rebase is in progress, then `git checkout <branch>`.
+
+If the check fails after the Step 2 loop, stop and escalate to the user. The
+remaining conflict is a per-commit conflict that the tip probes could not see.
 
 ## Prerequisites
 
@@ -96,6 +167,11 @@ this skill. Walking every intermediate point through a conflict-free landscape
 is pure ceremony; the probe result, not the size of the gap, is the decision
 point.
 
+**In last-conflict mode, a clean probe leads to the completion check, not to a
+one-shot rebase.** Run the topology check (see Step 2) to pick the flags, then
+run the completion check (see Modes). If it passes, the branch already has the property. Report this and stop;
+do not rebase. If it fails, continue at Step 1.
+
 If the probe showed conflicts, note what you saw and proceed to Step 1.
 
 **Verify the branch's own build is clean before starting the loop.** If the
@@ -114,11 +190,15 @@ that `bulk-catchup-rebase` is driving and a rebase follows, so that it:
   check),
 - stops after the loop and returns, and does **not** take its final merge of
   `origin/HEAD` — Step 2 captures the merges the loop committed, and an extra
-  merge would change that list, and
+  merge would change that list,
 - returns here instead of trying a final merge if it bails out of a streak of
   clean merges. Run the topology check (Step 2), then _try_ a one-shot rebase
   from where you are, same as the clean-probe exit in Step 0. If the one-shot
-  stops at a conflict, abort it and resume the loop where you left off.
+  stops at a conflict, abort it and resume the loop where you left off, and
+- in last-conflict mode, uses the conflicting first-parent commits as iteration
+  points (see "Conflicting upstream commits" in its "Choosing iteration
+  points") and does not bail out early, so the previous point does not apply.
+  The probe already skips clean commits, so a clean streak does not occur.
 
 When the loop completes with no conflicts, rerere should have a recorded
 resolution for every conflict. Continue at Step 2.
@@ -140,6 +220,10 @@ The loop below replays your commits through the same incremental boundaries so
 rerere's fingerprints fire at the right moments. Only after the loop completes
 do you perform a final `git rebase --no-rebase-merges origin/HEAD` to land on
 the current tip cleanly.
+
+In last-conflict mode, do not do this final rebase. After the loop, the branch
+is on `$sha^2` of the last merge, which is the last conflicting commit. Run the
+completion check (see Modes) instead.
 
 MUST be done against the same upstream state as Step 1 — which means **no
 fetching**, not "fetch first." The remote-tracking refs you started with ARE the
@@ -398,6 +482,17 @@ git range-diff <old-base>..<old-tip> origin/HEAD..HEAD
 Replace `<old-base>` and `<old-tip>` with your branch's base and tip _before_
 the rebase. Step 2 saved the old tip in `/tmp/old-tip`; use `git reflog` to find
 the base if needed.
+
+In last-conflict mode the branch is not on `origin/HEAD`, so `origin/HEAD..HEAD`
+is the wrong new range: it also lists the upstream commits after the last
+conflict. Use the commits on top of the last conflicting commit:
+
+```sh
+git range-diff <old-base>..<old-tip> $(git rev-parse $(tail -1 /tmp/merges)^2)..HEAD
+```
+
+For the same reason, count the branch commits with
+`git log --oneline $(git rev-parse $(tail -1 /tmp/merges)^2)..HEAD`.
 
 ## Pitfalls
 
