@@ -1,0 +1,5 @@
+The description also says that `git rebase -i` "opens an $EDITOR you
+cannot drive". Under Claude Code GIT_EDITOR is `true`, so a bare
+rebase -i runs its todo unedited and changes nothing. The review
+lists this as a minor point; the wording is left for the commit that
+rewrites the recipes.
