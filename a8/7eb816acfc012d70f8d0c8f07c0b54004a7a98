@@ -1,0 +1,10 @@
+Tested in scratch repos: a missing -F file, a blank -m, a staged
+change plus an untracked file, two commits with the same subject,
+-F - from stdin, and the autosquash with stock git 2.56.0 and the
+local build. When the rebase runs with --autostash, the staged change
+comes back unstaged; that is how rebase applies its autostash, not
+something this script does.
+
+The scratch message files live under the git dir
+(rev-parse --git-path reword-msg, reword-full) rather than mktemp, to
+match interactive-staging, which keeps its state there too.
