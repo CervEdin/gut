@@ -1,0 +1,232 @@
+#!/bin/sh
+#
+# git-rebase-i-prep — check a range before rewriting it, and save a way back
+#
+# usage: git rebase-i-prep [--allow-published] [--allow-fixups] <commit>...
+#
+# Names the commits the rewrite will touch.  The oldest one decides the
+# base of the rebase.  Prints what the range contains (merges, notes,
+# signatures, other authors, branches) and saves the current tip as
+# refs/rebase-i/orig, the base as refs/rebase-i/base and every other
+# branch inside the range as refs/rebase-i/heads/<name>.  Those refs
+# are outside refs/heads/, so --update-refs leaves them alone and
+# `git rebase-i-check` can compare against them afterwards.
+#
+# Exit status:
+#   0  ready; lines starting with WARN want a look
+#   2  cannot start: a rebase or merge is in progress, HEAD is detached,
+#      or a commit is not an ancestor of HEAD
+#   3  the oldest commit is already on the upstream branch; ask the user
+#      (--allow-published goes ahead once they agreed)
+#   4  the range holds fixup!/squash!/amend! commits that an autosquash
+#      would fold in (--allow-fixups goes ahead regardless)
+
+set -eu
+
+usage() {
+	echo "usage: git rebase-i-prep [--allow-published] [--allow-fixups] <commit>..." >&2
+	exit 2
+}
+
+die() {
+	# $1: exit status, rest: message
+	status=$1
+	shift
+	echo "BLOCK   $*" >&2
+	exit "$status"
+}
+
+warn() {
+	echo "WARN    $*"
+}
+
+short() {
+	git rev-parse --short "$1"
+}
+
+subject() {
+	git log -1 --format=%s "$1"
+}
+
+allow_published=0
+allow_fixups=0
+while test $# -gt 0; do
+	case "$1" in
+	--allow-published) allow_published=1 ;;
+	--allow-fixups) allow_fixups=1 ;;
+	--) shift; break ;;
+	-*) usage ;;
+	*) break ;;
+	esac
+	shift
+done
+test $# -ge 1 || usage
+
+for state in rebase-merge rebase-apply; do
+	test ! -d "$(git rev-parse --git-path $state)" ||
+		die 2 "a rebase is in progress; finish it (--continue), or --abort it"
+done
+for state in MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD; do
+	test ! -f "$(git rev-parse --git-path $state)" ||
+		die 2 "$state exists: a merge, cherry-pick or revert is in progress"
+done
+branch=$(git symbolic-ref --quiet --short HEAD) ||
+	die 2 "HEAD is detached; the rebase would update no branch"
+head=$(git rev-parse HEAD)
+
+# Targets: resolve, check they are behind HEAD, find the oldest.
+targets=
+for rev; do
+	sha=$(git rev-parse --verify --quiet "$rev^{commit}") ||
+		die 2 "not a commit: $rev"
+	git merge-base --is-ancestor "$sha" HEAD ||
+		die 2 "$rev ($(short "$sha")) is not an ancestor of HEAD"
+	targets="$targets $sha"
+done
+oldest=
+for s in $targets; do
+	ok=1
+	for t in $targets; do
+		git merge-base --is-ancestor "$s" "$t" || ok=0
+	done
+	if test $ok = 1; then
+		oldest=$s
+		break
+	fi
+done
+test -n "$oldest" ||
+	die 2 "the commits are not on one line of history; rewrite one line at a time"
+
+if base=$(git rev-parse --verify --quiet "$oldest^"); then
+	base_arg=$base
+	range="$base..HEAD"
+else
+	base=
+	base_arg=--root
+	range=HEAD
+fi
+
+echo "branch  $branch at $(short "$head")  $(subject "$head")"
+for s in $targets; do
+	echo "target  $(short "$s")  $(subject "$s")"
+done
+echo "oldest  $(short "$oldest")  $(subject "$oldest")"
+if test -n "$base"; then
+	echo "base    $(short "$base")  $(subject "$base")"
+else
+	echo "base    none: $(short "$oldest") is a root commit"
+fi
+
+commits=$(git rev-list --count "$range")
+merges=$(git rev-list --merges --count "$range")
+echo "range   $commits commits, $merges merges"
+if test "$merges" -gt 0; then
+	if test "$(git config --type=bool --default=false rerere.enabled)" = true; then
+		echo "merges  kept by --rebase-merges; rerere is on, so recorded resolutions replay"
+	else
+		warn "merges are kept by --rebase-merges, but a merge whose conflict was resolved" \
+			"by hand conflicts again; rerere is off, so nothing replays the resolution"
+	fi
+fi
+
+# Published?
+upstream=$(git rev-parse --verify --quiet --symbolic-full-name '@{upstream}' 2>/dev/null) ||
+	upstream=
+if test -n "$upstream" && git merge-base --is-ancestor "$oldest" "$upstream"; then
+	if test $allow_published = 1; then
+		warn "$(short "$oldest") is already on ${upstream#refs/remotes/}; rewriting it means a force-push"
+	else
+		die 3 "$(short "$oldest") is already on ${upstream#refs/remotes/}: ask the user before rewriting published history"
+	fi
+fi
+remotes=$(git branch -r --contains "$oldest" --format='%(refname:short)' | tr '\n' ' ')
+if test -n "$remotes"; then
+	echo "remote  $(short "$oldest") is on: $remotes"
+fi
+
+# Pending fixups would be folded by autosquash.
+pending=$(git log --format='%h %s' "$range" | grep -E '^[0-9a-f]+ (fixup|squash|amend)! ' || true)
+if test -n "$pending"; then
+	echo "$pending" | sed 's/^/        /'
+	if test $allow_fixups = 1; then
+		warn "the fixup!/squash!/amend! commits above are folded in by autosquash"
+	else
+		die 4 "the range holds fixup!/squash!/amend! commits; autosquash would fold them in. Fold them first, or pass --allow-fixups"
+	fi
+fi
+
+# Notes.
+rangefile=$(git rev-parse --git-path rebase-i-range)
+git rev-list "$range" >"$rangefile"
+notes_total=0
+for ref in $(git for-each-ref --format='%(refname)' refs/notes); do
+	n=$(git notes --ref="$ref" list | cut -d' ' -f2 | grep -c -x -F -f "$rangefile" || true)
+	if test "$n" -gt 0; then
+		echo "notes   $n commits with notes in $ref"
+		notes_total=$((notes_total + n))
+	fi
+done
+if test "$notes_total" -gt 0; then
+	if git config --get-all notes.rewriteRef >/dev/null; then
+		echo "notes   notes.rewriteRef is set: $(git config --get-all notes.rewriteRef | tr '\n' ' ')"
+	else
+		warn "notes.rewriteRef is unset; the rebase must run with -c notes.rewriteRef='refs/notes/*' or the notes are lost"
+	fi
+	if test "$(git config --type=bool --default=true notes.rewrite.rebase)" != true; then
+		warn "notes.rewrite.rebase is false; rebase does not copy notes"
+	fi
+fi
+
+# Signatures.
+signed=0
+while read -r c; do
+	if git cat-file commit "$c" | grep -q '^gpgsig'; then
+		signed=$((signed + 1))
+	fi
+done <"$rangefile"
+rm "$rangefile"
+if test "$signed" -gt 0; then
+	warn "$signed signed commits; every rewritten commit loses its signature unless the rebase passes --gpg-sign"
+fi
+
+# Authors other than the one who commits here.
+me=$(git var GIT_AUTHOR_IDENT | sed 's/ [0-9][0-9]* [-+][0-9][0-9]*$//')
+others=$(git log --format='%an <%ae>' "$range" | sort -u | grep -v -x -F "$me" || true)
+if test -n "$others"; then
+	echo "$others" | sed 's/^/author  /'
+	echo "author  a commit split or amended at a stop keeps its author only with --author and --date"
+fi
+
+# Work tree.
+dirty=$(git status --porcelain --untracked-files=no | wc -l)
+if test "$dirty" -gt 0; then
+	warn "the work tree has $dirty changed paths; --autostash carries them over (staged changes come back unstaged)"
+fi
+
+# Save a way back.  Outside refs/heads/, so --update-refs does not move it.
+for old in $(git for-each-ref --format='%(refname)' refs/rebase-i/heads); do
+	git update-ref -d "$old"
+done
+rewritten=$(git rev-parse --git-path rebase-i-rewritten)
+test ! -f "$rewritten" || rm "$rewritten"
+git update-ref -m "rebase-i-prep: tip before rewrite" refs/rebase-i/orig "$head"
+echo "saved   refs/rebase-i/orig = $(short "$head")"
+if test -n "$base"; then
+	git update-ref -m "rebase-i-prep: base of rewrite" refs/rebase-i/base "$base"
+	echo "saved   refs/rebase-i/base = $(short "$base")"
+else
+	git update-ref -d refs/rebase-i/base 2>/dev/null || true
+fi
+git for-each-ref --format='%(refname:short) %(objectname)' refs/heads |
+	while read -r b s; do
+		test "$b" != "$branch" || continue
+		test "$s" != "$base" || continue
+		if test -n "$base"; then
+			git merge-base --is-ancestor "$base" "$s" || continue
+		fi
+		git merge-base --is-ancestor "$s" HEAD || continue
+		git update-ref -m "rebase-i-prep: $b before rewrite" "refs/rebase-i/heads/$b" "$s"
+		echo "saved   refs/rebase-i/heads/$b = $(short "$s")  (--update-refs moves $b)"
+	done
+
+echo "rebase  GIT_SEQUENCE_EDITOR='git rebase-i-todo <action>...' git -c notes.rewriteRef='refs/notes/*' rebase -i --autostash --rebase-merges --update-refs $base_arg"

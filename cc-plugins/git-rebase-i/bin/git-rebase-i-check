@@ -1,0 +1,213 @@
+#!/bin/sh
+#
+# git-rebase-i-check — report what a rewrite changed
+#
+# usage: git rebase-i-check [<orig> [<base>]]
+#
+# Compares HEAD with the tip that `git rebase-i-prep` saved
+# (refs/rebase-i/orig by default) over the range above the saved base
+# (refs/rebase-i/base).  Prints the tree diff, the commit counts, a
+# range-diff, and the notes, signatures and authors before and after,
+# then whether a rebase is still in progress and whether any branch
+# the prep saved was left behind.  `git diff` alone passes when the
+# wrong commit was reworded, a message came out empty, or notes were
+# lost; this report shows those.
+#
+# Exit status: 0 nothing to flag, 1 at least one WARN line,
+# 2 a rebase is still in progress.
+
+set -eu
+
+die() {
+	echo "git rebase-i-check: $*" >&2
+	exit 2
+}
+
+warned=0
+warn() {
+	echo "WARN    $*"
+	warned=1
+}
+
+short() {
+	git rev-parse --short "$1"
+}
+
+subject() {
+	git log -1 --format=%s "$1"
+}
+
+noted() {
+	# $1: notes ref, $2: range: the commits in the range that have a note
+	git notes --ref="$1" list | cut -d' ' -f2 >"$notesfile"
+	git rev-list "$2" | grep -x -F -f "$notesfile" || true
+}
+
+count_signed() {
+	n=0
+	for c in $(git rev-list "$1"); do
+		if git cat-file commit "$c" | grep -q '^gpgsig'; then
+			n=$((n + 1))
+		fi
+	done
+	echo $n
+}
+
+orig_ref=${1:-refs/rebase-i/orig}
+orig=$(git rev-parse --verify --quiet "$orig_ref^{commit}") ||
+	die "no commit at $orig_ref; git rebase-i-prep saves it before a rewrite"
+if test $# -ge 2; then
+	base=$(git rev-parse --verify "$2^{commit}")
+else
+	base=$(git rev-parse --verify --quiet 'refs/rebase-i/base^{commit}') || base=
+fi
+
+head=$(git rev-parse HEAD)
+branch=$(git symbolic-ref --quiet --short HEAD) || branch="detached HEAD"
+echo "orig    $(short "$orig")  $(subject "$orig")"
+echo "head    $(short "$head")  $(subject "$head")  ($branch)"
+
+# Paused at a final `break`: the new history is complete on a detached
+# HEAD and the branch has not moved yet.  Anything else in progress is
+# not a result to check.
+paused=0
+merge_dir=$(git rev-parse --git-path rebase-merge)
+if test -d "$merge_dir"; then
+	last=$(grep -v '^#' "$merge_dir/done" 2>/dev/null | grep . | tail -1 | cut -d' ' -f1)
+	remaining=$(grep -v '^#' "$merge_dir/git-rebase-todo" 2>/dev/null | grep -c . || true)
+	if test "$last" = break || test "$last" = b; then
+		paused=1
+		rebased=$(sed 's|^refs/heads/||' "$merge_dir/head-name" 2>/dev/null || echo '?')
+		if test "$remaining" -eq 0; then
+			echo "rebase  paused at break; $rebased still at $(short "$orig") until git rebase --continue"
+			# The old->new pairs; git deletes them when the rebase finishes,
+			# and they are what restores notes that the finish did not copy.
+			test ! -f "$merge_dir/rewritten-list" ||
+				cp "$merge_dir/rewritten-list" "$(git rev-parse --git-path rebase-i-rewritten)"
+		else
+			warn "rebase  paused at a break with $remaining commands left; this is not the final result"
+		fi
+	else
+		echo "rebase  IN PROGRESS, not at a break"
+		git status | sed -n '1,/^$/p' | sed 's/^/        /'
+		exit 2
+	fi
+elif test -d "$(git rev-parse --git-path rebase-apply)"; then
+	echo "rebase  IN PROGRESS (am)"
+	exit 2
+else
+	echo "rebase  none in progress"
+fi
+
+if git diff --quiet "$orig" HEAD; then
+	echo "tree    identical to $(short "$orig")"
+else
+	echo "tree    differs from $(short "$orig"):"
+	git diff --stat "$orig" HEAD | sed 's/^/        /'
+fi
+
+if test -n "$base"; then
+	before="$base..$orig"
+	after="$base..HEAD"
+else
+	before=$orig
+	after=HEAD
+fi
+echo "commits before $(git rev-list --count "$before") ($(git rev-list --merges --count "$before") merges)," \
+	"after $(git rev-list --count "$after") ($(git rev-list --merges --count "$after") merges)"
+
+echo "range-diff:"
+if test -n "$base"; then
+	git range-diff --no-color "$before" "$after" | sed 's/^/        /'
+else
+	git range-diff --no-color "$orig...HEAD" | sed 's/^/        /'
+fi
+
+# Notes are copied to the rewritten commits when the rebase finishes,
+# so at the break only the count before the rewrite is known.
+notesfile=$(git rev-parse --git-path rebase-i-notes)
+for ref in $(git for-each-ref --format='%(refname)' refs/notes); do
+	nb=$(noted "$ref" "$before")
+	na=$(noted "$ref" "$after")
+	test -n "$nb" || test -n "$na" || continue
+	cb=$(printf '%s\n' "$nb" | grep -c . || true)
+	ca=$(printf '%s\n' "$na" | grep -c . || true)
+	if test $paused = 1; then
+		echo "notes   $ref: $cb commits have notes; the continue copies them if notes.rewriteRef reaches it; check again after it"
+	elif test "$ca" -lt "$cb"; then
+		warn "notes   $ref: $cb commits had notes, $ca have them now"
+		echo "        before:"
+		echo "$nb" | xargs -n1 git log -1 --format='%h %s' | sed 's/^/          /'
+		echo "        after:"
+		test -z "$na" || echo "$na" | xargs -n1 git log -1 --format='%h %s' | sed 's/^/          /'
+		rewritten=$(git rev-parse --git-path rebase-i-rewritten)
+		test ! -s "$rewritten" ||
+			echo "        restore: git notes --ref=$ref copy --stdin <\"$rewritten\""
+	else
+		echo "notes   $ref: $cb before, $ca after"
+	fi
+done
+test ! -f "$notesfile" || rm "$notesfile"
+
+sb=$(count_signed "$before")
+sa=$(count_signed "$after")
+if test "$sb" -gt 0 || test "$sa" -gt 0; then
+	if test "$sa" -lt "$sb"; then
+		warn "signed  $sb before, $sa after: rewritten commits are unsigned"
+	else
+		echo "signed  $sb before, $sa after"
+	fi
+fi
+
+ab=$(git log --format='%an <%ae>' "$before" | sort -u)
+aa=$(git log --format='%an <%ae>' "$after" | sort -u)
+if test "$ab" = "$aa"; then
+	echo "authors unchanged: $(echo "$ab" | tr '\n' ';' | sed 's/;$//; s/;/; /g')"
+else
+	warn "authors changed"
+	echo "$ab" | sed 's/^/        before: /'
+	echo "$aa" | sed 's/^/        after:  /'
+fi
+
+left=$(git log --format='%h %s' "$after" | grep -E '^[0-9a-f]+ (fixup|squash|amend)! ' || true)
+if test -n "$left"; then
+	warn "fixup!/squash!/amend! commits remain in the range:"
+	echo "$left" | sed 's/^/        /'
+fi
+
+empty=$(git log --format='%h %s' "$after" | grep -E '^[0-9a-f]+ ?$' || true)
+if test -n "$empty"; then
+	warn "commits with an empty subject:"
+	echo "$empty" | sed 's/^/        /'
+fi
+
+for ref in $(git for-each-ref --format='%(refname)' refs/rebase-i/heads); do
+	b=${ref#refs/rebase-i/heads/}
+	old=$(git rev-parse "$ref")
+	if test $paused = 1; then
+		echo "branch  $b at $(short "$old"); --update-refs moves it when the rebase finishes"
+	elif ! new=$(git rev-parse --verify --quiet "refs/heads/$b"); then
+		warn "branch  $b no longer exists (was $(short "$old"))"
+	elif test "$new" = "$old"; then
+		if git merge-base --is-ancestor "$old" HEAD; then
+			echo "branch  $b unchanged at $(short "$old"), still in HEAD's history"
+		else
+			warn "branch  $b was left at $(short "$old"), which is no longer in HEAD's history (was --update-refs in effect?)"
+		fi
+	else
+		echo "branch  $b $(short "$old") -> $(short "$new")"
+	fi
+done
+
+if test $paused = 0 && git stash list | grep -q 'autostash'; then
+	warn "an autostash is still in the stash list; the changes did not apply cleanly"
+fi
+
+if test $warned = 1; then
+	echo "result  WARN: explain each line above, or git rebase --abort"
+	exit 1
+fi
+echo "result  ok"
+if test $paused = 1; then
+	echo "next    git -c notes.rewriteRef='refs/notes/*' rebase --continue"
+fi
