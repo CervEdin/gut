@@ -1,0 +1,10 @@
+Not sourced from the repository, observed while writing this: a "#"
+inside the awk regex ends the make line as a comment even inside
+$(shell ...), and "\#" reaches awk, which warns about an unknown
+regexp escape. The shebang is therefore matched as the string
+"\043!", awk's octal escape for "#!".
+
+With this commit alone, make lint is red on two plugins: claude-rebase
+for its reserved name, and git-rebase-i for its frontmatter, which the
+cc/git-rebase-i-review topic fixes. After both topics are merged only
+claude-rebase remains.
