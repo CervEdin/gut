@@ -1,0 +1,10 @@
+The awk program avoids gawk extensions, but it has only run with
+gawk here; mawk and busybox awk are untested.
+
+Tested in scratch repos with GNU sed 4.9 absent from the path: drop
+by full sha and by HEAD~2, an unmatched rev (the rebase does not
+start and HEAD is unchanged), an unknown action, a fixup and a move
+under rebase.abbreviateCommands, rebase.instructionFormat,
+--rebase-merges and --update-refs, two actions in one run, a move
+across a merge, dropping a merge, and dropping a commit above a
+merge.
