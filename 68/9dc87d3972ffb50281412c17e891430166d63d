@@ -1,0 +1,22 @@
+Not sourced from any document, observed in this session with stock
+git 2.56.0 and the local build: a rebase that pauses at a break or an
+edit stop and is finished with `git rebase --continue` copies notes
+only when notes.rewriteRef is set for the process that runs the
+continue. A `-c notes.rewriteRef` on the first rebase command does not
+carry over, and every note on a rewritten commit is lost. A rebase
+that runs straight through with the `-c` keeps them. That is why the
+check prints the continue with the `-c` on it, and why it keeps
+rebase-merge/rewritten-list: `git notes copy --stdin` fed that file
+put the notes back in the test. With notes.rewriteRef in the global
+config, as this host has it, the continue copies them by itself.
+
+Signatures are detected by the gpgsig header rather than %G?, because
+an SSH signature without an allowed-signers file does not verify.
+gpg-signed commits were not tested.
+
+Tested in scratch repos: prep on a published commit (exit 3, then
+--allow-published), on a range with a fixup! (exit 4), on a dirty
+tree, on a detached HEAD, on two commits on different lines of a
+merge, on a root commit; check at a break, after the continue, at an
+edit stop (exit 2), after a drop that removed a note, and after a
+rebase without --update-refs that left a branch behind.
