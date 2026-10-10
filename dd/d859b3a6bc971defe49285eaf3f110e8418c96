@@ -1,0 +1,3 @@
+Assumed, not sourced: the next commits in this series add three more
+helpers to cc-plugins/git-rebase-i/bin/, which is why the rule is
+fixed now. Nothing in the repository says so yet.
