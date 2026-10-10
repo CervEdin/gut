@@ -1,0 +1,12 @@
+Left to the maintainer, from Finding 13 of the review: retiring
+claude-rebase, which does the same jobs with format-patch and reset
+--hard, and pointing bulk-catchup-rebase and peff-commit at this
+skill. Those plugins have reviews of their own pending.
+
+That BSD sed accepts -i.bak, which the topology reference relies on,
+is the review's inference; only GNU sed 4.9 ran here.
+
+The description keeps the trigger phrases of the previous one, which
+never reached the model because the frontmatter did not parse, so
+there is no evidence for or against them; only the false claim about
+the editor is changed and "reorder" is added.
