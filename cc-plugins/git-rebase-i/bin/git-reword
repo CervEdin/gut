@@ -1,39 +1,68 @@
 #!/bin/sh
 #
-# git-reword — create an amend! commit for use with rebase --autosquash
+# git-reword — create an amend! commit for `git rebase --autosquash`
 #
-# Usage:
-#   git reword <commit> -m "new subject\n\nnew body"
-#   git reword <commit> -F message.txt
+# usage: git reword <commit> (-m <message>... | -F <file>)
+#
+# The new message becomes the body of an "amend! <sha>" commit, which
+# `git rebase -i --autosquash` folds into <commit>, replacing its
+# message.  Naming the target by sha rather than by subject keeps
+# autosquash from pairing the amend! with an older commit that has
+# the same subject.
+#
+# Only HEAD's tree is committed (`git commit --only`), so staged
+# changes stay in the index and do not end up inside the old commit.
+# Several -m are joined as paragraphs, as `git commit` joins them.
+# `-F -` reads the message from stdin.
 
-set -e
+set -eu
 
 usage() {
-	echo "usage: git reword <commit> (-m <message> | -F <file>)" >&2
+	echo "usage: git reword <commit> (-m <message>... | -F <file>)" >&2
 	exit 1
 }
 
-if test $# -lt 3; then
-	usage
-fi
+die() {
+	echo "git reword: $*" >&2
+	exit 1
+}
 
-commit="$1"
+test $# -ge 3 || usage
+commit=$1
 shift
 
-message_source=
-message=
+# Keep scratch files in the git dir, never in the work tree.
+msg=$(git rev-parse --git-path reword-msg)
+full=$(git rev-parse --git-path reword-full)
+cleanup() {
+	for f in "$msg" "$full"; do
+		test -f "$f" && rm "$f"
+	done
+	return 0
+}
+trap cleanup EXIT
+
+: >"$msg"
+source=
 while test $# -gt 0; do
 	case "$1" in
 	-m)
 		test $# -ge 2 || usage
-		message_source=inline
-		message="$2"
+		test "$source" != -F || die "-m and -F cannot be combined"
+		source=-m
+		test ! -s "$msg" || printf '\n' >>"$msg"
+		printf '%s\n' "$2" >>"$msg"
 		shift 2
 		;;
 	-F)
 		test $# -ge 2 || usage
-		message_source=file
-		message_file="$2"
+		test -z "$source" || die "-F cannot be combined with -m or another -F"
+		source=-F
+		if test "$2" = -; then
+			cat >"$msg"
+		else
+			cat "$2" >"$msg"
+		fi
 		shift 2
 		;;
 	*)
@@ -41,32 +70,24 @@ while test $# -gt 0; do
 		;;
 	esac
 done
+test -n "$source" || usage
 
-if test -z "$message_source"; then
-	usage
-fi
+sha=$(git rev-parse --verify --quiet "$commit^{commit}") ||
+	die "not a commit: $commit"
+git merge-base --is-ancestor "$sha" HEAD ||
+	die "$commit is not an ancestor of HEAD; autosquash would never reach it"
 
-# Resolve the commit and get its subject for the amend! prefix
-commit_sha=$(git rev-parse --verify "$commit"^{commit}) || exit 1
-orig_subject=$(git log -1 --format=%s "$commit_sha")
+# Refuse an empty message before anything is committed.
+git stripspace <"$msg" | grep -q . ||
+	die "empty message; nothing committed"
 
-# Build the full commit message:
-#   line 1: amend! <original subject>   (for autosquash matching)
-#   line 2: blank
-#   line 3+: the replacement message
-case "$message_source" in
-inline)
-	full_message="amend! $orig_subject
+{
+	printf 'amend! %s\n\n' "$sha"
+	git stripspace <"$msg"
+} >"$full"
 
-$message"
-	git commit --allow-empty -m "$full_message"
-	;;
-file)
-	# Prepend the amend! header to the file contents
-	{
-		echo "amend! $orig_subject"
-		echo
-		cat "$message_file"
-	} | git commit --allow-empty -F -
-	;;
-esac
+git commit --quiet --allow-empty --only -F "$full"
+printf 'amend! %s -> %s %s\n' \
+	"$(git rev-parse --short HEAD)" \
+	"$(git rev-parse --short "$sha")" \
+	"$(git log -1 --format=%s "$sha")"
