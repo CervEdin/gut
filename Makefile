@@ -4,7 +4,12 @@ files=$(wildcard *.sh *.sed)
 shell_files=$(wildcard *.sh)
 md_files:=$(shell git ls-files -co --exclude-standard '*.md')
 py_files:=$(shell git ls-files -co --exclude-standard '*.py')
-sh_files:=$(shell git ls-files -co --exclude-standard '*.sh')
+# Shell scripts: *.sh, plus any file whose first line is a sh or bash shebang
+# (the plugin helpers under cc-plugins/*/bin and scripts/ have no extension).
+sh_files:=$(shell { git ls-files -co --exclude-standard '*.sh'; \
+	git ls-files -co --exclude-standard | xargs -r awk \
+	'FNR == 1 { if (substr($$0, 1, 2) == "\043!" && $$0 ~ /[\/ ](ba|da)?sh( |$$)/) print FILENAME; nextfile }'; } | sort -u)
+plugin_dirs:=$(wildcard cc-plugins/*/)
 PRETTIER=npx --yes prettier@3.9.9
 SHELLCHECK=uvx --from shellcheck-py==0.11.0.1 shellcheck
 programs=$(addprefix bin/, $(files))
@@ -102,9 +107,19 @@ format-python: $(py_files)
 .PHONY: lint
 ## Run linter on files in project
 lint: \
-	lint-shell
+	lint-shell \
+	lint-plugins
 
 .PHONY: lint-shell
 ## Run shellcheck on all shell scripts.
 lint-shell: $(sh_files)
 	[ -z "$^" ] || $(SHELLCHECK) -f gcc $^
+
+.PHONY: lint-plugins
+## Validate every plugin manifest and skill frontmatter with `claude plugin validate`.
+## A skill whose frontmatter does not parse loads with no description and is
+## never listed, so this is the only place that failure shows before a session.
+lint-plugins:
+	@status=0; for p in $(plugin_dirs); do \
+		out=$$(claude plugin validate $$p 2>&1) || { printf '%s\n' "$$out"; status=1; }; \
+	done; exit $$status
