@@ -38,15 +38,24 @@ else
     done
 fi
 
+# BSD column merges adjacent separators, so an empty field would shift
+# every later column left. Give each empty field a single space instead;
+# two passes, because s///g does not match overlapping pairs of tabs.
+fill_empty_fields() {
+    sed -e 's/		/	 	/g' -e 's/		/	 	/g'
+}
+
 git for-each-ref \
     --no-contains origin/HEAD \
     --sort='committerdate' \
     --format='%(refname:short)%09%(committerdate:short)%09%(upstream:track)%09%(upstream:remotename)%09%(ahead-behind:origin/HEAD)' \
     "$@" |\
+    fill_empty_fields |\
     column -t -s '	'
 git for-each-ref \
     --contains origin/HEAD \
     --sort='committerdate' \
     --format='%(refname:short)%09%(committerdate:short)%09%(upstream:track)%09%(upstream:remotename)%09%(ahead-behind:origin/HEAD)' \
     "$@" |\
+    fill_empty_fields |\
     column -t -s '	'
