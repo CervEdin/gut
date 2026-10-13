@@ -38,6 +38,8 @@ else
     done
 fi
 
+FORMAT='%(refname)%09%(refname:short)%09%(committerdate:short)%09%(upstream:track)%09%(upstream:remotename)%09%(ahead-behind:origin/HEAD)'
+
 # BSD column merges adjacent separators, so an empty field would shift
 # every later column left. Give each empty field a single space instead;
 # two passes, because s///g does not match overlapping pairs of tabs.
@@ -45,17 +47,34 @@ fill_empty_fields() {
     sed -e 's/		/	 	/g' -e 's/		/	 	/g'
 }
 
+# Strip the leading full refname and append the first line of the branch
+# description (branch.<name>.description), which for-each-ref has no atom
+# for.
+add_description() {
+    while IFS='	' read -r ref rest; do
+        desc=
+        case "$ref" in
+            refs/heads/*)
+                desc=$(git config --get "branch.${ref#refs/heads/}.description" | head -n 1)
+                ;;
+        esac
+        printf '%s\t%s\n' "$rest" "$desc"
+    done
+}
+
 git for-each-ref \
     --no-contains origin/HEAD \
     --sort='committerdate' \
-    --format='%(refname:short)%09%(committerdate:short)%09%(upstream:track)%09%(upstream:remotename)%09%(ahead-behind:origin/HEAD)' \
+    --format="$FORMAT" \
     "$@" |\
+    add_description |\
     fill_empty_fields |\
     column -t -s '	'
 git for-each-ref \
     --contains origin/HEAD \
     --sort='committerdate' \
-    --format='%(refname:short)%09%(committerdate:short)%09%(upstream:track)%09%(upstream:remotename)%09%(ahead-behind:origin/HEAD)' \
+    --format="$FORMAT" \
     "$@" |\
+    add_description |\
     fill_empty_fields |\
     column -t -s '	'
