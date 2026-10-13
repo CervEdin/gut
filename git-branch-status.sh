@@ -4,39 +4,77 @@
 if [ "$#" -eq 0 ]; then
     set -- "refs/heads"
 
-# If the last argument doesn't start with refs/
-# treat it as a branch name
+# Otherwise classify each argument for git for-each-ref:
+#   * a leading `-` is a for-each-ref flag (a dash cannot begin a branch
+#     name), passed through untouched
+#   * a refs/* value is a ref pattern, used as-is
+#   * anything else is treated as a branch pattern, expanded to
+#     refs/heads/<name>
+#
+# A `--` separator is accepted but, since each argument is classified on
+# its own, it has no effect on the result.
 else
-    last=$(
-        for arg; do :; done
-        printf '%s\n' "$arg"
-    )
-    case "$last" in
-        refs/*)
-            # already a ref, do nothing
-            ;;
-        *)
-            # Get everything except the last argument
-            args=$(printf '%s\n' "$@" | sed '$d')
-            set --
-            for arg in $args; do
+    n=$#
+    # Consume the original args from the front, appending each (possibly
+    # rewritten) result to the back until the original n are processed.
+    while [ "$n" -gt 0 ]; do
+        arg=$1
+        shift
+        n=$((n - 1))
+
+        case "$arg" in
+            --)
+                # Tolerated separator; drop it.
+                ;;
+            -*|refs/*)
+                # A for-each-ref flag or an explicit ref pattern: as-is.
                 set -- "$@" "$arg"
-            done
-            # Append transformed last argument
-            set -- "$@" "refs/heads/$last"
-            ;;
-    esac
+                ;;
+            *)
+                # A branch shortname: expand to its full ref.
+                set -- "$@" "refs/heads/$arg"
+                ;;
+        esac
+    done
 fi
+
+FORMAT='%(refname)%09%(refname:short)%09%(committerdate:short)%09%(upstream:track)%09%(upstream:remotename)%09%(ahead-behind:origin/HEAD)'
+
+# BSD column merges adjacent separators, so an empty field would shift
+# every later column left. Give each empty field a single space instead;
+# two passes, because s///g does not match overlapping pairs of tabs.
+fill_empty_fields() {
+    sed -e 's/		/	 	/g' -e 's/		/	 	/g'
+}
+
+# Strip the leading full refname and append the first line of the branch
+# description (branch.<name>.description), which for-each-ref has no atom
+# for.
+add_description() {
+    while IFS='	' read -r ref rest; do
+        desc=
+        case "$ref" in
+            refs/heads/*)
+                desc=$(git config --get "branch.${ref#refs/heads/}.description" | head -n 1)
+                ;;
+        esac
+        printf '%s\t%s\n' "$rest" "$desc"
+    done
+}
 
 git for-each-ref \
     --no-contains origin/HEAD \
     --sort='committerdate' \
-    --format='%(refname:short)%09%(committerdate:short)%09%(upstream:track)%09%(upstream:remotename)%09%(ahead-behind:origin/HEAD)' \
+    --format="$FORMAT" \
     "$@" |\
+    add_description |\
+    fill_empty_fields |\
     column -t -s '	'
 git for-each-ref \
     --contains origin/HEAD \
     --sort='committerdate' \
-    --format='%(refname:short)%09%(committerdate:short)%09%(upstream:track)%09%(upstream:remotename)%09%(ahead-behind:origin/HEAD)' \
+    --format="$FORMAT" \
     "$@" |\
+    add_description |\
+    fill_empty_fields |\
     column -t -s '	'

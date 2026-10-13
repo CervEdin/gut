@@ -1,0 +1,5 @@
+{
+  "name": "gitster-review",
+  "description": "Channel Junio C Hamano to review code for design coherence, series narrative, and long-term maintainability",
+  "version": "0.1.0"
+}

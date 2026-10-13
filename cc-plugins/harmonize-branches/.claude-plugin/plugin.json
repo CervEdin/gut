@@ -1,0 +1,5 @@
+{
+  "name": "harmonize-branches",
+  "description": "Analyze branch topology, consolidate divergent branches, and resolve conflicts",
+  "version": "0.1.0"
+}

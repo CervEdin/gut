@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# Integration tests for git-conflict-blame.sh
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SH="$SCRIPT_DIR/../git-conflict-blame.sh"
+
+TMPDIR_ROOT="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_ROOT"' EXIT
+
+fail=0
+
+check() {
+    echo -n "$1 ... "
+    if [ "$2" = "$3" ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+        printf -- '--- expected ---\n%s\n--- got ---\n%s\n' "$3" "$2"
+        fail=1
+    fi
+}
+
+setup_repo() {
+    local dir="$TMPDIR_ROOT/$1"
+    mkdir -p "$dir"
+    git -C "$dir" init -q -b main
+    git -C "$dir" config user.email "test@test.com"
+    git -C "$dir" config user.name "Test"
+    echo "$dir"
+}
+
+# --- Test 1 & 2: single conflict region ---
+repo="$(setup_repo t1)"
+
+printf 'line one\nshared line\nline three\n' > "$repo/file.txt"
+GIT_AUTHOR_DATE="2026-01-01T00:00:01" GIT_COMMITTER_DATE="2026-01-01T00:00:01" \
+    git -C "$repo" add file.txt
+GIT_AUTHOR_DATE="2026-01-01T00:00:01" GIT_COMMITTER_DATE="2026-01-01T00:00:01" \
+    git -C "$repo" commit -q -m "base"
+
+git -C "$repo" switch -q -c ours
+printf 'line one\nours edit\nline three\n' > "$repo/file.txt"
+GIT_AUTHOR_DATE="2026-01-01T00:00:02" GIT_COMMITTER_DATE="2026-01-01T00:00:02" \
+    git -C "$repo" commit -q -a -m "ours edit"
+ours_sha="$(git -C "$repo" rev-parse --short=8 HEAD)"
+
+git -C "$repo" switch -q main
+git -C "$repo" switch -q -c theirs
+printf 'line one\ntheirs edit\nline three\n' > "$repo/file.txt"
+GIT_AUTHOR_DATE="2026-01-01T00:00:02" GIT_COMMITTER_DATE="2026-01-01T00:00:02" \
+    git -C "$repo" commit -q -a -m "theirs edit"
+theirs_sha="$(git -C "$repo" rev-parse --short=8 HEAD)"
+
+git -C "$repo" switch -q theirs
+git -C "$repo" merge -q --no-edit ours 2>/dev/null || true
+[ -f "$repo/.git/MERGE_HEAD" ] || { echo "FAIL: no MERGE_HEAD"; exit 1; }
+
+# --commits lists the two branch-tip SHAs
+expected_sorted="$(printf '%s\n%s' "$ours_sha" "$theirs_sha" | sort | xargs)"
+got_sorted="$((cd "$repo" && bash "$SH" -c) | tr ' ' '\n' | sort | xargs)"
+check "--commits lists ours+theirs SHAs" "$got_sorted" "$expected_sorted"
+
+# default output contains conflict marker lines blamed as 00000000
+marker_lines="$((cd "$repo" && bash "$SH") | grep '^00000000' | grep -cE '(<{7}|>{7})')"
+check "default output has blamed marker lines" "$marker_lines" "2"
+
+# --- Test 3: multiple conflict regions in one file ---
+repo="$(setup_repo t3)"
+
+# 8 unchanged lines separate the two edited lines, guaranteeing two distinct conflict hunks
+printf 'shared A\nctx1\nctx2\nctx3\nctx4\nctx5\nctx6\nctx7\nctx8\nshared B\n' > "$repo/file.txt"
+GIT_AUTHOR_DATE="2026-01-01T00:00:01" GIT_COMMITTER_DATE="2026-01-01T00:00:01" \
+    git -C "$repo" add file.txt
+GIT_AUTHOR_DATE="2026-01-01T00:00:01" GIT_COMMITTER_DATE="2026-01-01T00:00:01" \
+    git -C "$repo" commit -q -m "base"
+
+git -C "$repo" switch -q -c ours
+printf 'ours A\nctx1\nctx2\nctx3\nctx4\nctx5\nctx6\nctx7\nctx8\nours B\n' > "$repo/file.txt"
+GIT_AUTHOR_DATE="2026-01-01T00:00:02" GIT_COMMITTER_DATE="2026-01-01T00:00:02" \
+    git -C "$repo" commit -q -a -m "ours two edits"
+
+git -C "$repo" switch -q main
+git -C "$repo" switch -q -c theirs
+printf 'theirs A\nctx1\nctx2\nctx3\nctx4\nctx5\nctx6\nctx7\nctx8\ntheirs B\n' > "$repo/file.txt"
+GIT_AUTHOR_DATE="2026-01-01T00:00:02" GIT_COMMITTER_DATE="2026-01-01T00:00:02" \
+    git -C "$repo" commit -q -a -m "theirs two edits"
+
+git -C "$repo" switch -q theirs
+git -C "$repo" merge -q --no-edit ours 2>/dev/null || true
+[ -f "$repo/.git/MERGE_HEAD" ] || { echo "FAIL: no MERGE_HEAD for test 3"; exit 1; }
+
+region_count="$((cd "$repo" && bash "$SH") | grep -cE '^\s*0{8}.*(<{7}|>{7})')"
+check "multiple conflict regions blamed" "$region_count" "4"
+
+# --- Test 4: clean file in pathspec is skipped (exits non-zero) ---
+repo="$(setup_repo t4)"
+
+printf 'line one\nshared line\nline three\n' > "$repo/file.txt"
+printf 'clean content\n' > "$repo/clean.txt"
+GIT_AUTHOR_DATE="2026-01-01T00:00:01" GIT_COMMITTER_DATE="2026-01-01T00:00:01" \
+    git -C "$repo" add file.txt clean.txt
+GIT_AUTHOR_DATE="2026-01-01T00:00:01" GIT_COMMITTER_DATE="2026-01-01T00:00:01" \
+    git -C "$repo" commit -q -m "base"
+
+git -C "$repo" switch -q -c ours
+printf 'line one\nours edit\nline three\n' > "$repo/file.txt"
+GIT_AUTHOR_DATE="2026-01-01T00:00:02" GIT_COMMITTER_DATE="2026-01-01T00:00:02" \
+    git -C "$repo" commit -q -a -m "ours"
+
+git -C "$repo" switch -q main
+git -C "$repo" switch -q -c theirs
+printf 'line one\ntheirs edit\nline three\n' > "$repo/file.txt"
+GIT_AUTHOR_DATE="2026-01-01T00:00:02" GIT_COMMITTER_DATE="2026-01-01T00:00:02" \
+    git -C "$repo" commit -q -a -m "theirs"
+
+git -C "$repo" switch -q theirs
+git -C "$repo" merge -q --no-edit ours 2>/dev/null || true
+[ -f "$repo/.git/MERGE_HEAD" ] || { echo "FAIL: no MERGE_HEAD for test 4"; exit 1; }
+
+(cd "$repo" && bash "$SH" clean.txt 2>/dev/null) && skip_ec=0 || skip_ec=$?
+check "clean file pathspec exits non-zero" "$skip_ec" "1"
+
+# --- Help ---
+check "help (-h)" \
+    "$(bash "$SH" -h 2>/dev/null | head -1)" \
+    "usage: git conflict-blame [options] [<pathspec>...]"
+
+# --- Smoke check: real repo mid-merge ---
+echo -n "real repo smoke check ... "
+if (cd "$SCRIPT_DIR/.." && bash git-conflict-blame.sh -c >/dev/null 2>&1); then
+    echo "OK"
+else
+    echo "SKIP (no live conflict)"
+fi
+
+exit "$fail"
