@@ -27,6 +27,9 @@ personal taste. PRs are welcome.
 - `git branch-status`\
   Displays status of local branches, tracking or not, compared to remote
   branches.
+- `git conflict-blame`\
+  Shows a blamed view of every conflict hunk in the working tree; `-c` prints
+  only the unique commit SHAs involved.
 - `git delete-both`\
   Deletes a branch, and IFF it's tracking, its remote counterpart.
 - `git delorean`\
@@ -66,6 +69,9 @@ personal taste. PRs are welcome.
   Search and replace string across the repository, starting at `./`.
 - `git stash-drop-range`\
   Drops a range of stash items from stash.
+- `git topology`\
+  Prints a forest of branches, nesting each branch under its nearest descendant
+  branch (inferred from commit ancestry), so pure tips show as roots.
 
 # Installation
 
@@ -78,3 +84,9 @@ personal taste. PRs are welcome.
 # Warranty
 
 100% without any sort of warranty/guarantee.
+
+# Good helper scripts by others
+
+- [`git-jump`](https://github.com/git/git/tree/master/contrib/git-jump)
+  available in the git contrib folder
+- [`git-test`](https://github.com/spotify/git-test)

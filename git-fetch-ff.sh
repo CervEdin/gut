@@ -1,5 +1,13 @@
 #!/bin/sh
 
+# Under "sh -x", copy what passes through a pipeline stage to stderr.
+trace() {
+	case $- in
+	*x*) tee /dev/stderr ;;
+	*) cat ;;
+	esac
+}
+
 worktree_list="$(mktemp)"
 
 git worktree list --porcelain |
@@ -16,11 +24,13 @@ git for-each-ref --format='%(refname)' refs/heads/ |
 '%(upstream:track)%09'\
 '%(upstream:remotename)%09'\
 '%(upstream:remoteref)' |
+	trace |
 	sed -n '
 /\t*\[behind [0-9]*\]\t*/{
 	s@@\t@
 	p;
 }' |
+	trace |
 	awk -F '\t' '
 NR==1 {
 	# remote, local, upstream
@@ -36,4 +46,5 @@ NR==1 {
 		print args
 	}
 }' |
+	trace |
 	xargs -L 1 git fetch
