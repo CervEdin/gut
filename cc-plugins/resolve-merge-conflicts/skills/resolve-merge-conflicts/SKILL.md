@@ -452,17 +452,14 @@ git log -1 --format=%B $REPLAY_HEAD > $WORKDIR/original-message.txt
 
 Ask: did the resolution rename a symbol mentioned in the message? Remove
 described functionality? Change the approach significantly? If yes, edit
-`$WORKDIR/original-message.txt` and commit with the updated message:
+`$WORKDIR/original-message.txt`. Then commit with it:
 
 ```sh
 git commit -F $WORKDIR/original-message.txt
 ```
 
-Otherwise commit with the original message unchanged:
-
-```sh
-git commit --no-edit
-```
+Do not use `git commit --no-edit`. It takes `MERGE_MSG`, which ends in the
+`# Conflicts:` block, and without an editor git does not strip comment lines.
 
 Add summary and diff together as a note:
 
