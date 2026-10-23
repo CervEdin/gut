@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+# An example hook script to check the commit log message.
+# Called by "git commit" with one argument, the name of the file
+# that has the commit message.  The hook should exit with non-zero
+# status after issuing an appropriate message if it wants to stop the
+# commit.  The hook is allowed to edit the commit message file.
+#
+# To enable this hook, rename this file to "commit-msg".
+
+# Uncomment the below to add a Signed-off-by line to the message.
+# Doing this in a hook is a bad idea in general, but the prepare-commit-msg
+# hook is more suited to it.
+#
+# SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+
+# This example catches duplicate Signed-off-by lines.
+
+test "" = "$(grep '^Signed-off-by: ' "$1" |
+	 sort | uniq -c | sed -e '/^[ 	]*1[ 	]/d')" || {
+	echo >&2 Duplicate Signed-off-by lines.
+	exit 1
+}
+
+# Reject lines longer than 72 characters, ignoring comment lines and
+# everything below git's scissors line (verbose diff), since none of that
+# ends up in the actual commit message.
+#
+# gawk rather than awk: macOS awk (20200816) has no multibyte support, so
+# length() counts bytes and an em dash reads as three characters. gawk
+# counts characters, but only in a UTF-8 locale, hence LC_ALL.
+awk_bin=gawk
+command -v gawk >/dev/null 2>&1 || awk_bin=awk
+
+long_lines=$(LC_ALL=C.UTF-8 "$awk_bin" '
+	/^#.*>8/ { exit }
+	/^#/ { next }
+	NR == 1 && /^Merge / { next }
+	NR == 1 && /^(fixup|squash|amend)! / {
+		line = $0
+		sub(/^(fixup|squash|amend)! /, "", line)
+		if (length(line) > 72) print NR": "length(line)" chars (excluding autosquash prefix)"
+		next
+	}
+	length > 72 { print NR": "length" chars" }
+' "$1")
+if [ -n "$long_lines" ]; then
+	echo "Error: commit message has lines longer than 72 characters:" >&2
+	echo "$long_lines" >&2
+	exit 1
+fi
+
