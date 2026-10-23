@@ -2,12 +2,12 @@
 name: peff-pr
 description: >-
   Write or judge the title of a GitHub pull request, so that a reader who has
-  not seen the diff knows why to care. Also covers the opening paragraph. Use it
-  every time a PR title or description is written or renamed, and whenever the
-  wording of one is being judged rather than the code: before `gh pr create`,
-  before any `gh pr edit --title` or `--body`, when a commit subject is about to
-  become a PR title, and when asked "is this a good title", "write the PR" or
-  "rename the PR".
+  not seen the diff knows why to care. Also covers the opening paragraph, the
+  body and the comment after review changes. Use it every time a PR title or
+  description is written or renamed, and whenever the wording of one is being
+  judged rather than the code: before `gh pr create`, before any `gh pr edit
+  --title` or `--body`, when a commit subject is about to become a PR title, and
+  when asked "is this a good title", "write the PR" or "rename the PR".
 ---
 
 # peff-pr: PR titles that say why
@@ -43,18 +43,26 @@ Everything after that is detail.
 
 3. **Opening.** Write the opening paragraph and run the opening checklist.
 
-4. **Present.** Show the title and the opening together in one fenced block,
-   hard-wrapped at 79 columns, so they can be judged as the reader will see
-   them. When judging, run the same checklists; give the verdict first (passes,
-   or fails on: ...), then the rewrite. Give word counts when length is the
-   question.
+4. **Body.** Read `BODY.md` in this directory whenever anything below the
+   opening, or the comment after review changes, is written or judged, and run
+   its checklist. It says when a PR needs no body.
 
-5. **Apply only when asked.** If the request already includes creating or
+5. **Present.** Show the title, the opening and the body together in one fenced
+   block, hard-wrapped at 79 columns, so they can be judged as the reader will
+   see them. When judging, run the same checklists; give the verdict first
+   (passes, or fails on: ...), then the rewrite. Give word counts when length is
+   the question.
+
+6. **Apply only when asked.** If the request already includes creating or
    editing the PR, apply the chosen title and text without waiting. Use
    `gh pr edit <n> -R <owner/repo> --title '...'`, and `--body-file <file>` for
    the description; for a new PR, `gh pr create` with the same title and body
    file. Write the body file with one line per paragraph and no hard wraps,
    because GitHub renders a single newline inside a paragraph as a line break.
+
+7. **After review changes, comment.** Post what changed with
+   `gh pr comment <n> --body-file <file>`, not a body edit. Write the file the
+   same way as the body file. `BODY.md` says what the comment holds.
 
 ## Rules for a good title
 
@@ -183,7 +191,8 @@ times; 30 words or more is a chain.
   is kept, it is one sentence that starts "The fix ...", never "This ...", which
   has no referent.
 - Evidence: dates, user and record ids, query results, counts to the unit. Those
-  belong in the body unless they are what makes the reader care.
+  belong in the commit messages, or in the body when no commit carries them,
+  unless they are what makes the reader care.
 - The mechanism beyond one sentence.
 - A restatement of the title. The opening may share the title's words, but it
   starts from what the title leaves open.
@@ -209,11 +218,6 @@ times; 30 words or more is a chain.
 
 Never open with a base-branch note, "Fixes #N", a file path, a bare "Problem:
 `identifier` does X", or a lead-in such as "Three problems:".
-
-After the opening, in detail sections: identifiers, the base branch and
-stacking, "Fixes #N", checks run, decisions taken without the reviewer,
-alternatives considered. A PR proposes one change. It never asks the reviewer to
-choose between options; a choice goes on the issue.
 
 No hedges that hide whether it happened ("so far", "which can"), and no
 narration ("When a worker threw ...").
