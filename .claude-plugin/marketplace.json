@@ -48,6 +48,11 @@
       "description": "Write a commit message in the style of Jeff King (peff) from the Git mailing list"
     },
     {
+      "name": "peff-pr",
+      "source": "./cc-plugins/peff-pr",
+      "description": "Write or judge GitHub pull-request titles and descriptions so a reader who has not seen the diff knows why to care"
+    },
+    {
       "name": "peff-review",
       "source": "./cc-plugins/peff-review",
       "description": "Channel Jeff King (peff) to review code for simplicity, edge cases, and correctness — with working code alternatives"
