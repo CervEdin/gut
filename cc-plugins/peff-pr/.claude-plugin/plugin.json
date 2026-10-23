@@ -1,0 +1,5 @@
+{
+  "name": "peff-pr",
+  "description": "Write or judge GitHub pull-request titles and descriptions so a reader who has not seen the diff knows why to care",
+  "version": "0.1.0"
+}
