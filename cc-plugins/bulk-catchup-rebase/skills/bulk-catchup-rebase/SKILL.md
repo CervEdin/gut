@@ -10,10 +10,10 @@ description: >
   wants to break a big upstream catch-up into smaller chunks. Also use it when
   the user wants to rebase only as far as the last upstream commit the branch
   conflicts with, or to make sure the branch rebases cleanly onto main without
-  moving it to the tip (last-conflict mode). For merge-only
-  catch-up (one final merge commit, no rebase) use bulk-catchup-merge. Do NOT
-  use for short-range interactive rebases (reorder/squash/reword) — those belong
-  to claude-rebase or git-rebase-i.
+  moving it to the tip (last-conflict mode). For merge-only catch-up (one final
+  merge commit, no rebase) use bulk-catchup-merge. Do NOT use for short-range
+  interactive rebases (reorder/squash/reword) — those belong to claude-rebase or
+  git-rebase-i.
 allowed-tools: Bash, Read, Edit, Write, Agent
 ---
 
@@ -169,8 +169,8 @@ point.
 
 **In last-conflict mode, a clean probe leads to the completion check, not to a
 one-shot rebase.** Run the topology check (see Step 2) to pick the flags, then
-run the completion check (see Modes). If it passes, the branch already has the property. Report this and stop;
-do not rebase. If it fails, continue at Step 1.
+run the completion check (see Modes). If it passes, the branch already has the
+property. Report this and stop; do not rebase. If it fails, continue at Step 1.
 
 If the probe showed conflicts, note what you saw and proceed to Step 1.
 
@@ -196,9 +196,9 @@ that `bulk-catchup-rebase` is driving and a rebase follows, so that it:
   from where you are, same as the clean-probe exit in Step 0. If the one-shot
   stops at a conflict, abort it and resume the loop where you left off, and
 - in last-conflict mode, uses the conflicting first-parent commits as iteration
-  points (see "Conflicting upstream commits" in its "Choosing iteration
-  points") and does not bail out early, so the previous point does not apply.
-  The probe already skips clean commits, so a clean streak does not occur.
+  points (see "Conflicting upstream commits" in its "Choosing iteration points")
+  and does not bail out early, so the previous point does not apply. The probe
+  already skips clean commits, so a clean streak does not occur.
 
 When the loop completes with no conflicts, rerere should have a recorded
 resolution for every conflict. Continue at Step 2.

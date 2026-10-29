@@ -164,9 +164,9 @@ directory.
    asks the user whether to split before it commits. `peff-commit-auto` commits
    anyway and puts the recommendation in the notes as a scope note.
 
-4. **Budget.** Append a `budget:` line to the provenance file: the findings
-   the body says, the range for that count, and the body's word count, subject
-   and trailers excluded.
+4. **Budget.** Append a `budget:` line to the provenance file: the findings the
+   body says, the range for that count, and the body's word count, subject and
+   trailers excluded.
 
    ```
    budget: 2 findings, ~60 words, body 71 words
@@ -192,8 +192,8 @@ directory.
    ```
 
    Use whatever the mainline is called here — `origin/HEAD`, `origin/main`,
-   `main`. Rewrite anything it reports as "the previous commit", or however
-   else the commit sits relative to this one.
+   `main`. Rewrite anything it reports as "the previous commit", or however else
+   the commit sits relative to this one.
 
 6. **Line length.** 72 characters soft, 120 hard, body and notes alike.
 7. **Slop score.**

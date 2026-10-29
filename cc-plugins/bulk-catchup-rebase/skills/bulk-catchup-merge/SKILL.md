@@ -162,10 +162,9 @@ loop where you left off. When `bulk-catchup-rebase` is driving, return to it
 instead — it tries a one-shot rebase at this point. In `bulk-catchup-rebase`'s
 last-conflict mode, the bail-out does not apply, because the merge-tree probe
 already skips clean commits (see "Conflicting upstream commits" in "Choosing
-iteration points"). This is not the preemptive
-shortcutting warned against above — the trigger is observed evidence (a streak
-of clean merges), not tag-count anxiety, and the try costs one abort if it turns
-out wrong.
+iteration points"). This is not the preemptive shortcutting warned against above
+— the trigger is observed evidence (a streak of clean merges), not tag-count
+anxiety, and the try costs one abort if it turns out wrong.
 
 **The real goal is decomposing conflicts.** Fine strides keep each conflict set
 small and coherent — one intermediate point's worth of upstream changes at a
