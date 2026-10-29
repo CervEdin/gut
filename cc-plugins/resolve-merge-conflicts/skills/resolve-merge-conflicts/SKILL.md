@@ -455,8 +455,18 @@ described functionality? Change the approach significantly? If yes, edit
 `$WORKDIR/original-message.txt`. Then commit with it:
 
 ```sh
-git commit -F $WORKDIR/original-message.txt
+GIT_EDITOR="cp $WORKDIR/original-message.txt" git commit -c $REPLAY_HEAD --cleanup=whitespace
 ```
+
+`-c $REPLAY_HEAD` copies the author and author date from the commit being
+replayed. The `cp` editor supplies the (possibly edited) message.
+
+Plain `-F` is wrong here: it sets the author date to now, and git refuses to
+combine `-F` with `-c` or `-C` (in released versions; a pending patch lifts
+this). If `-c` is unusable, fall back to
+`git commit -F $WORKDIR/original-message.txt --author=... --date=...`, built
+from `git log -1 --format='%an <%ae>' $REPLAY_HEAD` and
+`git log -1 --format=%aI $REPLAY_HEAD`.
 
 Do not use `git commit --no-edit`. It takes `MERGE_MSG`, which ends in the
 `# Conflicts:` block, and without an editor git does not strip comment lines.
