@@ -4,11 +4,11 @@
 #
 # usage: git reword <commit> (-m <message>... | -F <file>)
 #
-# The new message becomes the body of an "amend! <sha>" commit, which
-# `git rebase -i --autosquash` folds into <commit>, replacing its
-# message.  Naming the target by sha rather than by subject keeps
-# autosquash from pairing the amend! with an older commit that has
-# the same subject.
+# The new message becomes the body of an "amend! <subject>" commit,
+# which `git rebase -i --autosquash` folds into <commit>, replacing its
+# message.  The amend! names <commit> by its subject, as
+# `git commit --fixup=amend:` does: a subject survives a rewrite of
+# <commit>, which a sha does not.
 #
 # Only HEAD's tree is committed (`git commit --only`), so staged
 # changes stay in the index and do not end up inside the old commit.
@@ -82,7 +82,7 @@ git stripspace <"$msg" | grep -q . ||
 	die "empty message; nothing committed"
 
 {
-	printf 'amend! %s\n\n' "$sha"
+	printf 'amend! %s\n\n' "$(git log -1 --format=%s "$sha")"
 	git stripspace <"$msg"
 } >"$full"
 

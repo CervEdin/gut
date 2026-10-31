@@ -15,7 +15,8 @@ Prep with both and stop at both:
 
 ```bash
 git rebase-i-prep <A> <Z>
-GIT_SEQUENCE_EDITOR="git rebase-i-todo edit=<A> edit=<Z>" git -c notes.rewriteRef='refs/notes/*' \
+GIT_SEQUENCE_EDITOR="git rebase-i-todo edit=<A> edit=<Z>" \
+  git -c rebase.autoSquash=false -c notes.rewriteRef='refs/notes/*' \
   rebase -i --autostash --rebase-merges --update-refs <base>
 ```
 

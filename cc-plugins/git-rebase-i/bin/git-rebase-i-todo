@@ -14,13 +14,15 @@
 #
 #   drop=<rev>             drop the commit
 #   edit=<rev>             stop after the commit is applied
-#   fixup=<rev>:<target>   move <rev> right after <target> and fold it in,
-#                          keeping <target>'s message
-#   squash=<rev>:<target>  the same, combining the two messages
 #   move=<rev>:<target>    move <rev> right after <target> (reorder)
 #
 # A move that would cross a label, reset or merge line fails: that is a
 # topology change, and the todo has to be written by hand for it.
+#
+# There is no fold action.  Folds are git's own: commit with
+# `git commit --fixup=<target>` (or turn an existing commit into a
+# `fixup!` one with `git reword`) and rebase with --autosquash, which
+# places each fold line next to its target before this editor runs.
 #
 # The todo ends with `break`, so the rebase pauses with the new history
 # on a detached HEAD and the branch still where it was.  There
@@ -78,7 +80,10 @@ for arg; do
 		rev=${arg#*=}
 		target=
 		;;
-	fixup=?*:?* | squash=?*:?* | move=?*:?*)
+	fixup=* | squash=*)
+		die "there is no fold action: $arg (commit a fixup! commit, then rebase with --autosquash)"
+		;;
+	move=?*:?*)
 		act=${arg%%=*}
 		rest=${arg#*=}
 		rev=${rest%%:*}
@@ -183,13 +188,10 @@ END {
 			fail("no todo line for " tgtname[a] " (" substr(tgt[a], 1, 7) ")")
 		q = posof(ti)
 		# A reorder stays outside the branch marker that follows the
-		# target; a fold becomes part of the target, so it goes before it.
-		if (act[a] == "move")
-			while (q < len && upd[order[q + 1]])
-				q++
+		# target, so the branch keeps its content.
+		while (q < len && upd[order[q + 1]])
+			q++
 		moveafter(li, q, revname[a])
-		if (act[a] != "move")
-			setcmd(li, act[a])
 		changed[++nc] = li
 		after[li] = ti
 	}
