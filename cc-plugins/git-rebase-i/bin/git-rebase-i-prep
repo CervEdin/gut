@@ -2,7 +2,8 @@
 #
 # git-rebase-i-prep — check a range before rewriting it, and save a way back
 #
-# usage: git rebase-i-prep [--allow-published] [--allow-fixups] <commit>...
+# usage: git rebase-i-prep [--allow-published] [--allow-fixups | --allow-fixups-from=<rev>]
+#                          <commit>...
 #
 # Names the commits the rewrite will touch.  The oldest one decides the
 # base of the rebase.  Prints what the range contains (merges, notes,
@@ -20,11 +21,18 @@
 #      (--allow-published goes ahead once they agreed)
 #   4  the range holds fixup!/squash!/amend! commits that an autosquash
 #      would fold in (--allow-fixups goes ahead regardless)
+#
+# --allow-fixups-from=<rev> allows only the fixups made after <rev> was
+# HEAD: the ones in the range that <rev> does not reach.  Record <rev>
+# before committing your own fixups; any older one still exits 4.
+# <rev> must be HEAD as recorded just before the recipe makes its
+# fixups.  Otherwise, after a rewrite, an older fixup has a sha that
+# <rev> does not reach, and it counts as new.
 
 set -eu
 
 usage() {
-	echo "usage: git rebase-i-prep [--allow-published] [--allow-fixups] <commit>..." >&2
+	echo "usage: git rebase-i-prep [--allow-published] [--allow-fixups | --allow-fixups-from=<rev>] <commit>..." >&2
 	exit 2
 }
 
@@ -50,10 +58,12 @@ subject() {
 
 allow_published=0
 allow_fixups=0
+fixups_from=
 while test $# -gt 0; do
 	case "$1" in
 	--allow-published) allow_published=1 ;;
 	--allow-fixups) allow_fixups=1 ;;
+	--allow-fixups-from=?*) fixups_from=${1#--allow-fixups-from=} ;;
 	--) shift; break ;;
 	-*) usage ;;
 	*) break ;;
@@ -61,6 +71,11 @@ while test $# -gt 0; do
 	shift
 done
 test $# -ge 1 || usage
+if test -n "$fixups_from"; then
+	rev=$fixups_from
+	fixups_from=$(git rev-parse --verify --quiet "$rev^{commit}") ||
+		die 2 "not a commit: --allow-fixups-from=$rev"
+fi
 
 for state in rebase-merge rebase-apply; do
 	test ! -d "$(git rev-parse --git-path $state)" ||
@@ -145,11 +160,28 @@ if test -n "$remotes"; then
 fi
 
 # Pending fixups would be folded by autosquash.
-pending=$(git log --format='%h %s' "$range" | grep -E '^[0-9a-f]+ (fixup|squash|amend)! ' || true)
+fixup_re='^[0-9a-f]+ (fixup|squash|amend)! '
+pending=$(git log --format='%h %s' "$range" | grep -E "$fixup_re" || true)
 if test -n "$pending"; then
 	echo "$pending" | sed 's/^/        /'
+	# The fixups already there at --allow-fixups-from: the ones in the
+	# range that it reaches, so the ones its merge base with HEAD reaches.
+	older=
+	if test -n "$fixups_from"; then
+		mb=$(git merge-base --all HEAD "$fixups_from" || true)
+		if test -n "$mb"; then
+			# shellcheck disable=SC2086 # one word per merge base
+			older=$(git log --format='%h %s' $mb ${base:+"^$base"} |
+				grep -E "$fixup_re" || true)
+		fi
+	fi
 	if test $allow_fixups = 1; then
 		warn "the fixup!/squash!/amend! commits above are folded in by autosquash"
+	elif test -n "$fixups_from" && test -z "$older"; then
+		echo "fixups  all made after $(short "$fixups_from"); autosquash folds them"
+	elif test -n "$fixups_from"; then
+		echo "$older" | sed 's/^/older   /' >&2
+		die 4 "these fixup!/squash!/amend! commits were there before $(short "$fixups_from"); autosquash would fold them in too. Ask the user, then fold them first or pass --allow-fixups"
 	else
 		die 4 "the range holds fixup!/squash!/amend! commits; autosquash would fold them in. Fold them first, or pass --allow-fixups"
 	fi
