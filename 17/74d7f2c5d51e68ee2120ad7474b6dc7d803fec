@@ -1,0 +1,1 @@
+Not a fixup by choice. The patch doesn't apply to main's older git-mark.sh (f977692 changes the neighbouring lines), so it lives on top of wip/w34.
