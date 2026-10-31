@@ -42,15 +42,15 @@ if `git rebase-i-prep` is not found, call the scripts as
 Every operation runs the same way. The recipes below only differ in the actions.
 
 1. **Prep.** `git rebase-i-prep <commit>...` with every commit the operation
-   touches, after any commits the recipe says to make before it. Reword is the
-   exception: it runs prep before `git reword`, because prep exits 4 on the
-   `amend!` commit that `git reword` makes. Read each `WARN` line. A `BLOCK`
-   line stops you: tell the user what it says. Exit 3 means the commit is
-   already on the upstream branch; ask before rewriting it, and rerun with
-   `--allow-published` once they agree. Exit 4 means `fixup!`, `squash!` or
-   `amend!` commits that you did not make are waiting in the range. The user may
-   keep them to fold later, so ask before folding them, and rerun with
-   `--allow-fixups` only once they agree.
+   touches, after any commits the recipe says to make before it. Reword and
+   "Fold an existing commit" are the exceptions: they run prep before
+   `git reword`, because prep exits 4 on the commit that `git reword` makes.
+   Read each `WARN` line. A `BLOCK` line stops you: tell the user what it says.
+   Exit 3 means the commit is already on the upstream branch; ask before
+   rewriting it, and rerun with `--allow-published` once they agree. Exit 4
+   means `fixup!`, `squash!` or `amend!` commits that you did not make are
+   waiting in the range. The user may keep them to fold later, so ask before
+   folding them, and rerun with `--allow-fixups` only once they agree.
 2. **Say what should change.** Before the rebase, state the expected range-diff
    in a sentence: "only commit 3's message changes", or "commit 2 is gone and
    the tree loses debug.log".
@@ -136,17 +136,45 @@ GIT_SEQUENCE_EDITOR="git rebase-i-todo drop=<sha>" \
 
 Expect the check to report a tree difference: the dropped change.
 
-### Fixup or squash
+### Fold an existing commit
 
-Fold `<sha>` into the earlier `<target>`:
+Fold `<sha>`, a commit already in the range, into `<target>`, an ancestor of
+`<sha>`. Git folds only `fixup!` and `squash!` commits, so this takes two
+rebases: the first rewords `<sha>` into a `fixup!` commit, the second folds it
+with autosquash. Run the whole Procedure for each, with the base its prep
+prints, and the checks below in its step 4.
 
 ```bash
-GIT_SEQUENCE_EDITOR="git rebase-i-todo fixup=<sha>:<target>" git -c notes.rewriteRef='refs/notes/*' \
-  rebase -i --autostash --rebase-merges --update-refs <base>
+start=$(git rev-parse HEAD)
+git rebase-i-prep --fold-into=<target> <sha>
+git reword <sha> -m "fixup! $(git log -1 --format=%s <target>)"
+GIT_SEQUENCE_EDITOR="git rebase-i-todo" git -c notes.rewriteRef='refs/notes/*' \
+  rebase -i --autosquash --autostash --rebase-merges --update-refs <base1>
+git rebase-i-check --expect-fixup=<target>
+
+git rebase-i-prep --allow-fixups-from="$start" <target>
+GIT_SEQUENCE_EDITOR="git rebase-i-todo" git -c notes.rewriteRef='refs/notes/*' \
+  rebase -i --autosquash --autostash --rebase-merges --update-refs <base2>
+git rebase-i-check
+git rebase-i-check "$start" <base2>
 ```
 
-`fixup` keeps `<target>`'s message. `squash` concatenates the two messages,
-because the editor is `true`; for a new message, fixup and then reword.
+- A `BLOCK` from the first prep's `--fold-into` means `<target>` is not an
+  ancestor of `<sha>`, for example when one of them is on a side branch that is
+  merged in after the other. Autosquash cannot fold across that, and moving the
+  change to another branch is a topology change: stop and ask the user, and see
+  `references/topology.md`.
+- In the first rebase only `<sha>`'s message changes. With `--expect-fixup`, the
+  check names `<sha>`'s new `fixup!` commit as expected and ends in `result ok`.
+  Any other `fixup!`, `squash!` or `amend!` commit left in the range still
+  warns.
+- Record `start` before the first prep. The second prep then allows the `fixup!`
+  commit that the first rebase made, and exits 4 for one that was in the range
+  before.
+- The last check compares the tip from before both rebases with the result: only
+  `<target>` changes, `<sha>` is gone, and the tree is identical.
+- `fixup!` keeps `<target>`'s message. `squash!` concatenates the two, because
+  the editor is `true`; for a new message, fold and then reword.
 
 ### Reorder
 
@@ -157,7 +185,9 @@ GIT_SEQUENCE_EDITOR="git rebase-i-todo move=<sha>:<after>" \
 ```
 
 `<sha>` is replayed right after `<after>`. A move across a merge, label or reset
-line is refused: that is a topology change, see the references.
+line is refused: on the far side of such a line a commit is built on a different
+parent, so it lands on a different branch. That is a topology change, see the
+references.
 
 ### Edit: split a commit, or remove part of it
 
