@@ -3,7 +3,7 @@
 # git-rebase-i-prep — check a range before rewriting it, and save a way back
 #
 # usage: git rebase-i-prep [--allow-published] [--allow-fixups | --allow-fixups-from=<rev>]
-#                          <commit>...
+#                          [--fold-into=<target>] <commit>...
 #
 # Names the commits the rewrite will touch.  The oldest one decides the
 # base of the rebase.  Prints what the range contains (merges, notes,
@@ -16,7 +16,8 @@
 # Exit status:
 #   0  ready; lines starting with WARN want a look
 #   2  cannot start: a rebase or merge is in progress, HEAD is detached,
-#      or a commit is not an ancestor of HEAD
+#      a commit is not an ancestor of HEAD, or --fold-into names a
+#      commit that is not an ancestor of the commits
 #   3  the oldest commit is already on the upstream branch; ask the user
 #      (--allow-published goes ahead once they agreed)
 #   4  the range holds fixup!/squash!/amend! commits that an autosquash
@@ -28,11 +29,19 @@
 # <rev> must be HEAD as recorded just before the recipe makes its
 # fixups.  Otherwise, after a rewrite, an older fixup has a sha that
 # <rev> does not reach, and it counts as new.
+#
+# --fold-into=<target> checks that the commits can be folded into
+# <target> by a later autosquash rebase: <target> must be an ancestor of
+# them.  Autosquash moves a fixup! commit up the todo list to its
+# target, and in a --rebase-merges todo only an ancestor is sure to be
+# above it.  A side branch, for one, comes before the main line it is
+# merged into.  Folding across such a merge is a topology change.
 
 set -eu
 
 usage() {
-	echo "usage: git rebase-i-prep [--allow-published] [--allow-fixups | --allow-fixups-from=<rev>] <commit>..." >&2
+	echo "usage: git rebase-i-prep [--allow-published] [--allow-fixups | --allow-fixups-from=<rev>]" \
+		"[--fold-into=<target>] <commit>..." >&2
 	exit 2
 }
 
@@ -59,11 +68,13 @@ subject() {
 allow_published=0
 allow_fixups=0
 fixups_from=
+fold_into=
 while test $# -gt 0; do
 	case "$1" in
 	--allow-published) allow_published=1 ;;
 	--allow-fixups) allow_fixups=1 ;;
 	--allow-fixups-from=?*) fixups_from=${1#--allow-fixups-from=} ;;
+	--fold-into=?*) fold_into=${1#--fold-into=} ;;
 	--) shift; break ;;
 	-*) usage ;;
 	*) break ;;
@@ -112,6 +123,19 @@ done
 test -n "$oldest" ||
 	die 2 "the commits are not on one line of history; rewrite one line at a time"
 
+# Checking against the oldest commit covers the others, which descend
+# from it.  It also keeps <target> out of the range: the rebase that
+# makes the fixup! rewrites only the commits after <target>.
+if test -n "$fold_into"; then
+	into=$(git rev-parse --verify --quiet "$fold_into^{commit}") ||
+		die 2 "not a commit: --fold-into=$fold_into"
+	test "$into" != "$oldest" ||
+		die 2 "--fold-into=$fold_into is the commit being folded"
+	git merge-base --is-ancestor "$into" "$oldest" ||
+		die 2 "$(short "$into") is not an ancestor of $(short "$oldest"), so autosquash" \
+			"cannot fold into it; folding across a merge is a topology change"
+fi
+
 if base=$(git rev-parse --verify --quiet "$oldest^"); then
 	base_arg=$base
 	range="$base..HEAD"
@@ -126,6 +150,9 @@ for s in $targets; do
 	echo "target  $(short "$s")  $(subject "$s")"
 done
 echo "oldest  $(short "$oldest")  $(subject "$oldest")"
+if test -n "$fold_into"; then
+	echo "fold    into $(short "$into")  $(subject "$into")"
+fi
 if test -n "$base"; then
 	echo "base    $(short "$base")  $(subject "$base")"
 else
