@@ -164,14 +164,27 @@ fi
 commits=$(git rev-list --count "$range")
 merges=$(git rev-list --merges --count "$range")
 echo "range   $commits commits, $merges merges"
-if test "$merges" -gt 0; then
-	if test "$(git config --type=bool --default=false rerere.enabled)" = true; then
-		echo "merges  kept by --rebase-merges; rerere is on, so recorded resolutions replay"
-	else
-		warn "merges are kept by --rebase-merges, but a merge whose conflict was resolved" \
-			"by hand conflicts again; rerere is off, so nothing replays the resolution"
-	fi
-fi
+# --rebase-merges redoes each merge from scratch.  A merge whose
+# remerge-diff is not empty had changes made by hand: a conflict
+# resolution, which conflicts again, or edits of its own, which are lost.
+# diff-tree --quiet says which through its exit code, 1 for a diff; a
+# failure is anything above that, and must not pass for a clean merge.
+for m in $(git rev-list --merges "$range"); do
+	st=0
+	git diff-tree --no-commit-id --remerge-diff --quiet "$m" || st=$?
+	case $st in
+	0) ;;
+	1)
+		warn "merge $(short "$m") \"$(subject "$m")\" has changes made by hand: a conflict" \
+			"resolved by hand stops the rebase again; an edit of the merge's own is lost." \
+			"git show --remerge-diff $(short "$m") shows them"
+		;;
+	*)
+		die 2 "cannot check merge $(short "$m"): git diff-tree --remerge-diff failed" \
+			"with status $st (it needs git 2.36 or later)"
+		;;
+	esac
+done
 
 # Published?
 upstream=$(git rev-parse --verify --quiet --symbolic-full-name '@{upstream}' 2>/dev/null) ||
