@@ -1,5 +1,5 @@
-Assumed, not sourced: git show --remerge-diff needs git 2.36 or later.
-That is from memory and was not checked here.
+git show --remerge-diff needs git 2.36 or later: the option first
+appears in Documentation/RelNotes/2.36.0.adoc of git.git.
 
 The other option was a line in the fold recipes telling the agent to run
 git show --remerge-diff itself. A WARN from prep is harder to skip.
