@@ -90,10 +90,9 @@ GIT_SEQUENCE_EDITOR="git rebase-i-todo" git -c notes.rewriteRef='refs/notes/*' \
   rebase -i --autosquash --autostash --rebase-merges --update-refs <base>
 ```
 
-One `git reword` per commit; give prep all of them and run one rebase. The
-`amend!` commits name their target by sha, so two commits with the same subject
-cannot be confused, and `git log` shows every new message before the rebase
-runs. `--autosquash` is needed here; the other recipes do not pass it.
+One `git reword` per commit; give prep all of them and run one rebase. `git log`
+shows every new message before the rebase runs. `--autosquash` is needed here;
+the other recipes do not pass it.
 
 ### Drop
 
