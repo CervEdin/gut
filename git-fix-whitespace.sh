@@ -3,9 +3,9 @@
 # Detect sed -i syntax (GNU vs BSD)
 _tmp=$(mktemp)
 if sed -i 'p' "$_tmp" 2>/dev/null; then
-    SED_INPLACE=(sed -i )
+    set -- sed -i
 else
-    SED_INPLACE=(sed -i "")
+    set -- sed -i ''
 fi
 rm -f "$_tmp"
 
@@ -13,4 +13,4 @@ git diff-index \
 	"$(git merge-base origin/development HEAD)" \
 	--name-only \
 	--relative . |\
-	tr '\n' '\0' | xargs -0 $SED_INPLACE 's/ *$//'
+	tr '\n' '\0' | xargs -0 "$@" 's/ *$//'
