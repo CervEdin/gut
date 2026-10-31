@@ -14,10 +14,11 @@ SED_CMD='/^p\(ick\)\{0,1\} [0-9a-f]*/{s|^p\(ick\)\{0,1\} \([0-9a-f]*\).*|\2|;p;q
 FIRST_SHA=$(sed -n "$SED_CMD" "$TODO") # -n: quiet mode (--quiet)
 echo "$FIRST_SHA"
 
+# shellcheck disable=SC2016 # $1 is expanded by the inner sh
 TAGS=$(set +o pipefail; # grep fails w exit 1 on empty
 	git tag --contains "$FIRST_SHA" |
 	grep -v '^archive/' |
-	xargs --no-run-if-empty -n 1 sh -c 'printf "$1\t" && git rev-list -n 1 $1' 'tag_and_sha')
+	xargs --no-run-if-empty -n 1 sh -c 'printf "%s\t" "$1" && git rev-list -n 1 "$1"' 'tag_and_sha')
 
 IFS=$'\n'
 SED_CMDs=''
