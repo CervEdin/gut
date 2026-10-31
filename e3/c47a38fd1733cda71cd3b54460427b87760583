@@ -1,0 +1,1 @@
+Couldn't verify the dash syntax error directly; dash isn't installed here. The bash-as-sh failure (prints instead of editing) was reproduced. Left the hard-coded origin/development base alone; separate topic.
