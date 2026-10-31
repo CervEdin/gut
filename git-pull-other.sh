@@ -66,9 +66,7 @@ fi
 
 # Fetch the remote reference and update the local reference
 [ "$VERBOSE" = true ] && echo "Fetching from $DEFAULT_REMOTE and updating $LOCAL_REF"
-git fetch "$DEFAULT_REMOTE" "$LOCAL_REF:$LOCAL_REF"
-
-if [ $? -eq 0 ]; then
+if git fetch "$DEFAULT_REMOTE" "$LOCAL_REF:$LOCAL_REF"; then
   [ "$QUIET" = false ] && echo "Successfully fetched and updated $LOCAL_REF."
 else
   echo "Error: Failed to fetch and update $LOCAL_REF."
