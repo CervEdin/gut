@@ -11,8 +11,6 @@ h,help           Show the help
 # Parse options using git rev-parse --parseopt
 eval "$(echo "$OPTIONS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit 1)"
 
-VERBOSE=false
-
 while :; do
   case "$1" in
     --)
