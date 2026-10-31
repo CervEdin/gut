@@ -115,6 +115,11 @@ GIT_SEQUENCE_EDITOR="git rebase-i-todo" git -c notes.rewriteRef='refs/notes/*' \
 ```
 
 - One file with fixes for two targets: stage each part with interactive-staging.
+- Before committing, check that the targets are on one line of history: one of
+  them must be an ancestor of all the others (`git merge-base --is-ancestor`).
+  If they are on different lines of a merge, prep refuses. Commit only one
+  line's fixes, leave the rest unstaged (`--autostash` keeps them), and fold the
+  next line in another pass.
 - Commit the fixes before prep, so its backup includes them and the check
   reports the tree identical.
 - Record `start` before the first `git commit --fixup`. Prep allows only the
