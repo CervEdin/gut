@@ -86,9 +86,10 @@ ffiles() {
 
 if [ "$both" = true ]; then
 	sed_script='
-# Just delete all conflict markers
+# Delete markers, and the ancestor/base section from (z)diff3 style if present
 /^<\{7\}/d
-/^[|=]\{7\}/d
+/^|\{7\}/,/^=\{7\}/d
+/^=\{7\}/d
 /^>\{7\}/d'
 elif [ "$ours" = true ]; then
 	sed_script='
