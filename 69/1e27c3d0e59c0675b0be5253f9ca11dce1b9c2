@@ -1,0 +1,13 @@
+git show --remerge-diff needs git 2.36 or later: the option first
+appears in Documentation/RelNotes/2.36.0.adoc of git.git.
+
+The other option was a line in the fold recipes telling the agent to run
+git show --remerge-diff itself. A WARN from prep is harder to skip.
+
+With rerere on, a recorded resolution may still replay, but the WARN
+stays: rerere does not bring back edits the merge made of its own.
+
+Tested in scratch repos: a clean merge gets no WARN; a merge with a
+conflict resolved by hand and a merge with an extra file added in it
+each get the WARN, and the remerge-diff it names shows the conflict
+markers next to the resolution.
