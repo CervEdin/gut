@@ -1,5 +1,5 @@
-Tested in scratch repos with a minimal global config and GIT_EDITOR=true:
-two fixup commits for two commits of a merged side branch, one of them
+Tested in scratch repos with a minimal global config and
+GIT_EDITOR=true: two fixup commits for two commits of a merged side branch, one of them
 sharing its subject with a commit on the first-parent line. The check
 reported the tree identical and "result ok", the merge was redone, and
 each fix landed in its target. Notes on the folded commits survived.
