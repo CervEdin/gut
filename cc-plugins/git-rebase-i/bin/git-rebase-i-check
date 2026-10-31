@@ -2,7 +2,7 @@
 #
 # git-rebase-i-check — report what a rewrite changed
 #
-# usage: git rebase-i-check [<orig> [<base>]]
+# usage: git rebase-i-check [--expect-fixup=<target>] [<orig> [<base>]]
 #
 # Compares HEAD with the tip that `git rebase-i-prep` saved
 # (refs/rebase-i/orig by default) over the range above the saved base
@@ -12,6 +12,11 @@
 # the prep saved was left behind.  `git diff` alone passes when the
 # wrong commit was reworded, a message came out empty, or notes were
 # lost; this report shows those.
+#
+# --expect-fixup=<target> is for the first pass of a fold, which leaves
+# one fixup! commit in the range on purpose.  The check accepts it if it
+# is the only fixup!/squash!/amend! commit left and its subject is
+# "fixup! <target's subject>"; anything else left still warns.
 #
 # Exit status: 0 nothing to flag, 1 at least one WARN line,
 # 2 a rebase is still in progress.
@@ -52,6 +57,28 @@ count_signed() {
 	done
 	echo $n
 }
+
+usage() {
+	echo "usage: git rebase-i-check [--expect-fixup=<target>] [<orig> [<base>]]" >&2
+	exit 2
+}
+
+expect=
+while test $# -gt 0; do
+	case "$1" in
+	--expect-fixup=?*) expect=${1#--expect-fixup=} ;;
+	--) shift; break ;;
+	-*) usage ;;
+	*) break ;;
+	esac
+	shift
+done
+test $# -le 2 || usage
+if test -n "$expect"; then
+	expect_sha=$(git rev-parse --verify --quiet "$expect^{commit}") ||
+		die "not a commit: --expect-fixup=$expect"
+	expect_subject="fixup! $(subject "$expect_sha")"
+fi
 
 orig_ref=${1:-refs/rebase-i/orig}
 orig=$(git rev-parse --verify --quiet "$orig_ref^{commit}") ||
@@ -170,7 +197,13 @@ else
 fi
 
 left=$(git log --format='%h %s' "$after" | grep -E '^[0-9a-f]+ (fixup|squash|amend)! ' || true)
-if test -n "$left"; then
+# The one fixup! that --expect-fixup names is the expected result: a
+# single line, whose subject is the fixup! subject of the target.
+if test -n "$left" && test -n "$expect" &&
+	test "$(printf '%s\n' "$left" | grep -c .)" -eq 1 &&
+	test "${left#* }" = "$expect_subject"; then
+	echo "fixup   ${left%% *} expected, folds into $(short "$expect_sha")  $(subject "$expect_sha")"
+elif test -n "$left"; then
 	warn "fixup!/squash!/amend! commits remain in the range:"
 	echo "$left" | sed 's/^/        /'
 fi
