@@ -49,7 +49,9 @@ Every operation runs the same way. The recipes below only differ in the actions.
    autosquash would fold them in; ask whether to fold them first.
 2. **Say what should change.** Before the rebase, state the expected range-diff
    in a sentence: "only commit 3's message changes", or "commit 2 is gone and
-   the tree loses debug.log".
+   the tree loses debug.log". A drop or fold that takes every commit off a side
+   branch also removes the merge of that branch, and the branch ends up on the
+   main line; say so too.
 3. **Rebase.** Run the `rebase` command prep printed, with the recipe's actions
    in `GIT_SEQUENCE_EDITOR`. The helper resolves each commit before it touches
    the todo, and fails the rebase before it starts if a commit has no todo line.

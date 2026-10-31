@@ -113,8 +113,17 @@ else
 	before=$orig
 	after=HEAD
 fi
-echo "commits before $(git rev-list --count "$before") ($(git rev-list --merges --count "$before") merges)," \
-	"after $(git rev-list --count "$after") ($(git rev-list --merges --count "$after") merges)"
+mb=$(git rev-list --merges --count "$before")
+ma=$(git rev-list --merges --count "$after")
+echo "commits before $(git rev-list --count "$before") ($mb merges)," \
+	"after $(git rev-list --count "$after") ($ma merges)"
+# range-diff leaves merges out, so a merge that went away (its side
+# branch emptied by a drop or a fold) shows up nowhere else.
+if test "$mb" != "$ma"; then
+	warn "merges  $mb before, $ma after: the shape of the history changed"
+	git log --merges --format='%h %s' "$before" | sed 's/^/        before: /'
+	git log --merges --format='%h %s' "$after" | sed 's/^/        after:  /'
+fi
 
 echo "range-diff:"
 if test -n "$base"; then
@@ -196,6 +205,12 @@ for ref in $(git for-each-ref --format='%(refname)' refs/rebase-i/heads); do
 		fi
 	else
 		echo "branch  $b $(short "$old") -> $(short "$new")"
+		# A side branch whose commits were all dropped or folded away
+		# ends up on the main line, at a commit HEAD's first parents reach.
+		if ! git rev-list --first-parent "$orig" | grep -q -x "$old" &&
+			git rev-list --first-parent HEAD | grep -q -x "$new"; then
+			warn "branch  $b now points at $(short "$new") on HEAD's main line; it has no commits of its own"
+		fi
 	fi
 done
 
