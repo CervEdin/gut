@@ -1,0 +1,13 @@
+Not done here: rebase-i-check could treat the fixup! commit left by the
+first rebase as expected, so that pass ends in "result ok" instead of
+the WARN the recipe explains.
+
+Keeping fixup= and only skipping the boundary check for folds was
+prototyped and worked in scratch tests; it still copies autosquash, so
+it was not taken.
+
+Tested in scratch repos with a minimal global config: fixup= fails with
+the new message and no rebase starts; move= across a merge is still
+refused; drop= and edit= work; the two-rebase fold of a commit on top
+into a commit of a merged side branch leaves the tree identical, redoes
+the merge and moves the note of the folded commit to the target.
