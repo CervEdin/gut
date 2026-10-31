@@ -1,0 +1,6 @@
+Tested in a scratch repo: prep given a commit of a merged side branch
+and a commit on the first-parent line after the fork exits 2 with the
+new message.
+
+The message is a single line of output; it is wrapped here only in the
+source.
