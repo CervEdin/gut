@@ -1,6 +1,6 @@
-Assumed, not sourced: rebase-i-check could treat the fixup! commit
-left by the first rebase as expected, so that pass ends in "result ok".
-Not done here.
+Not done here: rebase-i-check could treat the fixup! commit left by the
+first rebase as expected, so that pass ends in "result ok" instead of
+the WARN the recipe explains.
 
 Keeping fixup= and only skipping the boundary check for folds was
 prototyped and worked in scratch tests; it still copies autosquash, so
