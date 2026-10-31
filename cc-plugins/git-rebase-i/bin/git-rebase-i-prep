@@ -229,4 +229,7 @@ git for-each-ref --format='%(refname:short) %(objectname)' refs/heads |
 		echo "saved   refs/rebase-i/heads/$b = $(short "$s")  (--update-refs moves $b)"
 	done
 
-echo "rebase  GIT_SEQUENCE_EDITOR='git rebase-i-todo <action>...' git -c notes.rewriteRef='refs/notes/*' rebase -i --autostash --rebase-merges --update-refs $base_arg"
+# rebase.autoSquash=false: the user's config may turn autosquash on for
+# every rebase, which would fold pending fixups in a drop, move or edit.
+# A recipe that folds passes --autosquash, which overrides it.
+echo "rebase  GIT_SEQUENCE_EDITOR='git rebase-i-todo <action>...' git -c rebase.autoSquash=false -c notes.rewriteRef='refs/notes/*' rebase -i --autostash --rebase-merges --update-refs $base_arg"

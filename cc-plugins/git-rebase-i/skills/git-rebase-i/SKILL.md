@@ -98,7 +98,8 @@ runs. `--autosquash` is needed here; the other recipes do not pass it.
 ### Drop
 
 ```bash
-GIT_SEQUENCE_EDITOR="git rebase-i-todo drop=<sha>" git -c notes.rewriteRef='refs/notes/*' \
+GIT_SEQUENCE_EDITOR="git rebase-i-todo drop=<sha>" \
+  git -c rebase.autoSquash=false -c notes.rewriteRef='refs/notes/*' \
   rebase -i --autostash --rebase-merges --update-refs <base>
 ```
 
@@ -119,7 +120,8 @@ because the editor is `true`; for a new message, fixup and then reword.
 ### Reorder
 
 ```bash
-GIT_SEQUENCE_EDITOR="git rebase-i-todo move=<sha>:<after>" git -c notes.rewriteRef='refs/notes/*' \
+GIT_SEQUENCE_EDITOR="git rebase-i-todo move=<sha>:<after>" \
+  git -c rebase.autoSquash=false -c notes.rewriteRef='refs/notes/*' \
   rebase -i --autostash --rebase-merges --update-refs <base>
 ```
 
@@ -129,7 +131,8 @@ line is refused: that is a topology change, see the references.
 ### Edit: split a commit, or remove part of it
 
 ```bash
-GIT_SEQUENCE_EDITOR="git rebase-i-todo edit=<sha>" git -c notes.rewriteRef='refs/notes/*' \
+GIT_SEQUENCE_EDITOR="git rebase-i-todo edit=<sha>" \
+  git -c rebase.autoSquash=false -c notes.rewriteRef='refs/notes/*' \
   rebase -i --autostash --rebase-merges --update-refs <base>
 ```
 
@@ -186,7 +189,9 @@ branch; those two are the only ref moves this skill allows by hand.
   autosquash folds them all.
 - **Keep the printed flags.** `--rebase-merges` keeps merges, `--update-refs`
   carries the branches inside the range, `--autostash` handles a dirty tree
-  (staged changes come back unstaged), `notes.rewriteRef` keeps notes.
+  (staged changes come back unstaged), `notes.rewriteRef` keeps notes. A command
+  without `--autosquash` sets `-c rebase.autoSquash=false`, since the user's
+  config may turn autosquash on for every `git rebase -i`; keep it.
 - **Signatures do not survive a rewrite.** Prep warns when the range has signed
   commits; pass `-S` to the rebase if the user signs, or say that they are gone.
 - **The report, not a summary.** The check's output goes into the reply whole.
