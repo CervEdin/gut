@@ -44,7 +44,8 @@ GNU and BSD sed both accept:
 
 ```bash
 GIT_SEQUENCE_EDITOR="sed -i.bak -E -f $(git rev-parse --git-path topology.sed)" \
-  git -c notes.rewriteRef='refs/notes/*' rebase -i --autostash --rebase-merges --update-refs <M>
+  git -c rebase.autoSquash=false -c notes.rewriteRef='refs/notes/*' \
+  rebase -i --autostash --rebase-merges --update-refs <M>
 ```
 
 At the break, the check's commit count shows one merge more than before and an
