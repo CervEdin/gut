@@ -1,0 +1,13 @@
+Assumed, not sourced: the advice for a fix that conflicts at its fold
+and again at a later commit was only partly tested. The reviewing agent
+saw both conflicts happen but did not carry the resolution through to
+the end.
+
+Tested in scratch repos with a minimal global config and GIT_EDITOR=true:
+two fixup commits for two commits of a merged side branch, one of them
+sharing its subject with a commit on the first-parent line. The check
+reported the tree identical and "result ok", the merge was redone, and
+each fix landed in its target. Notes on the folded commits survived.
+
+The old fold route, fixup=<sha>:<target>, still refuses to cross a
+merge after this commit; the next commit removes it.
