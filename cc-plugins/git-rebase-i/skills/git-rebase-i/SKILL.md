@@ -42,11 +42,15 @@ if `git rebase-i-prep` is not found, call the scripts as
 Every operation runs the same way. The recipes below only differ in the actions.
 
 1. **Prep.** `git rebase-i-prep <commit>...` with every commit the operation
-   touches. Read each `WARN` line. A `BLOCK` line stops you: tell the user what
-   it says. Exit 3 means the commit is already on the upstream branch; ask
-   before rewriting it, and rerun with `--allow-published` once they agree. Exit
-   4 means `fixup!` or `squash!` commits are waiting in the range and an
-   autosquash would fold them in; ask whether to fold them first.
+   touches, after any commits the recipe says to make before it. Reword is the
+   exception: it runs prep before `git reword`, because prep exits 4 on the
+   `amend!` commit that `git reword` makes. Read each `WARN` line. A `BLOCK`
+   line stops you: tell the user what it says. Exit 3 means the commit is
+   already on the upstream branch; ask before rewriting it, and rerun with
+   `--allow-published` once they agree. Exit 4 means `fixup!`, `squash!` or
+   `amend!` commits that you did not make are waiting in the range. The user may
+   keep them to fold later, so ask before folding them, and rerun with
+   `--allow-fixups` only once they agree.
 2. **Say what should change.** Before the rebase, state the expected range-diff
    in a sentence: "only commit 3's message changes", or "commit 2 is gone and
    the tree loses debug.log".
@@ -91,8 +95,36 @@ GIT_SEQUENCE_EDITOR="git rebase-i-todo" git -c notes.rewriteRef='refs/notes/*' \
 ```
 
 One `git reword` per commit; give prep all of them and run one rebase. `git log`
-shows every new message before the rebase runs. `--autosquash` is needed here;
-the other recipes do not pass it.
+shows every new message before the rebase runs.
+
+### Fold new fixes into earlier commits
+
+Commit each new fix on top of HEAD as a `fixup!` commit; one autosquash rebase
+folds them all in. Git puts each `fixup` line right after its target, also
+inside a side branch merged into HEAD, and redoes the merge.
+
+```bash
+start=$(git rev-parse HEAD)
+git add <the fix for target 1>
+git commit --fixup=<target1>
+git add <the fix for target 2>
+git commit --fixup=<target2>
+git rebase-i-prep --allow-fixups-from="$start" <target1> <target2>
+GIT_SEQUENCE_EDITOR="git rebase-i-todo" git -c notes.rewriteRef='refs/notes/*' \
+  rebase -i --autosquash --autostash --rebase-merges --update-refs <base>
+```
+
+- One file with fixes for two targets: stage each part with interactive-staging.
+- Commit the fixes before prep, so its backup includes them and the check
+  reports the tree identical.
+- Record `start` before the first `git commit --fixup`. Prep allows only the
+  `fixup!`, `squash!` and `amend!` commits made since then, and exits 4 for an
+  older one. Autosquash would fold that one too, so ask the user first; if they
+  agree, pass `--allow-fixups` and include it in step 2's expected change.
+- A fix to lines that a later commit also changed conflicts twice: at its fold,
+  and again at that later commit. At the fold, keep only the target's version
+  plus the fix, without the later commit's lines; resolve the later commit as
+  usual.
 
 ### Drop
 
@@ -184,13 +216,15 @@ branch; those two are the only ref moves this skill allows by hand.
 
 - **Never switch branches, never move a branch by hand** with `update-ref`,
   `reset` or plumbing. If no recipe fits, stop and ask.
-- **Newest first, one operation per rebase.** Rewords are the exception: one
-  autosquash folds them all.
+- **Newest first, one operation per rebase.** Rewords and new fixes are the
+  exception: one autosquash folds them all.
 - **Keep the printed flags.** `--rebase-merges` keeps merges, `--update-refs`
   carries the branches inside the range, `--autostash` handles a dirty tree
-  (staged changes come back unstaged), `notes.rewriteRef` keeps notes. A command
-  without `--autosquash` sets `-c rebase.autoSquash=false`, since the user's
-  config may turn autosquash on for every `git rebase -i`; keep it.
+  (staged changes come back unstaged), `notes.rewriteRef` keeps notes. Add
+  `--autosquash` only where a recipe's command has it: it folds every `fixup!`,
+  `squash!` and `amend!` commit in the range, not only yours. Every other
+  command sets `-c rebase.autoSquash=false`, since the user's config may turn
+  autosquash on for every `git rebase -i`; keep it.
 - **Signatures do not survive a rewrite.** Prep warns when the range has signed
   commits; pass `-S` to the rebase if the user signs, or say that they are gone.
 - **The report, not a summary.** The check's output goes into the reply whole.
