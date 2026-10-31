@@ -121,7 +121,9 @@ for s in $targets; do
 	fi
 done
 test -n "$oldest" ||
-	die 2 "the commits are not on one line of history; rewrite one line at a time"
+	die 2 "the commits are on different lines of a merge; rewrite one line per" \
+		"rebase. For new fixes: commit the fixes for one line, leave the rest" \
+		"unstaged (--autostash keeps them), and repeat for the next line"
 
 # Checking against the oldest commit covers the others, which descend
 # from it.  It also keeps <target> out of the range: the rebase that
