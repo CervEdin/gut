@@ -225,6 +225,65 @@ manual pages:
 
 -- Git commit `21a5f9442e`, "doc: git-checkout: clarify intro sentence"
 
+## Split check
+
+A long description is a sign that the commit holds more than one change, but
+length alone is not a fault:
+
+    If your description starts to get too long, that's a sign that you
+    probably need to split up your commit to finer grained pieces.
+    That being said, patches which plainly describe the things that
+    help reviewers check the patch, and future maintainers understand
+    the code, are the most beautiful patches.
+
+-- Git `Documentation/SubmittingPatches`, "Make separate commits for logically
+separate changes"
+
+Linux gives the rule itself: one logical change per patch, one change made to
+many files stays one patch, and each patch in a series must build and run:
+
+    Separate each **logical change** into a separate patch.
+
+    [...]
+
+    On the other hand, if you make a single change to numerous files,
+    group those changes into a single patch.  [...]
+
+    When dividing your change into a series of patches, take special care to
+    ensure that the kernel builds and runs properly after each patch in the
+    series.
+
+-- Linux `Documentation/process/submitting-patches.rst`, "Separate your changes"
+
+Neither source gives a size. The sizes in step 2 come from a measurement of
+git.git: the 11,363 non-merge commits from 2021-01-01 to `cb3b40381e`
+(2025-06-18). The body is counted in characters, without the subject and
+trailers. The code diff is added plus removed lines outside `t/`,
+`Documentation/` and `po/`.
+
+    code diff lines   commits   median body   p75     p90
+    1-2                 1,279           335     706   1,265
+    3-5                 1,137           406     782   1,267
+    6-10                1,193           508     876   1,443
+    11-20               1,388           529     951   1,633
+    21-50               1,719           551     988   1,726
+    51-100                797           633   1,130   2,023
+    101-200               364           703   1,388   2,562
+    201-500               144           497     905   1,682
+    501+                   47           340     812   1,423
+
+Body length barely follows diff size: the rank correlation is 0.20. One in ten
+diffs of one or two lines has a body over 1,265 characters. Counting the whole
+diff, 46% of commits over 500 lines and 60% over 1,000 have no body at all; 154
+of those 157 bodyless commits over 500 lines are mostly `po/`, that is
+translation updates. What sets the length is the problem, which only reading the
+commit can judge. Hence the two counts together: 191 commits (1.7%) have more
+than 200 lines of code diff, and 40 of them (0.4% of all) also have a body over
+1,000 characters, about the p75 for that size.
+
+These commits were already split into series before they went in, so the table
+shows commits Git accepted, not commits that should have been split.
+
 ## Not sourced
 
 These rules in `SKILL.md` have no source above. Do not quote this file to back
@@ -235,6 +294,11 @@ them; say they are the skill's own rule.
   decide nothing on their own.
 - "Repeated" at three or more places for prose. The frequency test above sets
   the line for a helper at more than one site; no source sets one for prose.
+- About 200 lines of code diff together with about 1,000 characters of body as
+  the size that starts the split check. The measurement above places them; no
+  source sets them. A false positive costs little, because the test decides, not
+  the size.
+- "Its own why" in the split test. Neither source says each part needs one.
 - The "Working note" step, including its `TODO`/`NEEDSWORK` advice.
 - The "Directives" step.
 - The "Touched docs" rules other than common case first: an example where one
