@@ -4,14 +4,31 @@
 #
 # usage: git rebase-i-prep [--allow-published] [--allow-fixups | --allow-fixups-from=<rev>]
 #                          [--fold-into=<target>] <commit>...
+#    or: git rebase-i-prep --forget
 #
 # Names the commits the rewrite will touch.  The oldest one decides the
 # base of the rebase.  Prints what the range contains (merges, notes,
 # signatures, other authors, branches) and saves the current tip as
-# refs/rebase-i/orig, the base as refs/rebase-i/base and every other
-# branch inside the range as refs/rebase-i/heads/<name>.  Those refs
-# are outside refs/heads/, so --update-refs leaves them alone and
-# `git rebase-i-check` can compare against them afterwards.
+# <ns>/orig, the base as <ns>/base and every other branch inside the
+# range as <ns>/heads/<name>.  Those refs are outside refs/heads/, so
+# --update-refs leaves them alone and `git rebase-i-check` can compare
+# against them afterwards.  The branch name goes to the file
+# rebase-i-branch in the worktree's git dir, so the check can refuse to
+# compare another branch against them.
+#
+# <ns> is refs/rebase-i/main-worktree in the main worktree and
+# refs/rebase-i/worktrees/<id> in a linked one, so a prep in one
+# worktree does not overwrite the way back of a rebase in another.
+# They are ordinary shared refs, not per-worktree refs under
+# refs/worktree/: gc does not count another worktree's refs/worktree/
+# refs as reachable, and prunes the commits that only they point to.
+#
+# --forget deletes this worktree's saved refs and rebase-i-* files once
+# the rewrite is done, and the saved refs of worktrees that no longer
+# exist (no admin dir left in the common git dir).  It names any refs
+# that version 0.1.5 or older left directly under refs/rebase-i/, and
+# leaves them.  It takes no other option and exits 2 while a rebase is
+# in progress.
 #
 # Exit status:
 #   0  ready; lines starting with WARN want a look
@@ -42,8 +59,17 @@ set -eu
 usage() {
 	echo "usage: git rebase-i-prep [--allow-published] [--allow-fixups | --allow-fixups-from=<rev>]" \
 		"[--fold-into=<target>] <commit>..." >&2
+	echo "   or: git rebase-i-prep --forget" >&2
 	exit 2
 }
+
+gitdir=$(git rev-parse --absolute-git-dir)
+if test "$gitdir" = "$(git rev-parse --path-format=absolute --git-common-dir)"; then
+	ns=refs/rebase-i/main-worktree
+else
+	ns=refs/rebase-i/worktrees/${gitdir##*/}
+fi
+branchfile=$(git rev-parse --git-path rebase-i-branch)
 
 die() {
 	# $1: exit status, rest: message
@@ -51,6 +77,13 @@ die() {
 	shift
 	echo "BLOCK   $*" >&2
 	exit "$status"
+}
+
+refuse_in_progress() {
+	for state in rebase-merge rebase-apply; do
+		test ! -d "$(git rev-parse --git-path $state)" ||
+			die 2 "a rebase is in progress; finish it (--continue), or --abort it"
+	done
 }
 
 warn() {
@@ -69,18 +102,49 @@ allow_published=0
 allow_fixups=0
 fixups_from=
 fold_into=
+forget=0
 while test $# -gt 0; do
 	case "$1" in
 	--allow-published) allow_published=1 ;;
 	--allow-fixups) allow_fixups=1 ;;
 	--allow-fixups-from=?*) fixups_from=${1#--allow-fixups-from=} ;;
 	--fold-into=?*) fold_into=${1#--fold-into=} ;;
+	--forget) forget=1 ;;
 	--) shift; break ;;
 	-*) usage ;;
 	*) break ;;
 	esac
 	shift
 done
+if test $forget = 1; then
+	test $# -eq 0 && test $allow_published$allow_fixups = 00 &&
+		test -z "$fixups_from$fold_into" || usage
+	refuse_in_progress
+	common=$(git rev-parse --path-format=absolute --git-common-dir)
+	n=0
+	for ref in $(git for-each-ref --format='%(refname)' "$ns/" refs/rebase-i/worktrees/); do
+		case $ref in
+		"$ns"/*) ;;
+		*)
+			# Another worktree's refs: only once its admin dir is gone.
+			id=${ref#refs/rebase-i/worktrees/}
+			test ! -d "$common/worktrees/${id%%/*}" || continue
+			;;
+		esac
+		git update-ref -d "$ref"
+		echo "deleted $ref"
+		n=$((n + 1))
+	done
+	test $n -gt 0 || echo "nothing saved under $ns/"
+	for f in "$branchfile" "$(git rev-parse --git-path rebase-i-rewritten)"; do
+		test ! -f "$f" || rm "$f"
+	done
+	for ref in $(git for-each-ref --format='%(refname)' \
+			refs/rebase-i/orig refs/rebase-i/base refs/rebase-i/heads/); do
+		echo "old     $ref is from version 0.1.5 or older; left in place"
+	done
+	exit 0
+fi
 test $# -ge 1 || usage
 if test -n "$fixups_from"; then
 	rev=$fixups_from
@@ -88,16 +152,15 @@ if test -n "$fixups_from"; then
 		die 2 "not a commit: --allow-fixups-from=$rev"
 fi
 
-for state in rebase-merge rebase-apply; do
-	test ! -d "$(git rev-parse --git-path $state)" ||
-		die 2 "a rebase is in progress; finish it (--continue), or --abort it"
-done
+refuse_in_progress
 for state in MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD; do
 	test ! -f "$(git rev-parse --git-path $state)" ||
 		die 2 "$state exists: a merge, cherry-pick or revert is in progress"
 done
-branch=$(git symbolic-ref --quiet --short HEAD) ||
+# Not symbolic-ref --short: it says heads/<b> when a tag <b> exists.
+branchref=$(git symbolic-ref --quiet HEAD) ||
 	die 2 "HEAD is detached; the rebase would update no branch"
+branch=${branchref#refs/heads/}
 head=$(git rev-parse HEAD)
 
 # Targets: resolve, check they are behind HEAD, find the oldest.
@@ -278,20 +341,21 @@ if test "$dirty" -gt 0; then
 fi
 
 # Save a way back.  Outside refs/heads/, so --update-refs does not move it.
-for old in $(git for-each-ref --format='%(refname)' refs/rebase-i/heads); do
+for old in $(git for-each-ref --format='%(refname)' "$ns/heads/"); do
 	git update-ref -d "$old"
 done
 rewritten=$(git rev-parse --git-path rebase-i-rewritten)
 test ! -f "$rewritten" || rm "$rewritten"
-git update-ref -m "rebase-i-prep: tip before rewrite" refs/rebase-i/orig "$head"
-echo "saved   refs/rebase-i/orig = $(short "$head")"
+echo "$branchref" >"$branchfile"
+git update-ref -m "rebase-i-prep: tip before rewrite" "$ns/orig" "$head"
+echo "saved   $ns/orig = $(short "$head")"
 if test -n "$base"; then
-	git update-ref -m "rebase-i-prep: base of rewrite" refs/rebase-i/base "$base"
-	echo "saved   refs/rebase-i/base = $(short "$base")"
+	git update-ref -m "rebase-i-prep: base of rewrite" "$ns/base" "$base"
+	echo "saved   $ns/base = $(short "$base")"
 else
-	git update-ref -d refs/rebase-i/base 2>/dev/null || true
+	git update-ref -d "$ns/base" 2>/dev/null || true
 fi
-git for-each-ref --format='%(refname:short) %(objectname)' refs/heads |
+git for-each-ref --format='%(refname:lstrip=2) %(objectname)' refs/heads |
 	while read -r b s; do
 		test "$b" != "$branch" || continue
 		test "$s" != "$base" || continue
@@ -299,8 +363,8 @@ git for-each-ref --format='%(refname:short) %(objectname)' refs/heads |
 			git merge-base --is-ancestor "$base" "$s" || continue
 		fi
 		git merge-base --is-ancestor "$s" HEAD || continue
-		git update-ref -m "rebase-i-prep: $b before rewrite" "refs/rebase-i/heads/$b" "$s"
-		echo "saved   refs/rebase-i/heads/$b = $(short "$s")  (--update-refs moves $b)"
+		git update-ref -m "rebase-i-prep: $b before rewrite" "$ns/heads/$b" "$s"
+		echo "saved   $ns/heads/$b = $(short "$s")  (--update-refs moves $b)"
 	done
 
 # rebase.autoSquash=false: the user's config may turn autosquash on for

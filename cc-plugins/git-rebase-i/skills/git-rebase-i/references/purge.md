@@ -48,5 +48,5 @@ git rebase --continue
 
 At the break, the check reports a tree difference of exactly the purged files,
 and one commit fewer when Z was skipped. Tell the user that the content is still
-reachable from the reflog, from `refs/rebase-i/orig` until the cleanup step, and
-from any remote that has the old commits.
+reachable from the reflog, from the ref on the check's `orig` line until the
+cleanup step, and from any remote that has the old commits.
