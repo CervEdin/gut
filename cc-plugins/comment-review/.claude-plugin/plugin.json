@@ -1,0 +1,5 @@
+{
+  "name": "comment-review",
+  "description": "Review comments, API docs and directives in a diff: what to delete, what to move to the commit message, a definition, a call site or code, and what must stay",
+  "version": "0.1.0"
+}
