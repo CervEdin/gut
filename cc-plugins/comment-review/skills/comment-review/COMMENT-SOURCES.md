@@ -225,6 +225,36 @@ manual pages:
 
 -- Git commit `21a5f9442e`, "doc: git-checkout: clarify intro sentence"
 
+## Split check
+
+A long description is a sign that the commit holds more than one change, but
+length alone is not a fault:
+
+    If your description starts to get too long, that's a sign that you
+    probably need to split up your commit to finer grained pieces.
+    That being said, patches which plainly describe the things that
+    help reviewers check the patch, and future maintainers understand
+    the code, are the most beautiful patches.
+
+-- Git `Documentation/SubmittingPatches`, "Make separate commits for logically
+separate changes"
+
+Linux gives the rule itself: one logical change per patch, one change made to
+many files stays one patch, and each patch in a series must build and run:
+
+    Separate each **logical change** into a separate patch.
+
+    [...]
+
+    On the other hand, if you make a single change to numerous files,
+    group those changes into a single patch.  [...]
+
+    When dividing your change into a series of patches, take special care to
+    ensure that the kernel builds and runs properly after each patch in the
+    series.
+
+-- Linux `Documentation/process/submitting-patches.rst`, "Separate your changes"
+
 ## Not sourced
 
 These rules in `SKILL.md` have no source above. Do not quote this file to back
@@ -235,6 +265,11 @@ them; say they are the skill's own rule.
   decide nothing on their own.
 - "Repeated" at three or more places for prose. The frequency test above sets
   the line for a helper at more than one site; no source sets one for prose.
+- 30 lines of message, or about 200 changed lines of diff, as the size that
+  starts the split check; between 200 and 1,000 lines it depends on the kind of
+  diff, and past 1,000 the check always runs. A false positive costs little,
+  because the test decides, not the size. Git says "too long" and gives no size.
+- "Its own why" in the split test. Neither source says each part needs one.
 - The "Working note" step, including its `TODO`/`NEEDSWORK` advice.
 - The "Directives" step.
 - The "Touched docs" rules other than common case first: an example where one
