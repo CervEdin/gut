@@ -39,6 +39,9 @@ lasting reason why the code is the way it is can stay a comment. The Git project
 is a fair calibration: its source has comments, and the why of each change is in
 its log.
 
+When a finding needs backing, quote `COMMENT-SOURCES.md`. It has the sources
+behind most checks and lists the ones that have none.
+
 ## Process
 
 1. **Get the commits.**
