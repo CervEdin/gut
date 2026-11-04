@@ -52,7 +52,24 @@ behind most checks and lists the ones that have none.
    - Only staged changes: `git diff --cached`.
    - Nothing obvious: ask what to review.
 
-2. **Collect the text, per commit.** Read each file as it is at that commit
+2. **Ask whether each commit should be one.** Ask when its message is longer
+   than 30 lines, when its diff changes more than about 200 lines (added plus
+   removed), or when its message describes more than one change. Between 200 and
+   1,000 lines, whether to ask depends on the kind of diff. Past 1,000, always
+   ask, though the answer can still be one commit. Size is a reason to ask, not
+   a limit.
+   - The test: does the commit hold logically separate changes, each with its
+     own why, that can go in as a series where each part builds and passes the
+     tests (where the project has them) with the parts before it applied? One
+     change made to many files stays one commit.
+   - If no such series exists, the commit stays one. Say nothing.
+   - If one does, the output opens that commit with a **Split:** block (see
+     Output Format). The split matters more than the comment findings on the
+     commit, so it comes first. Still review the comments, and tag each finding
+     with the part that will hold its line.
+   - Only staged changes: there is no message, so ask from the diff alone.
+
+3. **Collect the text, per commit.** Read each file as it is at that commit
    (`git show <commit>:<path>`, or `git show :<path>` when only staged), not
    from the working tree.
    - Comments and doc comments on added lines.
@@ -65,25 +82,25 @@ behind most checks and lists the ones that have none.
    - Doc files the patch touches.
    - Do not audit the rest of the file.
 
-3. **Classify each piece.**
+4. **Classify each piece.**
    - **Directive**: comment syntax that a tool reads. `// SAFETY:`,
      `//go:build`, `# type: ignore`, `# noqa`, `//nolint`,
      `// eslint-disable-next-line`, `// @ts-expect-error`, `# pragma: no cover`,
      `/* fallthrough */`, `SPDX-License-Identifier:`, comments a project linter
      requires (checkpatch wants one on each memory barrier). Extend the list
-     from the project's lint config and the tools it runs. Go to step 6.
-   - **API doc**: Javadoc, docstring, header doc, `--help` text. Go to step 5.
+     from the project's lint config and the tools it runs. Go to step 7.
+   - **API doc**: Javadoc, docstring, header doc, `--help` text. Go to step 6.
    - **Commented-out or debug code**: `delete`.
    - **Working note** ("change needed", "related to XYZ", "added this because"):
      its why-now part is `move-to-log`. Strip the narration and the why-now
-     part, and run what is left through step 4. If nothing is left and there was
+     part, and run what is left through step 5. If nothing is left and there was
      no why-now part either, the note is `delete`. Text meant only for this
      round's reviewers ("as suggested in v2") goes below the `---` line:
      `move-to-log`, naming that place. If the work is real, a labelled
      `TODO`/`NEEDSWORK` with a ticket may replace the note.
-   - **Prose comment**: step 4.
+   - **Prose comment**: step 5.
 
-4. **Prose comments.** Run the keep check first, then the rest in order. The
+5. **Prose comments.** Run the keep check first, then the rest in order. The
    first check that fires gives the verdict.
    - **Keep check.** Would a competent editor of the current code break
      something without this comment, and not think to look it up? Invariants,
@@ -126,7 +143,7 @@ behind most checks and lists the ones that have none.
      only where the file already uses it, no clause that restates the sentence,
      no volatile section numbers. Form findings are `rewrite` with `Nit:`.
 
-5. **API docs.**
+6. **API docs.**
    - The first sentence gives the gist to a reader who stops there.
    - The body gives the contract: calling context (threads, locks, blocking),
      failure modes, then an example if the signature does not show the use.
@@ -139,7 +156,7 @@ behind most checks and lists the ones that have none.
    - `missing`: an externally called symbol with a contract the signature does
      not show and no doc. Private symbols only when the file documents them.
 
-6. **Directives.** The questions above do not apply.
+7. **Directives.** The questions above do not apply.
    - Still needed? A stale suppression hides a real warning: `delete`. Judge by
      reading the code; do not run the tool. If only running it would settle the
      question, say so in the finding.
@@ -150,7 +167,7 @@ behind most checks and lists the ones that have none.
      only: the tag or its linter requires the text, and a bare tag tells the
      next reader nothing.
 
-7. **Touched docs.** Common case first; an example where one helps; text for
+8. **Touched docs.** Common case first; an example where one helps; text for
    removed behaviour removed; active voice, short sentences. Text that is wrong
    after the patch gets `rewrite` or `delete`; the rest are `rewrite` with
    `Nit:`.
@@ -162,7 +179,14 @@ be read side by side:
 
 > ### [PATCH N/M] `<subject line>`
 >
-> **On `<file>:<line>`:**
+> **Split:** only when step 2 finds a series. What made you ask (the size, or
+> the changes the message lists), then the parts, in order. For each part: a
+> subject line, what it holds, which paragraphs of the current message go with
+> it (none when only staged), and its tests. Say which parts depend on which.
+>
+> **On `<file>:<line>`:** after a **Split:** block, add the part:
+>
+> **On `<file>:<line>` (part 2):**
 >
 > ```
 > (quoted comment and the code around it)
@@ -173,15 +197,16 @@ be read side by side:
 > needs it unasked". Then the replacement: the new comment, the code, or the
 > commit-message paragraph. A plain `delete` needs no replacement.
 >
-> **For the commit message:** the `move-to-log` paragraphs for this commit,
-> ready to paste into a reword, and any text for below the `---` line, marked as
-> such. In staged-only mode, one block at the end. Leave the block out when
-> there is nothing to add.
+> **For the commit message:** the `move-to-log` paragraphs for this commit, or
+> for each part after a **Split:** block, ready to paste into a reword, and any
+> text for below the `---` line, marked as such. In staged-only mode, one block
+> at the end. Leave the block out when there is nothing to add.
 >
 > ---
 >
-> **Summary:** count per verdict, with `Nit:` findings counted apart. `keep` is
-> not a finding and is not counted.
+> **Summary:** first `Split: N parts` for each commit with a **Split:** block.
+> Then the count per verdict, with `Nit:` findings counted apart. `keep` is not
+> a finding and is not counted.
 >
 > **Outside this review:** one line per code issue you noticed that is not about
 > a comment, such as a missing lock. These are not findings.
@@ -221,7 +246,7 @@ unsure; then say what you were unsure of.
   comment or the diff already says. If the reason is unknown, say so and ask.
 - **Name the check, not the author.** Do not say a comment "sounds like AI".
 - **Do not review the commit message itself.** Read it to choose between
-  `delete` and `move-to-log`. Its narrative and wording belong to peff-commit,
-  sunshine-review and gitster-review.
+  `delete` and `move-to-log`, and for the split check in step 2. Its narrative
+  and wording belong to peff-commit, sunshine-review and gitster-review.
 - **Respect patch scope.** Comments the patch does not touch are out of scope,
   unless the patch makes them wrong.
