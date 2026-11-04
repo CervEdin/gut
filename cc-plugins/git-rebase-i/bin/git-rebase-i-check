@@ -4,14 +4,17 @@
 #
 # usage: git rebase-i-check [--expect-fixup=<target>] [<orig> [<base>]]
 #
-# Compares HEAD with the tip that `git rebase-i-prep` saved
-# (refs/rebase-i/orig by default) over the range above the saved base
-# (refs/rebase-i/base).  Prints the tree diff, the commit counts, a
-# range-diff, and the notes, signatures and authors before and after,
-# then whether a rebase is still in progress and whether any branch
-# the prep saved was left behind.  `git diff` alone passes when the
-# wrong commit was reworded, a message came out empty, or notes were
-# lost; this report shows those.
+# Compares HEAD with the tip that `git rebase-i-prep` saved for this
+# worktree (<ns>/orig by default) over the range above the saved base
+# (<ns>/base); see git-rebase-i-prep for <ns>.  The saved refs count
+# only on the branch the prep ran on, checked out or being rebased.  On
+# another branch the check refuses, unless <orig> is given; then it
+# ignores the saved base and branches.  Prints the tree diff, the
+# commit counts, a range-diff, and the notes, signatures and authors
+# before and after, then whether a rebase is still in progress and
+# whether any branch the prep saved was left behind.  `git diff` alone
+# passes when the wrong commit was reworded, a message came out empty,
+# or notes were lost; this report shows those.
 #
 # --expect-fixup=<target> is for the first pass of a fold, which leaves
 # one fixup! commit in the range on purpose.  The check accepts it if it
@@ -19,7 +22,7 @@
 # "fixup! <target's subject>"; anything else left still warns.
 #
 # Exit status: 0 nothing to flag, 1 at least one WARN line,
-# 2 a rebase is still in progress.
+# 2 a rebase is still in progress, or the check cannot report.
 
 set -eu
 
@@ -58,6 +61,13 @@ count_signed() {
 	echo $n
 }
 
+gitdir=$(git rev-parse --absolute-git-dir)
+if test "$gitdir" = "$(git rev-parse --path-format=absolute --git-common-dir)"; then
+	ns=refs/rebase-i/main-worktree
+else
+	ns=refs/rebase-i/worktrees/${gitdir##*/}
+fi
+
 usage() {
 	echo "usage: git rebase-i-check [--expect-fixup=<target>] [<orig> [<base>]]" >&2
 	exit 2
@@ -80,18 +90,43 @@ if test -n "$expect"; then
 	expect_subject="fixup! $(subject "$expect_sha")"
 fi
 
-orig_ref=${1:-refs/rebase-i/orig}
+# The saved refs belong to the branch that the prep ran on.  Compared
+# with another branch, the report describes changes nobody made.  During
+# a rebase HEAD is detached; head-name names the branch being rebased.
+saved=$(cat "$(git rev-parse --git-path rebase-i-branch)" 2>/dev/null) || saved=
+now=
+for state in rebase-merge rebase-apply; do
+	f=$(git rev-parse --git-path $state/head-name)
+	test ! -f "$f" || now=$(cat "$f")
+done
+test -n "$now" || now=$(git symbolic-ref --quiet HEAD) || now="detached HEAD"
+use_saved=1
+if test "$now" != "$saved"; then
+	test $# -gt 0 || test -n "$saved" ||
+		die "no branch recorded in this worktree; run git rebase-i-prep first"
+	test $# -gt 0 || test "$now" != "detached HEAD" ||
+		die "HEAD is detached and no rebase is in progress;" \
+			"$ns/orig is the tip of ${saved#refs/heads/}"
+	test $# -gt 0 ||
+		die "$ns/orig is the tip of ${saved#refs/heads/}, not of ${now#refs/heads/};" \
+			"run git rebase-i-prep on this branch first"
+	use_saved=0
+fi
+
+orig_ref=${1:-$ns/orig}
 orig=$(git rev-parse --verify --quiet "$orig_ref^{commit}") ||
 	die "no commit at $orig_ref; git rebase-i-prep saves it before a rewrite"
 if test $# -ge 2; then
 	base=$(git rev-parse --verify "$2^{commit}")
+elif test $use_saved = 1; then
+	base=$(git rev-parse --verify --quiet "$ns/base^{commit}") || base=
 else
-	base=$(git rev-parse --verify --quiet 'refs/rebase-i/base^{commit}') || base=
+	base=
 fi
 
 head=$(git rev-parse HEAD)
 branch=$(git symbolic-ref --quiet --short HEAD) || branch="detached HEAD"
-echo "orig    $(short "$orig")  $(subject "$orig")"
+echo "orig    $(short "$orig")  $(subject "$orig")  ($orig_ref)"
 echo "head    $(short "$head")  $(subject "$head")  ($branch)"
 
 # Paused at a final `break`: the new history is complete on a detached
@@ -214,23 +249,25 @@ if test -n "$empty"; then
 	echo "$empty" | sed 's/^/        /'
 fi
 
-for ref in $(git for-each-ref --format='%(refname)' refs/rebase-i/heads); do
-	b=${ref#refs/rebase-i/heads/}
-	old=$(git rev-parse "$ref")
-	if test $paused = 1; then
-		echo "branch  $b at $(short "$old"); --update-refs moves it when the rebase finishes"
-	elif ! new=$(git rev-parse --verify --quiet "refs/heads/$b"); then
-		warn "branch  $b no longer exists (was $(short "$old"))"
-	elif test "$new" = "$old"; then
-		if git merge-base --is-ancestor "$old" HEAD; then
-			echo "branch  $b unchanged at $(short "$old"), still in HEAD's history"
+if test $use_saved = 1; then
+	for ref in $(git for-each-ref --format='%(refname)' "$ns/heads/"); do
+		b=${ref#"$ns"/heads/}
+		old=$(git rev-parse "$ref")
+		if test $paused = 1; then
+			echo "branch  $b at $(short "$old"); --update-refs moves it when the rebase finishes"
+		elif ! new=$(git rev-parse --verify --quiet "refs/heads/$b"); then
+			warn "branch  $b no longer exists (was $(short "$old"))"
+		elif test "$new" = "$old"; then
+			if git merge-base --is-ancestor "$old" HEAD; then
+				echo "branch  $b unchanged at $(short "$old"), still in HEAD's history"
+			else
+				warn "branch  $b was left at $(short "$old"), which is no longer in HEAD's history (was --update-refs in effect?)"
+			fi
 		else
-			warn "branch  $b was left at $(short "$old"), which is no longer in HEAD's history (was --update-refs in effect?)"
+			echo "branch  $b $(short "$old") -> $(short "$new")"
 		fi
-	else
-		echo "branch  $b $(short "$old") -> $(short "$new")"
-	fi
-done
+	done
+fi
 
 if test $paused = 0 && git stash list | grep -q 'autostash'; then
 	warn "an autostash is still in the stash list; the changes did not apply cleanly"

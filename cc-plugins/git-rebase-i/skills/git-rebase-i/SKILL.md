@@ -66,13 +66,21 @@ Every operation runs the same way. The recipes below only differ in the actions.
    `--update-refs` moves the branches inside the range, and the notes are copied
    by this command, so the `-c` has to reach it. Run `git rebase-i-check` once
    more to confirm those three. If the report does not match,
-   `git rebase --abort` and report what it showed.
-5. **Clean up.** `git status` must show no rebase in progress. Then forget the
-   backup refs:
+   `git rebase --abort` and report what it showed. If the check refuses to run
+   (exit 2 with no report), stop and report its message; do not pass `<orig>` to
+   get past it.
+5. **Clean up.** Forget this worktree's backup refs. The command refuses while a
+   rebase is in progress:
 
    ```bash
-   git for-each-ref --format='%(refname)' refs/rebase-i | xargs -n1 git update-ref -d
+   git rebase-i-prep --forget
    ```
+
+   Never delete other refs under `refs/rebase-i/`: they belong to rebases in
+   other worktrees. `--forget` also deletes the refs of worktrees that no longer
+   exist, so its output can name other worktrees. Its `old` lines name refs from
+   plugin version 0.1.5 or older; tell the user about them, but leave them for
+   the user to delete.
 
 ## Recipes
 
@@ -243,9 +251,12 @@ Rare. Read `references/purge.md` or `references/topology.md` when asked for one.
 would have moved. Notes missing after the continue are not lost: the second
 check prints the `git notes copy --stdin` line that restores them from the
 rewrite list saved at the break. After a `--continue`, the way back is
-`git reset --keep refs/rebase-i/orig` on the branch and
-`git update-ref refs/heads/<name> refs/rebase-i/heads/<name>` for each saved
-branch; those two are the only ref moves this skill allows by hand.
+`git reset --keep <orig-ref>` on the branch, where `<orig-ref>` is the ref in
+parentheses on the check's `orig` line (such as
+`refs/rebase-i/main-worktree/orig`). For each branch the check lists, run
+`git update-ref refs/heads/<name> <prefix>/heads/<name>`, where `<prefix>` is
+`<orig-ref>` without the trailing `/orig`. Those two are the only ref moves this
+skill allows by hand.
 
 ## Rules
 
