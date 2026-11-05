@@ -84,6 +84,7 @@ behind most checks and lists the ones that have none.
    - Comments the patch removes: check that nothing a reader needs went with
      them.
    - Doc files the patch touches.
+   - The paragraphs of the commit message, for step 9 only.
    - Do not audit the rest of the file.
 
 4. **Classify each piece.**
@@ -111,10 +112,10 @@ behind most checks and lists the ones that have none.
      lock and ordering rules, lifetimes, why a race is harmless, hardware or
      spec quirks, constraints from systems outside this repo, traps that a
      reasonable cleanup would fall into. If yes: `keep`, and skip the other
-     checks except for three findings: `rewrite` if the comment is wrong,
+     checks except for these findings: `rewrite` if the comment is wrong,
      `move-to-log` for a sentence in it that only makes sense next to the diff,
-     and a form `Nit:` from the survivor check. Do not move the lasting part to
-     the log: whoever tidies the code will not run `blame` first.
+     a form `Nit:` from the survivor check, and step 9. Do not move the lasting
+     part to the log: whoever tidies the code will not run `blame` first.
    - **Wrong or stale**: it does not match the code after the patch. `rewrite`
      or `delete`, to fix before sending. A reader trusts a comment over the
      code, so this is not a `Nit:`, however small the wording change.
@@ -176,6 +177,34 @@ behind most checks and lists the ones that have none.
    after the patch gets `rewrite` or `delete`; the rest are `rewrite` with
    `Nit:`.
 
+9. **Dense paragraphs and inline quotes.** Run this on each paragraph that the
+   patch adds or changes, including those the keep check kept, and on each
+   paragraph of the commit message. A paragraph is a run of lines with no blank
+   line between them. A line that holds only the comment marker (` *`, `//`,
+   `#`) counts as blank, and a list item ends the paragraph.
+   - **Dense**: the paragraph has more than 5 sentences or more than about 80
+     words, _and_ it covers more than one topic. A topic is a part that a reader
+     can look for on its own: what the code does, what happens during an
+     operation, what happens after it, what a person must do, what it cannot do
+     or fix, or what was tried. One argument where each sentence builds on the
+     last stays one paragraph, however long. Three sentences on three topics
+     stay too.
+   - **Inline quote of a person**: a sentence or more of a person's words (the
+     user, a reviewer, a bug report) inside a sentence of the text. It goes on
+     its own lines as a `> ` block quote, after a line that names who said it. A
+     quoted term, message or command ("database is locked"), a few words, and
+     text from a spec or standard stay inline.
+   - Verdict: `rewrite`, without `Nit:`: a reader skips such a paragraph, so
+     what it says is lost.
+   - Replacement: the same content, split by topic. Give each topic its own
+     paragraph, or a bold lead-in where the file uses them. Parallel items
+     (cases, exceptions, commands) can go in a list: the file's own list syntax
+     (`-` items in a code comment), or a numbered list in a commit message. Do
+     not drop, add or reword anything the split does not need.
+   - When another check also fires on the paragraph (a sentence goes to the log,
+     a clause is wrong), give one replacement under that check's verdict, and
+     say that step 9 also applies.
+
 ## Output Format
 
 Per commit, in diff order, laid out like the persona reviews so the outputs can
@@ -187,6 +216,9 @@ be read side by side:
 > the changes the message lists), then the parts, in order. For each part: a
 > subject line, what it holds, which paragraphs of the current message go with
 > it (none when only staged), and its tests. Say which parts depend on which.
+>
+> A step 9 finding in the commit message goes before the file findings, as **On
+> the commit message, paragraph N:**
 >
 > **On `<file>:<line>`:** after a **Split:** block, add the part:
 >
@@ -229,10 +261,14 @@ For example, a working note that hides a lasting reason:
 > passes the keep check, since a cleanup would drop the NULL check without it.
 > Replacement: `/* The parser returns NULL on empty input. */`
 
+The review follows step 9 itself: when it quotes a person (the user, a
+reviewer), the quote goes in a `> ` block quote on its own lines, not inside a
+sentence.
+
 Verdicts: `delete`, `move-to-log`, `move`, `replace`, `rewrite`, `missing`.
-Form-only findings carry `Nit:`, and no others do. Mention `keep` only where
-another reviewer might be tempted to remove the comment, or where you were
-unsure; then say what you were unsure of.
+Form-only findings carry `Nit:`, except those of step 9; no other findings do.
+Mention `keep` only where another reviewer might be tempted to remove the
+comment, or where you were unsure; then say what you were unsure of.
 
 ## Important
 
@@ -249,8 +285,9 @@ unsure; then say what you were unsure of.
 - **Do not invent the why.** A commit-message paragraph carries only what the
   comment or the diff already says. If the reason is unknown, say so and ask.
 - **Name the check, not the author.** Do not say a comment "sounds like AI".
-- **Do not review the commit message itself.** Read it to choose between
-  `delete` and `move-to-log`, and for the split check in step 2. Its narrative
-  and wording belong to peff-commit, sunshine-review and gitster-review.
+- **Review the commit message only for step 9.** Otherwise read it only to
+  choose between `delete` and `move-to-log`, and for the split check in step 2.
+  Its narrative and wording belong to peff-commit, sunshine-review and
+  gitster-review.
 - **Respect patch scope.** Comments the patch does not touch are out of scope,
   unless the patch makes them wrong.
