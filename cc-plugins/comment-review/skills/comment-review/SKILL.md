@@ -188,7 +188,9 @@ behind most checks and lists the ones that have none.
      operation, what happens after it, what a person must do, what it cannot do
      or fix, or what was tried. One argument where each sentence builds on the
      last stays one paragraph, however long. Three sentences on three topics
-     stay too.
+     stay too. The counts are a reason to look, not a ceiling: a paragraph over
+     them that is one argument, such as sentences that each show how the change
+     meets one constraint, is not dense.
    - **Inline quote of a person**: a sentence or more of a person's words (the
      user, a reviewer, a bug report) inside a sentence of the text. It goes on
      its own lines as a `> ` block quote, after a line that names who said it. A
@@ -196,11 +198,26 @@ behind most checks and lists the ones that have none.
      text from a spec or standard stay inline.
    - Verdict: `rewrite`, without `Nit:`: a reader skips such a paragraph, so
      what it says is lost.
-   - Replacement: the same content, split by topic. Give each topic its own
-     paragraph, or a bold lead-in where the file uses them. Parallel items
-     (cases, exceptions, commands) can go in a list: the file's own list syntax
-     (`-` items in a code comment), or a numbered list in a commit message. Do
-     not drop, add or reword anything the split does not need.
+   - Replacement: the paragraph split where one topic ends and the next begins,
+     so that each part says one thing and keeps its reason. Use a bold lead-in
+     where the file uses them. A list is only for items that are a list on their
+     own, such as cases or commands that each carry their own reason. Short
+     paragraphs in the same form do not become a list: a list of what changed is
+     a changelog.
+   - Then reread the replacement as a whole, as a reader would. A paragraph of
+     one sentence that the split left is a question, not a shape to fix:
+     - It says what the diff says and gives no reason. It is changelog: drop it.
+     - It is one consequence of an idea that the text never states, such as an
+       invariant that several writers must keep. Find the idea in the code, its
+       comments or the commit message, and write it as the topic sentence of a
+       paragraph that holds its consequences. If nothing states it, say so and
+       ask; do not invent it.
+     - It belonged to the paragraph it was cut from: undo that part of the
+       split.
+   - End each step 9 finding with this line for whoever applies it: "Rewrite the
+     paragraph, then reread the whole comment (or message) as a reader before
+     committing." The replacement shows one shape. Whoever applies it rewrites
+     the paragraph so it reads well, rather than pasting the split.
    - When another check also fires on the paragraph (a sentence goes to the log,
      a clause is wrong), give one replacement under that check's verdict, and
      say that step 9 also applies.
@@ -236,7 +253,10 @@ be read side by side:
 > **For the commit message:** the `move-to-log` paragraphs for this commit, or
 > for each part after a **Split:** block, ready to paste into a reword, and any
 > text for below the `---` line, marked as such. In staged-only mode, one block
-> at the end. Leave the block out when there is nothing to add.
+> at the end. When a step 9 finding is on the commit message, end the block with
+> "Rewrite the paragraphs, then reread the whole message as a reader before
+> committing.", even if that line is all the block holds. Otherwise leave the
+> block out when there is nothing to add.
 >
 > ---
 >
