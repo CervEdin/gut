@@ -95,6 +95,15 @@ the code does today is not one of them. Where you write it, write it because the
 message has to stand without the diff beside it, not because a paragraph wants
 filling.
 
+One paragraph, one topic. A paragraph of more than 5 sentences or more than
+about 80 words that covers more than one topic is a block nobody reads: the
+reader who needs one fact has to read all of it to find it. A topic is a part
+that a reader can look for on its own: what the code does, what happens during
+an operation, what happens after it, what a person must do, what it cannot do or
+fix, or what was tried. Split such a paragraph by topic. Parallel items (cases,
+exceptions, commands) can go in a numbered list, as "Tone" allows. One argument
+where each sentence builds on the last stays one paragraph, however long it is.
+
 ### How Long Should This Be?
 
 Measured over 2000 of peff's commits, body length by size of diff (words,
@@ -163,6 +172,13 @@ performance.
 - References related discussion: "This was caught during review of ..."
 - Credits others when their report or review led to the fix
 
+One rule here is this skill's, not peff's. Quote a sentence or more of a
+person's words (a user, a reviewer, a bug report) in a block of its own, with
+each line starting `> ` as mail quotes do, after a line that names who said it.
+A quote in mid-sentence buries both the words and the point. A quoted term,
+message or command ("database is locked"), a few words, and text from a spec or
+standard stay inline.
+
 ## What NOT to Do
 
 - No bullet-point changelogs ("- changed X", "- added Y")
@@ -222,7 +238,9 @@ what you were thinking.
 **Formatting:** notes are stored verbatim by `git notes` and read in a terminal,
 so format them exactly like commit body prose: aim for 72 characters per line
 (soft limit), hard limit 120. No markdown, no bullet lists masquerading as
-prose. Paragraphs separated by a single blank line.
+prose. Paragraphs separated by a single blank line. A dense paragraph is split
+into paragraphs only, with no list. A person's words go in a mail-style `> `
+quote, as in the body (see "Emphasis and References").
 
 Use notes for:
 

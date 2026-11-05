@@ -55,6 +55,9 @@ well over is a signal to check the prose, not a violation to trim — a single
 subtle mechanism can genuinely want a hundred words, and cutting it to fit a
 number loses something that was actually sourced.
 
+A split by topic (see "Paragraph Structure" in `PEFF-STYLE.md`) can add a
+paragraph or a list to that count. The findings still set the word range.
+
 **No findings means the ground and nothing else** — however much of it the
 change actually wants, which is often a sentence or two and sometimes nothing at
 all. That is a finished, correct result and not a degraded one: 12% of peff's
@@ -97,6 +100,12 @@ file"). It describes code the reader still has in front of them as though it
 were gone. Draft with the brief open, one entry at a time. If you want a
 sentence that no entry supports, go back to `commit-brief` and add the entry
 with an honest tag, or leave the sentence out.
+
+Shape the paragraphs as you draft, not after the checks. A paragraph of more
+than 5 sentences or more than about 80 words on more than one topic is split by
+topic, and a sentence or more of a person's words inside a sentence goes into a
+`> ` block of its own: see "Paragraph Structure" and "Emphasis and References"
+in `PEFF-STYLE.md`. A split moves sentences; it does not add or reword any.
 
 ## 3. Check
 
@@ -179,6 +188,16 @@ directory.
    could not. The range is a guideline, and the line is how an overrun reaches
    the report instead of being waved through in your head.
 
+   Then append a `paragraphs:` line with the sentences, words and topics of each
+   paragraph of the body and notes:
+
+   ```
+   paragraphs: 1: 3 sentences, 52 words, 1 topic; 2: 7 sentences, 104 words, 2 topics
+   ```
+
+   A paragraph over the limits with more than one topic goes back to §2 to be
+   split, and checks 2 and 4 run again on the result.
+
 5. **Commit references.** Every sha in the draft is on the mainline.
    `git rev-list origin/HEAD..HEAD` lists the ones that are not: those get
    rewritten, so a sha naming one of them is a name for nothing.
@@ -237,7 +256,9 @@ from the brief, marked plainly as an assumption.
 
 Format them exactly like commit body prose, because `git notes` stores them
 verbatim and they are read in a terminal: 72 characters per line soft, 120 hard,
-no markdown, no bullet lists, paragraphs separated by a blank line.
+no markdown, no bullet lists, paragraphs separated by a blank line. A dense
+paragraph is split into paragraphs only. A person's words go in a mail-style
+`> ` quote, as in the body: see "Emphasis and References" in `PEFF-STYLE.md`.
 
 No hook fires on `git notes add`, so nothing else catches a long line. Check
 first:
@@ -262,7 +283,7 @@ Notes:
 
 Provenance:
 
-    (the provenance file, including its coverage: and budget: lines)
+    (the provenance file, including its coverage:, budget: and paragraphs: lines)
 ```
 
 The provenance file goes in the report whole. If a check was skipped, its

@@ -264,9 +264,13 @@ def cmd_score(args):
             f"no baseline at {args.baseline!r} — run `slop_score.py fit` first"
         )
 
-    row = metrics(raw_text)
+    # A `> ` line quotes someone else's words, as PEFF-STYLE.md asks;
+    # scoring it would grade the person quoted, not the draft.
+    prose = "\n".join(l for l in raw_text.splitlines()
+                      if not l.startswith(">"))
+    row = metrics(prose)
     z, combined = score_against(row, stats)
-    hits = STOCK_PHRASE_PATTERN.findall(raw_text)
+    hits = STOCK_PHRASE_PATTERN.findall(prose)
 
     fields = FIELDS_HIGH_IS_SLOP + FIELDS_LOW_IS_SLOP + FIELDS_FLIPPED
     prose_fields = [f for f in fields if f != "phrase"]
