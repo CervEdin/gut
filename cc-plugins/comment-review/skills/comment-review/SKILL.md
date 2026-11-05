@@ -191,11 +191,15 @@ behind most checks and lists the ones that have none.
      stay too. The counts are a reason to look, not a ceiling: a paragraph over
      them that is one argument, such as sentences that each show how the change
      meets one constraint, is not dense.
-   - **Inline quote of a person**: a sentence or more of a person's words (the
-     user, a reviewer, a bug report) inside a sentence of the text. It goes on
-     its own lines as a `> ` block quote, after a line that names who said it. A
-     quoted term, message or command ("database is locked"), a few words, and
-     text from a spec or standard stay inline.
+   - **Inline quote of a person**: a sentence or more of someone else's words (a
+     reviewer, a bug report) inside a sentence of the text. It goes on its own
+     lines as a `> ` block quote, after a line that names who said it. A quoted
+     term, message or command ("database is locked"), a few words, and text from
+     a spec or standard stay inline.
+   - **Quote of the author**: the commit is authored as the user, so their words
+     in its message, quoted or not, read as the author quoting themselves.
+     `rewrite`: say it as the author's own reasoning, in the message's voice,
+     and move the quote to the notes if it is worth keeping.
    - Verdict: `rewrite`, without `Nit:`: a reader skips such a paragraph, so
      what it says is lost.
    - Replacement: the paragraph split where one topic ends and the next begins,
