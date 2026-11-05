@@ -113,11 +113,19 @@ else
 	before=$orig
 	after=HEAD
 fi
-echo "commits before $(git rev-list --count "$before") ($(git rev-list --merges --count "$before") merges)," \
-	"after $(git rev-list --count "$after") ($(git rev-list --merges --count "$after") merges)"
+nbefore=$(git rev-list --count "$before")
+nafter=$(git rev-list --count "$after")
+echo "commits before $nbefore ($(git rev-list --merges --count "$before") merges)," \
+	"after $nafter ($(git rev-list --merges --count "$after") merges)"
 
 echo "range-diff:"
-if test -n "$base"; then
+# git range-diff refuses an empty range ("need two commit ranges"),
+# which is what dropping every commit of the range leaves.
+if test -n "$base" && test "$nbefore" -eq 0; then
+	git log --reverse --format='-:  ------- > %h %s' "$after" | sed 's/^/        /'
+elif test -n "$base" && test "$nafter" -eq 0; then
+	git log --reverse --format='%h < -:  ------- %s' "$before" | sed 's/^/        /'
+elif test -n "$base"; then
 	git range-diff --no-color "$before" "$after" | sed 's/^/        /'
 else
 	git range-diff --no-color "$orig...HEAD" | sed 's/^/        /'
@@ -161,7 +169,12 @@ fi
 
 ab=$(git log --format='%an <%ae>' "$before" | sort -u)
 aa=$(git log --format='%an <%ae>' "$after" | sort -u)
-if test "$ab" = "$aa"; then
+if test "$nbefore" -eq 0 || test "$nafter" -eq 0; then
+	# Every commit was dropped or added, none rewritten, so the authors
+	# differ by design; a rewrite that changed one is not possible here.
+	echo "authors before: $(echo "${ab:-none}" | tr '\n' ';' | sed 's/;$//; s/;/; /g')"
+	echo "        after:  $(echo "${aa:-none}" | tr '\n' ';' | sed 's/;$//; s/;/; /g')"
+elif test "$ab" = "$aa"; then
 	echo "authors unchanged: $(echo "$ab" | tr '\n' ';' | sed 's/;$//; s/;/; /g')"
 else
 	warn "authors changed"
