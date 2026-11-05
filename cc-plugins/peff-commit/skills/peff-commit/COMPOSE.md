@@ -102,10 +102,13 @@ sentence that no entry supports, go back to `commit-brief` and add the entry
 with an honest tag, or leave the sentence out.
 
 Shape the paragraphs as you draft, not after the checks. A paragraph of more
-than 5 sentences or more than about 80 words on more than one topic is split by
-topic, and a sentence or more of a person's words inside a sentence goes into a
-`> ` block of its own: see "Paragraph Structure" and "Emphasis and References"
-in `PEFF-STYLE.md`. A split moves sentences; it does not add or reword any.
+than 5 sentences or more than about 80 words on more than one topic is split
+where its topics part, and a sentence or more of a person's words inside a
+sentence goes into a `> ` block of its own: see "Paragraph Structure" and
+"Emphasis and References" in `PEFF-STYLE.md`. Then reread the message as a
+reader would. Each paragraph of one sentence that a split left gets the
+questions in "Paragraph Structure": drop it, write the idea it serves, or put it
+back.
 
 ## 3. Check
 
@@ -196,7 +199,8 @@ directory.
    ```
 
    A paragraph over the limits with more than one topic goes back to §2 to be
-   split, and checks 2 and 4 run again on the result.
+   split. So does each paragraph of one sentence that a split left, for the
+   questions in "Paragraph Structure". Checks 2 and 4 run again on the result.
 
 5. **Commit references.** Every sha in the draft is on the mainline.
    `git rev-list origin/HEAD..HEAD` lists the ones that are not: those get

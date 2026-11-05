@@ -100,9 +100,20 @@ about 80 words that covers more than one topic is a block nobody reads: the
 reader who needs one fact has to read all of it to find it. A topic is a part
 that a reader can look for on its own: what the code does, what happens during
 an operation, what happens after it, what a person must do, what it cannot do or
-fix, or what was tried. Split such a paragraph by topic. Parallel items (cases,
-exceptions, commands) can go in a numbered list, as "Tone" allows. One argument
-where each sentence builds on the last stays one paragraph, however long it is.
+fix, or what was tried. Split such a paragraph where one topic ends and the next
+begins. The counts are a reason to look, not a ceiling: one argument where each
+sentence builds on the last, or sentences that each show how the change meets
+one constraint, stays one paragraph however long it is.
+
+A paragraph of one sentence that a split left is a question to ask. If it says
+what the diff says and gives no reason, it is changelog and goes. If it is one
+consequence of an idea the message never states, such as an invariant several
+writers must keep, find that idea in the code or the brief and make it the topic
+sentence of a paragraph that holds its consequences. If it belonged to the
+paragraph it was cut from, put it back. Short paragraphs in the same form do not
+become a list: a list of what changed is the changelog that "What NOT to Do"
+rules out. A numbered list, as "Tone" allows, is for items that are a list on
+their own.
 
 ### How Long Should This Be?
 
