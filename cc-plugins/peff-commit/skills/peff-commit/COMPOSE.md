@@ -103,12 +103,12 @@ with an honest tag, or leave the sentence out.
 
 Shape the paragraphs as you draft, not after the checks. A paragraph of more
 than 5 sentences or more than about 80 words on more than one topic is split
-where its topics part, and a sentence or more of a person's words inside a
-sentence goes into a `> ` block of its own: see "Paragraph Structure" and
-"Emphasis and References" in `PEFF-STYLE.md`. Then reread the message as a
-reader would. Each paragraph of one sentence that a split left gets the
-questions in "Paragraph Structure": drop it, write the idea it serves, or put it
-back.
+where its topics part, and a sentence or more of someone else's words inside a
+sentence goes into a `> ` block of its own; the user's words become the author's
+own, with the quote in the notes. See "Paragraph Structure" and "Emphasis and
+References" in `PEFF-STYLE.md`. Then reread the message as a reader would. Each
+paragraph of one sentence that a split left gets the questions in "Paragraph
+Structure": drop it, write the idea it serves, or put it back.
 
 ## 3. Check
 
@@ -261,8 +261,8 @@ from the brief, marked plainly as an assumption.
 Format them exactly like commit body prose, because `git notes` stores them
 verbatim and they are read in a terminal: 72 characters per line soft, 120 hard,
 no markdown, no bullet lists, paragraphs separated by a blank line. A dense
-paragraph is split into paragraphs only. A person's words go in a mail-style
-`> ` quote, as in the body: see "Emphasis and References" in `PEFF-STYLE.md`.
+paragraph is split into paragraphs only. A person's words, the user's included,
+go in a mail-style `> ` quote: see "Emphasis and References" in `PEFF-STYLE.md`.
 
 No hook fires on `git notes add`, so nothing else catches a long line. Check
 first:

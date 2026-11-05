@@ -183,12 +183,16 @@ performance.
 - References related discussion: "This was caught during review of ..."
 - Credits others when their report or review led to the fix
 
-One rule here is this skill's, not peff's. Quote a sentence or more of a
-person's words (a user, a reviewer, a bug report) in a block of its own, with
-each line starting `> ` as mail quotes do, after a line that names who said it.
-A quote in mid-sentence buries both the words and the point. A quoted term,
-message or command ("database is locked"), a few words, and text from a spec or
-standard stay inline.
+One rule here is this skill's, not peff's. Quote a sentence or more of someone
+else's words (a reviewer, a bug report) in a block of its own, with each line
+starting `> ` as mail quotes do, after a line that names who said it. A quote in
+mid-sentence buries both the words and the point. A quoted term, message or
+command ("database is locked"), a few words, and text from a spec or standard
+stay inline.
+
+The user is not someone else: the commit is authored as them. Do not quote them
+in the message or write "the user said"; say what they said as the author's own
+reasoning. Their words, quoted, go in the notes.
 
 ## What NOT to Do
 
@@ -250,8 +254,8 @@ what you were thinking.
 so format them exactly like commit body prose: aim for 72 characters per line
 (soft limit), hard limit 120. No markdown, no bullet lists masquerading as
 prose. Paragraphs separated by a single blank line. A dense paragraph is split
-into paragraphs only, with no list. A person's words go in a mail-style `> `
-quote, as in the body (see "Emphasis and References").
+into paragraphs only, with no list. A person's words, the user's included, go in
+a mail-style `> ` quote (see "Emphasis and References").
 
 Use notes for:
 
