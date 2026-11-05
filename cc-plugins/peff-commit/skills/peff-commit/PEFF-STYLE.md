@@ -3,9 +3,9 @@
 Reference for writing commit messages that channel Jeff King's voice and
 approach. Distilled from his patches to git@vger.kernel.org.
 
-The point is not impersonation — it's that peff's style forces you to
-articulate the reasoning behind a change. Channeling his voice is the
-steering mechanism; the goal is reasoning quality.
+The point is not impersonation — it's that peff's style forces you to articulate
+the reasoning behind a change. Channeling his voice is the steering mechanism;
+the goal is reasoning quality.
 
 ## Subject Line
 
@@ -15,9 +15,9 @@ The default peff format is:
 area: lowercase imperative description
 ```
 
-However, **the repo's existing convention always wins**. If the recent
-commit log uses Conventional Commits (`feat:`, `fix:`, `chore:`,
-`feat(scope):`, etc.), use that format instead:
+However, **the repo's existing convention always wins**. If the recent commit
+log uses Conventional Commits (`feat:`, `fix:`, `chore:`, `feat(scope):`, etc.),
+use that format instead:
 
 ```
 fix(auth): handle nil pointer in batch resolver
@@ -26,12 +26,12 @@ feat: add retry logic for transient failures
 
 General rules regardless of format:
 
-- **50 char soft limit**, 72 hard limit
+- **50 char soft limit**, 72 hard limit for subject lines
 - Lowercase after the colon
 - Imperative mood: "fix", "use", "avoid", not "fixed", "uses", "avoided"
 - No period at the end
-- If the repo does NOT use Conventional Commits, area prefix matches the
-  file, subsystem, or logical component (peff's default)
+- If the repo does NOT use Conventional Commits, area prefix matches the file,
+  subsystem, or logical component (peff's default)
 - For tightly scoped changes, a function name works as the area prefix:
   `check_connected(): delay opening new_pack`,
   `find_last_dir_sep(): convert inline function to macro`
@@ -41,68 +41,125 @@ General rules regardless of format:
 The body reads like a debugging story or design explanation. It is NOT a
 changelog entry. Peff walks the reader through the mechanism:
 
-1. **Start with what the code does** — describe the current behavior or
-   code path ("We mmap() a loose object file, storing the result in...")
-2. **Show how that leads to the problem** — trace the causal chain
-   ("But if we hit an error, we jump to a label which does X, and X is
-   wrong because...")
-3. **State the fix** — often a short final paragraph ("Use Y instead",
-   "Apply the same fix here", "Drop the stale assignment")
+1. **Start with what the code does** — describe the current behavior or code
+   path, in the present tense ("We mmap() a loose object file, storing the
+   result in..."; see Tense below)
+2. **Show how that leads to the problem** — trace the causal chain ("But if we
+   hit an error, we jump to a label which does X, and X is wrong because...")
+3. **State the fix** — often a short final paragraph ("Use Y instead", "Apply
+   the same fix here", "Drop the stale assignment")
+
+### Tense
+
+The message is read against the parent commit. The behaviour the patch changes
+is still the behaviour of the code the reader has in front of them, so describe
+it in the present tense: "the trap removes the scratch file but never exits."
+The past tense is only for history — an incident that happened, an earlier
+commit that introduced the code.
+
+```
+wrong: The backup was queued by the last ExecStartPost=, so a failed sync
+       skipped it.
+right: The backup is queued by the last ExecStartPost=, so a failed sync
+       skips it.
+```
+
+The wrong version reads like a story of what you did during the session. That is
+the usual cause: the prose was written from memory of the work rather than from
+the brief, whose `today` entries are already in the present tense.
 
 ### Tone
 
-- **Conversational but precise** — uses "we", "our", as if talking to a
-  peer on a mailing list
+- **Conversational but precise** — uses "we", "our", as if talking to a peer on
+  a mailing list
 - **Plain language** — avoids jargon when a simpler word works
-- **Tentative where appropriate** — "my guess is", "curiously",
-  "I suspect", "I don't think it matters much"
-- **Humble about scope** — "not urgent, but since we're here we might as
-  well fix it", "probably not worth as many words as I wrote"
-- **Prose paragraphs preferred** — but numbered lists are fine when
-  enumerating genuinely distinct items (e.g., "two independent reasons
-  this is broken: 1. ... 2. ...")
+- **Tentative only when actually unsure** — "my guess is", "I suspect". The
+  hedge reports real uncertainty; do not hedge for politeness or effect
+- **Humble about scope** — "not urgent, but since we're here we might as well
+  fix it", "probably not worth as many words as I wrote"
+- **Prose paragraphs preferred** — but numbered lists are fine when enumerating
+  genuinely distinct items (e.g., "two independent reasons this is broken: 1.
+  ... 2. ...")
 - **No markdown headers** in the commit body
 
 ### Paragraph Structure
 
-- Typically 2-4 paragraphs
-- First paragraph: the problem (longest, most detailed)
-- Middle paragraphs: context, history, or subtleties if needed
-- Final paragraph: the fix (often just 1-2 sentences)
+When there is enough to say, the shape is: the problem first and in most detail,
+context or history in the middle if it is needed, the fix last in a sentence or
+two.
+
+Read that as a description of a message whose facts were all available, not as a
+template to fill. The number of paragraphs follows the number of things you
+actually went and found out — see "How Long Should This Be?" below. Saying what
+the code does today is not one of them. Where you write it, write it because the
+message has to stand without the diff beside it, not because a paragraph wants
+filling.
+
+### How Long Should This Be?
+
+Measured over 2000 of peff's commits, body length by size of diff (words,
+excluding subject and trailers):
+
+| diff size | n   | p25 | median | p75 |
+| --------- | --- | --- | ------ | --- |
+| 1-2 lines | 258 | 45  | 87     | 156 |
+| 3-5 lines | 313 | 48  | 90     | 155 |
+| 6-15      | 566 | 58  | 103    | 186 |
+| 16-50     | 622 | 85  | 148    | 251 |
+| 51-200    | 218 | 98  | 203    | 333 |
+
+Peff writes about 87 words — two paragraphs — for a two-line diff. **Do not copy
+that number.** It is the most misleading thing in this document if taken as a
+target.
+
+In his corpus, a small diff with a long message means the analysis was hard and
+the fix turned out small. The words are a _record of findings_; the diff is
+short precisely because the reasoning was long. His two-line changes are subtle
+bugs he chased down. Yours are usually small because they are trivial.
+
+Copy the length without the findings and there is only one way to reach it,
+which is to invent. That is the failure this whole skill is built to prevent,
+and it enters right here — through a well-meant attempt to sound like these
+numbers. Length is downstream of what you know. Establish the facts, then let
+them determine the size.
+
+Short is normal, including for him: 12% of these bodies are under 40 words.
 
 ### Discussing Alternatives
 
-A distinctive peff pattern: explain approaches you considered but didn't
-take, and why. This proves you understand the design space, not just the
-diff. Examples from real patches:
+A distinctive peff pattern: explain approaches you considered but didn't take,
+and why. This proves you understand the design space, not just the diff.
+Examples from real patches:
 
-> One option to prevent this is to limit the depth of recursion we'll
-> allow. This is conceptually easy to implement, but it raises other
-> questions: what should the limit be, and do we need a configuration
-> knob for it?
+> One option to prevent this is to limit the depth of recursion we'll allow.
+> This is conceptually easy to implement, but it raises other questions: what
+> should the limit be, and do we need a configuration knob for it?
 
 > It would be easy-ish to insert an extra check like:
-> `can_filter_bitmap(&opt->objects_filter);` into the conditional, but
-> I didn't bother here. It would be redundant with the call in
-> for_each_bitmapped_object(), and the can_filter helper function is
-> static local in the bitmap code.
+> `can_filter_bitmap(&opt->objects_filter);` into the conditional, but I didn't
+> bother here. It would be redundant with the call in
+> for_each_bitmapped_object(), and the can_filter helper function is static
+> local in the bitmap code.
 
-You don't need to manufacture alternatives — but when you genuinely
-considered another approach, say so and say why you didn't take it.
+You don't need to manufacture alternatives — but when you genuinely considered
+another approach, say so and say why you didn't take it.
 
 ### Quantitative Evidence
 
-When the change has measurable impact, include the numbers. Peff
-frequently embeds benchmark output, object counts, or timing data
-directly in the commit body. The data grounds the reasoning in reality
-rather than hand-waving about performance.
+When the change has measurable impact, include the numbers. Peff frequently
+embeds benchmark output, object counts, or timing data directly in the commit
+body. The data grounds the reasoning in reality rather than hand-waving about
+performance.
 
 ### Emphasis and References
 
-- Uses _italics-style_ emphasis sparingly for subtle distinctions
-  (rendered in email as underscores: "dispatched _from_")
-- References other commits by abbreviated sha and subject:
-  "1f3fd68e06 (odb/source: make read_object_stream() pluggable, 2026-03-05)"
+- Uses _italics-style_ emphasis sparingly for subtle distinctions (rendered in
+  email as underscores: "dispatched _from_")
+- References other commits by abbreviated sha and subject: "1f3fd68e06
+  (odb/source: make read_object_stream() pluggable, 2026-03-05)" — but only for
+  a commit that has reached the mainline. Anything short of that, the commits of
+  your own branch included, is named by position ("the previous commit", "the
+  next commit"), because a rebase will have changed its sha
 - References related discussion: "This was caught during review of ..."
 - Credits others when their report or review led to the fix
 
@@ -112,26 +169,63 @@ rather than hand-waving about performance.
 - No "This commit does X" self-referential framing
 - No JIRA ticket numbers in the subject (put in footer if needed)
 - No emoji
-- No "Fixes #123" GitHub shorthand in the body (reference PRs by URL or
-  prose instead)
+- No "Fixes #123" GitHub shorthand in the body (reference PRs by URL or prose
+  instead)
 - No restating what the diff already shows — explain the WHY
-- No false confidence — if you're not sure why something works, say so
+- No motivation you cannot source. If nothing in the diff, the code, the log,
+  the session, or an issue says why this change is being made, the message does
+  not say why. It is not improved by a guess, and it is not rescued by hedging
+  the guess — "I suspect this improves performance" asserts a finding while
+  looking like calibration, so the reviewer believes it and cannot tell it apart
+  from a real one. Omit it, and put the assumption in the notes
+- No false confidence — where you did investigate a mechanism and came away
+  unsure, say so. That hedge reports work you actually did, which is the
+  opposite of the one above
+- No editorializing asides ("Amusingly, ...", coined maxims, "Two asides.").
+  Peff's asides report his own effort, confidence, or scope ("not urgent", "I
+  punted on it for now") — they tell the reviewer how much scrutiny to apply. An
+  aside that is wit about the subject gets deleted
+- No decorating numbers ("voted 13-to-1") — write the plain count ("13 of 14")
 
 ## Closing
 
-End with a `Signed-off-by:` line using the actual author's identity.
+Peff ends with a `Signed-off-by:` line, but not by personal style — the Git
+project requires that trailer of every submission, from anyone. Follow the same
+logic rather than the letter of it: add whatever trailer the _target_ project
+requires, which for most repos means matching what the recent log carries (sign
+off where it signs off, carry a `Reviewed-by:` or ticket trailer where the log
+carries one, add nothing where the log carries nothing).
 
-If the change is a port of a fix from elsewhere, say so plainly:
-"Apply the same fix here."
+That's a question about the repo's requirements, not about who or what wrote the
+message. If an LLM drafted the commit, say so with its own trailer:
+
+```
+Generated-by: Claude (claude-opus-5)
+```
+
+Never fold that fact into `Co-authored-by:` or a human's `Signed-off-by:`. Both
+of those assert something the model didn't do — joint authorship, or a person's
+review and sign-off — and `Generated-by:` says the true thing instead: a model
+produced the text. If the harness tells you to append a `Co-Authored-By:` line,
+`Generated-by:` replaces it while this skill is in use.
+
+If the change is a port of a fix from elsewhere, say so plainly: "Apply the same
+fix here."
 
 ## Notes
 
-Notes are observations that sit alongside the commit message but aren't
-part of it. They surface your reasoning, uncertainties, and caveats —
-the things that help a reviewer (or your future self) understand not
-just what you decided, but what you were thinking.
+Notes are observations that sit alongside the commit message but aren't part of
+it. They surface your reasoning, uncertainties, and caveats — the things that
+help a reviewer (or your future self) understand not just what you decided, but
+what you were thinking.
+
+**Formatting:** notes are stored verbatim by `git notes` and read in a terminal,
+so format them exactly like commit body prose: aim for 72 characters per line
+(soft limit), hard limit 120. No markdown, no bullet lists masquerading as
+prose. Paragraphs separated by a single blank line.
 
 Use notes for:
+
 - **Alternatives not taken** — why another approach was tempting but wrong
 - **Caveats** — things that are still ugly or incomplete
 - **Uncertainties** — things you're not confident about
@@ -139,19 +233,17 @@ Use notes for:
 
 From peff's real patches:
 
-> It would perhaps make more sense for diff-highlight to chomp all
-> incoming lines, then do its comparisons, and then add a newline back
-> on output. That's a bigger change, so I punted on it for now.
+> It would perhaps make more sense for diff-highlight to chomp all incoming
+> lines, then do its comparisons, and then add a newline back on output. That's
+> a bigger change, so I punted on it for now.
 
-> I think the rewrite of xmkstemp() triggered Coverity to consider this
-> a "new" problem, even though it has been there for years. So not
-> urgent, but this is mostly just trying not to waste the brain cycles I
-> spent analyzing. :)
+> I think the rewrite of xmkstemp() triggered Coverity to consider this a "new"
+> problem, even though it has been there for years. So not urgent, but this is
+> mostly just trying not to waste the brain cycles I spent analyzing. :)
 
-The notes are the reasoning checkpoint. If someone reads your notes and
-thinks "wait, that alternative is actually better" or "that's not why
-we're doing this", it surfaces the misunderstanding before it gets
-committed.
+The notes are the reasoning checkpoint. If someone reads your notes and thinks
+"wait, that alternative is actually better" or "that's not why we're doing
+this", it surfaces the misunderstanding before it gets committed.
 
 ## Examples of Good Final Paragraphs
 

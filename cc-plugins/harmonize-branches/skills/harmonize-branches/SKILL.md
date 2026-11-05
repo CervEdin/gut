@@ -1,6 +1,8 @@
 ---
 name: harmonize-branches
-description: Analyze branch topology, consolidate divergent branches, and resolve conflicts encountered along the way
+description:
+  Analyze branch topology, consolidate divergent branches, and resolve conflicts
+  encountered along the way
 allowed-tools: Bash, Read, Glob, Grep, Edit, Write
 ---
 
@@ -12,7 +14,8 @@ arise during the process.
 
 ## Three modes of operation
 
-1. **Analyze** — scan the topology for duplicates, divergent branches, and conflicts
+1. **Analyze** — scan the topology for duplicates, divergent branches, and
+   conflicts
 2. **Consolidate** — restructure branches to harmonize parallel histories
 3. **Resolve** — fix conflicts encountered during a rebase
 
@@ -40,6 +43,7 @@ conflicts even though the result is identical. The fix is to make the branches
 carry the same commits.
 
 **Rules:**
+
 1. **Start with later history** — changes later in the topology cascade less
    when modified
 2. **Make branches identical first** — before hoisting changes to common
@@ -50,23 +54,23 @@ carry the same commits.
 
 ### Common patterns
 
-**Identical duplicate commits on parallel branches:**
-Find them with pygit2 — same subject, same diff, different commit objects.
-If both branches have the same commit, merges between them resolve cleanly.
-If only one has it, cherry-pick it onto the other.
+**Identical duplicate commits on parallel branches:** Find them with pygit2 —
+same subject, same diff, different commit objects. If both branches have the
+same commit, merges between them resolve cleanly. If only one has it,
+cherry-pick it onto the other.
 
-**Modify/delete conflicts:**
-One side modifies a file, the other deletes it. Usually caused by a commit
-that bulk-deletes files existing on a branch that doesn't need them. Fix by
-dropping the delete commit from that branch.
+**Modify/delete conflicts:** One side modifies a file, the other deletes it.
+Usually caused by a commit that bulk-deletes files existing on a branch that
+doesn't need them. Fix by dropping the delete commit from that branch.
 
-**Divergent duplicates:**
-Same subject but different diffs — usually because one copy includes unrelated
-formatting changes. Split the formatting out so the logical change becomes
-identical on both branches, then one copy can be consolidated.
+**Divergent duplicates:** Same subject but different diffs — usually because one
+copy includes unrelated formatting changes. Split the formatting out so the
+logical change becomes identical on both branches, then one copy can be
+consolidated.
 
-**Commit only on one branch that conflicts with the other:**
-A commit modifies a line that the other branch also modifies or deletes. Either:
+**Commit only on one branch that conflicts with the other:** A commit modifies a
+line that the other branch also modifies or deletes. Either:
+
 - Add it to both branches (if both need it)
 - Drop it (if the other branch's change makes it redundant)
 
@@ -87,6 +91,7 @@ git rev-parse MERGE_HEAD          # the branch being merged in (if merge)
 ```
 
 Key refs:
+
 - **REBASE_HEAD** — the original merge commit being replayed; this is a
   reference point for what the result should look like (topology may differ)
 - **MERGE_HEAD** — one of the inputs to the new merge (the branch side)
@@ -108,9 +113,9 @@ original history may now come before it. Check:
 
 - Does HEAD already contain changes that weren't in the original p1?
 - Has a commit been moved earlier in the topology (e.g. a whitespace commit)?
-- If so, the original REBASE_HEAD resolution isn't a perfect match — you need
-  to keep the changes that are already in HEAD while applying only what this
-  merge is supposed to bring in.
+- If so, the original REBASE_HEAD resolution isn't a perfect match — you need to
+  keep the changes that are already in HEAD while applying only what this merge
+  is supposed to bring in.
 
 Check the final ref (the branch being rebased) to understand the final intended
 state:
@@ -126,8 +131,9 @@ and may drop changes from HEAD that should be preserved, causing cascading
 failures.
 
 Instead, resolve each conflict hunk individually:
-- For each `<<<<<<<`/`=======`/`>>>>>>>` block, decide which side to take
-  based on the original resolution and topology context
+
+- For each `<<<<<<<`/`=======`/`>>>>>>>` block, decide which side to take based
+  on the original resolution and topology context
 - Use the Edit tool to replace each conflict block
 
 ### Step 5: Verify
@@ -139,9 +145,9 @@ git add <file>
 git diff REBASE_HEAD:<file> :<file>
 ```
 
-This should be empty — unless topology changes justify a known difference
-(e.g. a whitespace commit was reordered). If there's a difference, understand
-exactly why before proceeding.
+This should be empty — unless topology changes justify a known difference (e.g.
+a whitespace commit was reordered). If there's a difference, understand exactly
+why before proceeding.
 
 ### Step 6: Handle rerere
 
@@ -162,9 +168,10 @@ git rerere
 
 Rerere only handles **content conflicts** (conflicting hunks with conflict
 markers). It cannot learn resolutions for:
+
 - **Modify/delete conflicts** — one side modified, other side deleted
-- These must be resolved manually every time, or the topology must be fixed
-  to eliminate them
+- These must be resolved manually every time, or the topology must be fixed to
+  eliminate them
 
 ## Important rules
 

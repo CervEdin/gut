@@ -1,6 +1,8 @@
 ---
 name: claude-rebase
-description: Interactive rebase via patches — reorder, edit, squash, and reword commits without git rebase -i
+description:
+  Interactive rebase via patches — reorder, edit, squash, and reword commits
+  without git rebase -i
 argument-hint: [base-ref]
 allowed-tools: Bash, Read, Glob, Grep, Edit, Write
 ---

@@ -1,383 +1,276 @@
 ---
 name: git-rebase-i
-description: Scripted git rebase -i — reword, edit, or drop commits without interactive mode
+description: >-
+  Any change to a commit behind HEAD is a history rewrite that needs `git rebase
+  -i`, and under Claude Code a bare `git rebase -i` runs its todo list unedited
+  and silently changes nothing, so you MUST use this skill, which drives the
+  rebase through a scripted sequence editor. Invoke it as your first step
+  (before any git command) when the user wants to: reword or fix the message of
+  an earlier commit (named by SHA or "N commits back"); fold, squash, or absorb
+  a typo/fix/"oops" commit into the earlier commit it belongs to; split one
+  commit into several; strip debug logging, stray hunks, or files out of an
+  older commit while keeping the rest; drop or reorder commits; purge a file
+  from the whole branch; restructure commits onto a side branch merged back in;
+  or tidy up a branch's commit series before review or sending patches. Even if
+  the request sounds like a small edit, if the target commit isn't the tip, it's
+  a history rewrite — use this skill. Do not use it when only the newest commit
+  changes (`git commit --amend`), or for plain rebase-onto-upstream,
+  cherry-pick, revert, or PR squash-merge.
 argument-hint: <operation> <sha> [new-message]
 allowed-tools: Bash
 ---
 
 # Scripted git rebase -i
 
-Perform `git rebase -i` operations non-interactively using `GIT_SEQUENCE_EDITOR`
-and `GIT_EDITOR`.
+Rewrite commits behind HEAD with `git rebase -i`, driven by four helpers from
+this plugin's `bin/`. That directory is on PATH while the plugin is installed;
+if `git rebase-i-prep` is not found, call the scripts as
+`${CLAUDE_SKILL_DIR}/../../bin/<name>`.
 
-## Arguments
+| helper                          | job                                                                         |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| `git rebase-i-prep <commit>...` | checks the range, saves a way back, prints the rebase command               |
+| `git rebase-i-todo <action>...` | the sequence editor: edits todo lines by commit, ends the todo with `break` |
+| `git reword <commit> -m\|-F`    | an `amend!` commit that autosquash folds into `<commit>`                    |
+| `git rebase-i-check`            | the report: tree, range-diff, notes, signatures, authors, branches          |
 
-- `$ARGS` — free-form description of what to do. Examples:
-  - `reword abc1234 "new subject line"`
-  - `reword abc1234 and def5678` (will ask for new messages)
-  - `drop abc1234`
+`$ARGUMENTS` is a free-form request, such as `reword abc1234 "new subject"` or
+`drop abc1234`.
 
-## Preparation
+## Procedure
 
-Before any rebase, check the working tree state and for an existing `.rebase/`
-directory (another rebase may be in progress — ask the user before proceeding),
-then save the original HEAD:
+Every operation runs the same way. The recipes below only differ in the actions.
+
+1. **Prep.** `git rebase-i-prep <commit>...` with every commit the operation
+   touches, after any commits the recipe says to make before it. Reword and
+   "Fold an existing commit" are the exceptions: they run prep before
+   `git reword`, because prep exits 4 on the commit that `git reword` makes.
+   Read each `WARN` line. A `BLOCK` line stops you: tell the user what it says.
+   Exit 3 means the commit is already on the upstream branch; ask before
+   rewriting it, and rerun with `--allow-published` once they agree. Exit 4
+   means `fixup!`, `squash!` or `amend!` commits that you did not make are
+   waiting in the range. The user may keep them to fold later, so ask before
+   folding them, and rerun with `--allow-fixups` only once they agree.
+2. **Say what should change.** Before the rebase, state the expected range-diff
+   in a sentence: "only commit 3's message changes", or "commit 2 is gone and
+   the tree loses debug.log".
+3. **Rebase.** Run the `rebase` command prep printed, with the recipe's actions
+   in `GIT_SEQUENCE_EDITOR`. The helper resolves each commit before it touches
+   the todo, and fails the rebase before it starts if a commit has no todo line.
+   The rebase pauses at a final `break`: the new history is on a detached HEAD
+   and the branch has not moved.
+4. **Check, then finish.** `git rebase-i-check`. Paste the whole report into
+   your reply and compare it with step 2. If it matches and ends with
+   `result ok`, run the `next` command it prints,
+   `git -c notes.rewriteRef='refs/notes/*' rebase --continue`: the branch moves,
+   `--update-refs` moves the branches inside the range, and the notes are copied
+   by this command, so the `-c` has to reach it. Run `git rebase-i-check` once
+   more to confirm those three. If the report does not match,
+   `git rebase --abort` and report what it showed. If the check refuses to run
+   (exit 2 with no report), stop and report its message; do not pass `<orig>` to
+   get past it.
+5. **Clean up.** Forget this worktree's backup refs. The command refuses while a
+   rebase is in progress:
+
+   ```bash
+   git rebase-i-prep --forget
+   ```
+
+   Never delete other refs under `refs/rebase-i/`: they belong to rebases in
+   other worktrees. `--forget` also deletes the refs of worktrees that no longer
+   exist, so its output can name other worktrees. Its `old` lines name refs from
+   plugin version 0.1.5 or older; tell the user about them, but leave them for
+   the user to delete.
+
+## Recipes
+
+Actions take any revision, but resolve the shas with `git rev-parse` first:
+`HEAD~N` changes meaning as soon as a commit is added.
+
+### Reword
+
+Prep first: an `amend!` commit already in the range makes prep stop.
 
 ```bash
-git status
-if [ -d .rebase ]; then
-  echo ".rebase/ already exists — another rebase may be in progress"
-  # Ask the user before proceeding
-fi
-mkdir -p .rebase
-git rev-parse HEAD > .rebase/ORIGINAL_HEAD
-```
+git rebase-i-prep <sha>
+git reword <sha> -F - <<'EOF'
+new subject
 
-If `git status` shows a rebase is already in progress, do NOT start a new one —
-ask the user how to proceed.
-
-## Cleanup
-
-After the rebase completes and `git diff` verification passes, remove the
-temporary `.rebase/` directory:
-
-```bash
-rm -r .rebase/
-```
-
-## Rewording commits
-
-Rewording only changes commit messages — no tree or content changes. This means
-there are no cascading conflicts to worry about, so multiple rewords can safely
-be batched into a single rebase using `exec` lines. Doing them incrementally
-would also cause SHAs to shift after each rebase, adding unnecessary complexity.
-
-### Single commit
-
-Use `edit` + `amend`:
-
-#### 1. Write the sed script
-
-```bash
-cat > .rebase/edit.sed <<'EOF'
-s/^(pick|p) <sha>/e <sha>/
-$a\
-break
+new body
 EOF
+GIT_SEQUENCE_EDITOR="git rebase-i-todo" git -c notes.rewriteRef='refs/notes/*' \
+  rebase -i --autosquash --autostash --rebase-merges --update-refs <base>
 ```
 
-#### 2. Run the rebase
+One `git reword` per commit; give prep all of them and run one rebase. `git log`
+shows every new message before the rebase runs.
+
+### Fold new fixes into earlier commits
+
+Commit each new fix on top of HEAD as a `fixup!` commit; one autosquash rebase
+folds them all in. Git puts each `fixup` line right after its target, also
+inside a side branch merged into HEAD, and redoes the merge.
 
 ```bash
-GIT_SEQUENCE_EDITOR="sed -i '' -E -f .rebase/edit.sed" git rebase -i <sha>^
+start=$(git rev-parse HEAD)
+git add <the fix for target 1>
+git commit --fixup=<target1>
+git add <the fix for target 2>
+git commit --fixup=<target2>
+git rebase-i-prep --allow-fixups-from="$start" <target1> <target2>
+GIT_SEQUENCE_EDITOR="git rebase-i-todo" git -c notes.rewriteRef='refs/notes/*' \
+  rebase -i --autosquash --autostash --rebase-merges --update-refs <base>
 ```
 
-#### 3. Amend and continue
+- One file with fixes for two targets: stage each part with interactive-staging.
+- Before committing, check that the targets are on one line of history: one of
+  them must be an ancestor of all the others (`git merge-base --is-ancestor`).
+  If they are on different lines of a merge, prep refuses. Commit only one
+  line's fixes, leave the rest unstaged (`--autostash` keeps them), and fold the
+  next line in another pass.
+- Commit the fixes before prep, so its backup includes them and the check
+  reports the tree identical.
+- Record `start` before the first `git commit --fixup`. Prep allows only the
+  `fixup!`, `squash!` and `amend!` commits made since then, and exits 4 for an
+  older one. Autosquash would fold that one too, so ask the user first; if they
+  agree, pass `--allow-fixups` and include it in step 2's expected change.
+- A fix to lines that a later commit also changed conflicts twice: at its fold,
+  and again at that later commit. At the fold, keep only the target's version
+  plus the fix, without the later commit's lines; resolve the later commit as
+  usual.
+
+### Drop
 
 ```bash
-GIT_EDITOR="sed -i '' '1s/.*/new subject/'" git commit --amend
-git rebase --continue
+GIT_SEQUENCE_EDITOR="git rebase-i-todo drop=<sha>" \
+  git -c rebase.autoSquash=false -c notes.rewriteRef='refs/notes/*' \
+  rebase -i --autostash --rebase-merges --update-refs <base>
 ```
 
-For subject-only rewording, `GIT_EDITOR` sed is the right tool. When the full
-message context matters (e.g. the subject depends on remaining changes after
-editing), use `git show --stat` to review, then `git commit --amend -m "..."`.
+Expect the check to report a tree difference: the dropped change.
 
-After the rebase, verify with `git diff $(cat .rebase/ORIGINAL_HEAD)` — it
-should be empty.
+### Fold an existing commit
 
-### Multiple commits (batch reword)
-
-Write a sed script with one `1s` substitution per commit — exact old subject →
-exact new subject. Each rule only fires on the matching commit; all others are
-no-ops.
-
-#### 1. Write the reword sed script
+Fold `<sha>`, a commit already in the range, into `<target>`, an ancestor of
+`<sha>`. Git folds only `fixup!` and `squash!` commits, so this takes two
+rebases: the first rewords `<sha>` into a `fixup!` commit, the second folds it
+with autosquash. Run the whole Procedure for each, with the base its prep
+prints, and the checks below in its step 4.
 
 ```bash
-cat > .rebase/reword.sed <<'SEDEOF'
-1s/^old subject one/new subject one/
-1s/^old subject two/new subject two/
-SEDEOF
+start=$(git rev-parse HEAD)
+git rebase-i-prep --fold-into=<target> <sha>
+git reword <sha> -m "fixup! $(git log -1 --format=%s <target>)"
+GIT_SEQUENCE_EDITOR="git rebase-i-todo" git -c notes.rewriteRef='refs/notes/*' \
+  rebase -i --autosquash --autostash --rebase-merges --update-refs <base1>
+git rebase-i-check --expect-fixup=<target>
+
+git rebase-i-prep --allow-fixups-from="$start" <target>
+GIT_SEQUENCE_EDITOR="git rebase-i-todo" git -c notes.rewriteRef='refs/notes/*' \
+  rebase -i --autosquash --autostash --rebase-merges --update-refs <base2>
+git rebase-i-check
+git rebase-i-check "$start" <base2>
 ```
 
-**POSIX note:** sed does not interpret `\t` as a tab character. If the
-replacement text needs literal tabs, the file must contain actual tab bytes.
+- A `BLOCK` from the first prep's `--fold-into` means `<target>` is not an
+  ancestor of `<sha>`, for example when one of them is on a side branch that is
+  merged in after the other. Autosquash cannot fold across that, and moving the
+  change to another branch is a topology change: stop and ask the user, and see
+  `references/topology.md`.
+- In the first rebase only `<sha>`'s message changes. With `--expect-fixup`, the
+  check names `<sha>`'s new `fixup!` commit as expected and ends in `result ok`.
+  Any other `fixup!`, `squash!` or `amend!` commit left in the range still
+  warns.
+- Record `start` before the first prep. The second prep then allows the `fixup!`
+  commit that the first rebase made, and exits 4 for one that was in the range
+  before.
+- The last check compares the tip from before both rebases with the result: only
+  `<target>` changes, `<sha>` is gone, and the tree is identical.
+- `fixup!` keeps `<target>`'s message. `squash!` concatenates the two, because
+  the editor is `true`; for a new message, fold and then reword.
 
-#### 2. Write the sequence editor sed script
-
-Insert an `exec` line after each `pick` that needs rewording:
+### Reorder
 
 ```bash
-cat > .rebase/edit.sed <<'EOF'
-/^(pick|p) <sha-1>/{
-a\
-x GIT_EDITOR='sed -i "" -f .rebase/reword.sed' git commit --amend
-}
-/^(pick|p) <sha-2>/{
-a\
-x GIT_EDITOR='sed -i "" -f .rebase/reword.sed' git commit --amend
-}
-$a\
-break
-EOF
+GIT_SEQUENCE_EDITOR="git rebase-i-todo move=<sha>:<after>" \
+  git -c rebase.autoSquash=false -c notes.rewriteRef='refs/notes/*' \
+  rebase -i --autostash --rebase-merges --update-refs <base>
 ```
 
-#### 3. Run the rebase
+`<sha>` is replayed right after `<after>`. A move across a merge, label or reset
+line is refused: on the far side of such a line a commit is built on a different
+parent, so it lands on a different branch. That is a topology change, see the
+references.
+
+### Edit: split a commit, or remove part of it
 
 ```bash
-GIT_SEQUENCE_EDITOR="sed -i '' -E -f .rebase/edit.sed" git rebase -i --rebase-merges --update-refs <oldest-sha>^
+GIT_SEQUENCE_EDITOR="git rebase-i-todo edit=<sha>" \
+  git -c rebase.autoSquash=false -c notes.rewriteRef='refs/notes/*' \
+  rebase -i --autostash --rebase-merges --update-refs <base>
 ```
 
-#### 4. Verify at break
+The rebase stops with `<sha>` replayed as HEAD. Confirm it:
+`git log -1 --format='%h %s'` must show the target. Then invoke the
+interactive-staging skill and follow its "Split committed work" section with
+`<orig>` = HEAD. Commit each piece with the original author and date:
 
 ```bash
-git diff $(cat .rebase/ORIGINAL_HEAD)   # should be empty
-git log --oneline                       # check subjects
-git rebase --continue                   # finalize
+git commit --author="$(git log -1 --format='%an <%ae>' <orig>)" \
+  --date="$(git log -1 --format=%aD <orig>)" -F <msg>
 ```
 
-## Dropping a commit
-
-### 1. Write the sed script
+To remove part of the commit, commit only the pieces you keep, then discard the
+rest:
 
 ```bash
-cat > .rebase/edit.sed <<'EOF'
-s/^(pick|p) <sha>/d <sha>/
-$a\
-break
-EOF
+git restore --staged --worktree -- :/
 ```
 
-### 2. Run the rebase
+A bare `git restore -- .` leaves the intent-to-add entries of dropped files, and
+`git rebase --continue` then refuses with "You must edit all merge conflicts".
+Finally `git rebase --continue` replays the rest and reaches the break. Later
+commits that touched removed lines conflict; resolve by dropping the removed
+content from the incoming side, and `git rm <path>` for a modify/delete conflict
+on a removed file.
 
-```bash
-GIT_SEQUENCE_EDITOR="sed -i '' -E -f .rebase/edit.sed" git rebase -i <sha>^
-```
+### Purge a file from history; branch topology
 
-## Fixup (absorb a commit into a specific earlier commit)
+Rare. Read `references/purge.md` or `references/topology.md` when asked for one.
 
-Two-rebase approach: first mark the fixup, then autosquash.
+## When the rebase stops anywhere else
 
-### 1. Write the sed script
+- **A conflict.** Hand off to the resolve-merge-conflicts skill, then
+  `git rebase --continue`.
+- **"The previous cherry-pick is now empty."** The commit's change is already in
+  the tree: `git rebase --skip`.
+- **An edit stop at the wrong commit, or anything you cannot name.**
+  `git rebase --abort` and report. Never `git rebase --quit`.
 
-```bash
-cat > .rebase/edit.sed <<'EOF'
-s/^(pick|p) <sha-to-absorb>/e <sha-to-absorb>/
-$a\
-break
-EOF
-```
-
-### 2. Stop at the commit to absorb
-
-```bash
-GIT_SEQUENCE_EDITOR="sed -i '' -E -f .rebase/edit.sed" git rebase -i <sha-to-absorb>^
-```
-
-### 3. Mark it as a fixup for the target
-
-```bash
-git commit --amend --fixup=<target-sha>
-git rebase --continue
-```
-
-### 4. Autosquash to fold it in
-
-```bash
-GIT_SEQUENCE_EDITOR=cat git rebase -i --autosquash --rebase-merges --update-refs <target-sha>^
-```
-
-Verify with `git diff $(cat .rebase/ORIGINAL_HEAD)` after each rebase.
-
-## Edit (remove parts of a commit)
-
-Stop at the commit, reset, selectively re-stage only what you want to keep.
-
-### 1. Write the sed script
-
-```bash
-cat > .rebase/edit.sed <<'EOF'
-s/^(pick|p) <sha>/e <sha>/
-$a\
-break
-EOF
-```
-
-### 2. Run the rebase
-
-```bash
-GIT_SEQUENCE_EDITOR="sed -i '' -E -f .rebase/edit.sed" git rebase -i <sha>^
-```
-
-### 3. Reset, re-stage, and continue
-
-```bash
-git reset HEAD^                  # undo commit, unstage all changes
-# Edit the worktree to keep only what you want
-git add <files>                  # stage the desired changes
-git commit -m "new message"
-git rebase --continue
-```
-
-Expect downstream conflicts on lines that were removed — resolve by dropping the
-removed content from the incoming side.
-
-## Purge files from history
-
-For when files were added in commit A, modified in B..N, deleted in Z — goal is
-to remove them from all commits so they never appear in history.
-
-First, identify the commits. Find deletions on the current branch (commit Z):
-
-```bash
-git log --diff-filter=D --stat --oneline origin/HEAD..
-```
-
-Then find where those files were originally added (commit A):
-
-```bash
-git log --diff-filter=A --stat --oneline origin/HEAD..
-```
-
-1. Write the sed script and start the rebase:
-
-```bash
-cat > .rebase/edit.sed <<'EOF'
-s/^(pick|p) <sha-A>/e <sha-A>/
-s/^(pick|p) <sha-Z>/e <sha-Z>/
-$a\
-break
-EOF
-```
-
-```bash
-GIT_SEQUENCE_EDITOR="sed -i '' -E -f .rebase/edit.sed" git rebase -i <sha-A>^
-```
-
-2. At A: remove the files and amend:
-
-```bash
-git rm <files>
-git commit --amend --no-edit
-git rebase --continue
-```
-
-3. At each conflict (B..N): the files no longer exist on our side — remove and
-   continue:
-
-```bash
-git rm <files> 2>/dev/null; true
-git rebase --continue
-```
-
-4. At Z: the deletion commit now has nothing to delete. Amend the message with
-   `-m` to reflect the remaining changes (or drop the commit if it's empty):
-
-```bash
-git show --stat     # review what's left in the commit
-git commit --amend -m "new message for remaining changes"
-git rebase --continue
-```
-
-5. At break: verify the rebase is content-preserving:
-
-```bash
-git diff $(cat .rebase/ORIGINAL_HEAD)
-```
-
-6. If the diff is empty (as expected), finalize:
-
-```bash
-git rebase --continue
-```
-
-## Branch topology (split linear commits into a side branch)
-
-Move a range of linear commits onto a side branch with a merge, using
-`--rebase-merges`. Useful for organizing commits into a categorized topology.
-
-Given a linear history where commits A..Z should be on a side branch (shown in
-`git log` order, newest first):
-
-```
-* <later-commits>
-* Z  last commit of the group (newest)
-* ...
-* A  first commit of the group (oldest)
-* M  commit before the group (rebase base)
-```
-
-Note: in the rebase edit-todo, the order is reversed — A appears first (top) and
-Z appears last (bottom).
-
-### 1. Write the sed script
-
-Insert `label`/`update-ref`/`reset`/`merge` commands around the commit range.
-The todo format depends on user config — match both long and short commands.
-
-```bash
-cat > .rebase/edit.sed <<'EOF'
-/^(pick|p) <first-sha>/{
-i\
-label bp-name
-}
-/^(pick|p) <last-sha>/{
-a\
-update-ref refs/heads/<branch-name>\
-label <branch-label>\
-reset bp-name\
-merge <branch-label>
-}
-$a\
-break
-EOF
-```
-
-- `<first-sha>` — A, the oldest commit in the group (first in the edit-todo)
-- `<last-sha>` — Z, the newest commit in the group (last in the edit-todo)
-- `bp-name` — unique label for the branch point (e.g. `bp-map`)
-- `branch-label` — label for the side branch tip (e.g. `stub-map`)
-- `<branch-name>` — the actual branch ref to update (e.g. `stub/map`)
-
-### 2. Run the rebase
-
-```bash
-GIT_SEQUENCE_EDITOR="sed -i '' -E -f .rebase/edit.sed" git rebase -i --rebase-merges <base>^
-```
-
-### 3. Verify and finalize
-
-At break, verify the merge has two parents and the diff is empty:
-
-```bash
-git cat-file -p <new-merge-sha> | head -5   # should show two parents
-git diff $(cat .rebase/ORIGINAL_HEAD)        # should be empty
-git rebase --continue
-```
+`git rebase --abort` restores every branch, including the ones `--update-refs`
+would have moved. Notes missing after the continue are not lost: the second
+check prints the `git notes copy --stdin` line that restores them from the
+rewrite list saved at the break. After a `--continue`, the way back is
+`git reset --keep <orig-ref>` on the branch, where `<orig-ref>` is the ref in
+parentheses on the check's `orig` line (such as
+`refs/rebase-i/main-worktree/orig`). For each branch the check lists, run
+`git update-ref refs/heads/<name> <prefix>/heads/<name>`, where `<prefix>` is
+`<orig-ref>` without the trailing `/orig`. Those two are the only ref moves this
+skill allows by hand.
 
 ## Rules
 
-- **Never switch branches.** Work on the current branch. If you think a branch
-  switch is needed, ask the user first — target commits may be reachable from
-  the current branch via merges.
-- **Newest commit first.** When operating on multiple commits, process them in
-  reverse chronological order (newest first). This keeps older SHAs intact until
-  you touch them, avoiding unnecessary rewrites and minimizing merge conflicts.
-- **Preserve merge topology.** Use `--rebase-merges` by default to keep existing
-  merge commits. Only linearize if explicitly asked.
-- **One operation per rebase** — except for rewords. Rewords don't change
-  content, so batching them via exec lines is safe and avoids SHA-tracking
-  complexity. For operations that change tree content (edit, drop, fixup),
-  sequential rebases are simpler and more reliable.
-- **Save ORIGINAL_HEAD** to `.rebase/` before starting. This is more reliable
-  than `@{1}` which can give wrong results after multi-step rebases.
-- **Always append `break`** as the last sequence editor line — this pauses
-  before refs update, so you can verify and abort cheaply if something is wrong.
-- **Always `git diff $(cat .rebase/ORIGINAL_HEAD)`** after each rebase to verify
-  no content changed (unless the operation intentionally changes content, e.g.
-  drop or purge).
-- **Use `sed -E` with alternation** `(pick|p)` to match both short and long todo
-  formats.
-- **All temporary files go in `.rebase/`.** Sed scripts, saved state, everything.
-  This keeps rebase artifacts together and ensures cleanup removes them all.
+- **Never switch branches, never move a branch by hand** with `update-ref`,
+  `reset` or plumbing. If no recipe fits, stop and ask.
+- **Newest first, one operation per rebase.** Rewords and new fixes are the
+  exception: one autosquash folds them all.
+- **Keep the printed flags.** `--rebase-merges` keeps merges, `--update-refs`
+  carries the branches inside the range, `--autostash` handles a dirty tree
+  (staged changes come back unstaged), `notes.rewriteRef` keeps notes. Add
+  `--autosquash` only where a recipe's command has it: it folds every `fixup!`,
+  `squash!` and `amend!` commit in the range, not only yours. Every other
+  command sets `-c rebase.autoSquash=false`, since the user's config may turn
+  autosquash on for every `git rebase -i`; keep it.
+- **Signatures do not survive a rewrite.** Prep warns when the range has signed
+  commits; pass `-S` to the rebase if the user signs, or say that they are gone.
+- **The report, not a summary.** The check's output goes into the reply whole.

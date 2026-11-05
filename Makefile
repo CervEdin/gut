@@ -3,6 +3,15 @@ VERSION=0.0.1
 files=$(wildcard *.sh *.sed *.py)
 shell_files=$(wildcard *.sh)
 md_files:=$(shell git ls-files -co --exclude-standard '*.md')
+py_files:=$(shell git ls-files -co --exclude-standard '*.py')
+# Shell scripts: *.sh, plus any file whose first line is a sh or bash shebang
+# (the plugin helpers under cc-plugins/*/bin and scripts/ have no extension).
+sh_files:=$(shell { git ls-files -co --exclude-standard '*.sh'; \
+	git ls-files -co --exclude-standard | xargs -r awk \
+	'FNR == 1 { if (substr($$0, 1, 2) == "\043!" && $$0 ~ /[\/ ](ba|da)?sh( |$$)/) print FILENAME; nextfile }'; } | sort -u)
+plugin_dirs:=$(wildcard cc-plugins/*/)
+PRETTIER=npx --yes prettier@3.9.9
+SHELLCHECK=uvx --from shellcheck-py==0.11.0.1 shellcheck
 programs=$(addprefix bin/, $(files))
 shell_programs=$(addprefix bin/, $(shell_files))
 INSTALL_DIR=${HOME}/bin
@@ -92,7 +101,7 @@ format: \
 .PHONY: format-markdown
 ## Format markdown files.
 format-markdown: $(md_files)
-	npx --no-install prettier --print-width 80 --prose-wrap always --write $^
+	[ -z "$^" ] || $(PRETTIER) --print-width 80 --prose-wrap always --write $^
 
 .PHONY: format-python
 ## Run autopep8 on python files and fix the following errors:
@@ -102,15 +111,25 @@ format-markdown: $(md_files)
 ## E304 - Remove blank line following function decorator.
 ## E305 - Expected 2 blank lines after end of function or class.
 ## E306 - Expected 1 blank line before a nested definition.
-format-python: **/*.py
-	autopep8 -i --select=E301,E302,E303,E304,E305,E306 $^
+format-python: $(py_files)
+	[ -z "$^" ] || autopep8 -i --select=E301,E302,E303,E304,E305,E306 $^
 
 .PHONY: lint
 ## Run linter on files in project
 lint: \
-	lint-shell
+	lint-shell \
+	lint-plugins
 
 .PHONY: lint-shell
 ## Run shellcheck on all shell scripts.
-lint-shell: **/*.sh
-	shellcheck -f gcc $^
+lint-shell: $(sh_files)
+	[ -z "$^" ] || $(SHELLCHECK) -f gcc $^
+
+.PHONY: lint-plugins
+## Validate every plugin manifest and skill frontmatter with `claude plugin validate`.
+## A skill whose frontmatter does not parse loads with no description and is
+## never listed, so this is the only place that failure shows before a session.
+lint-plugins:
+	@status=0; for p in $(plugin_dirs); do \
+		out=$$(claude plugin validate $$p 2>&1) || { printf '%s\n' "$$out"; status=1; }; \
+	done; exit $$status

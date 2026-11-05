@@ -1,0 +1,373 @@
+#!/bin/sh
+#
+# git-rebase-i-prep — check a range before rewriting it, and save a way back
+#
+# usage: git rebase-i-prep [--allow-published] [--allow-fixups | --allow-fixups-from=<rev>]
+#                          [--fold-into=<target>] <commit>...
+#    or: git rebase-i-prep --forget
+#
+# Names the commits the rewrite will touch.  The oldest one decides the
+# base of the rebase.  Prints what the range contains (merges, notes,
+# signatures, other authors, branches) and saves the current tip as
+# <ns>/orig, the base as <ns>/base and every other branch inside the
+# range as <ns>/heads/<name>.  Those refs are outside refs/heads/, so
+# --update-refs leaves them alone and `git rebase-i-check` can compare
+# against them afterwards.  The branch name goes to the file
+# rebase-i-branch in the worktree's git dir, so the check can refuse to
+# compare another branch against them.
+#
+# <ns> is refs/rebase-i/main-worktree in the main worktree and
+# refs/rebase-i/worktrees/<id> in a linked one, so a prep in one
+# worktree does not overwrite the way back of a rebase in another.
+# They are ordinary shared refs, not per-worktree refs under
+# refs/worktree/: gc does not count another worktree's refs/worktree/
+# refs as reachable, and prunes the commits that only they point to.
+#
+# --forget deletes this worktree's saved refs and rebase-i-* files once
+# the rewrite is done, and the saved refs of worktrees that no longer
+# exist (no admin dir left in the common git dir).  It names any refs
+# that version 0.1.5 or older left directly under refs/rebase-i/, and
+# leaves them.  It takes no other option and exits 2 while a rebase is
+# in progress.
+#
+# Exit status:
+#   0  ready; lines starting with WARN want a look
+#   2  cannot start: a rebase or merge is in progress, HEAD is detached,
+#      a commit is not an ancestor of HEAD, or --fold-into names a
+#      commit that is not an ancestor of the commits
+#   3  the oldest commit is already on the upstream branch; ask the user
+#      (--allow-published goes ahead once they agreed)
+#   4  the range holds fixup!/squash!/amend! commits that an autosquash
+#      would fold in (--allow-fixups goes ahead regardless)
+#
+# --allow-fixups-from=<rev> allows only the fixups made after <rev> was
+# HEAD: the ones in the range that <rev> does not reach.  Record <rev>
+# before committing your own fixups; any older one still exits 4.
+# <rev> must be HEAD as recorded just before the recipe makes its
+# fixups.  Otherwise, after a rewrite, an older fixup has a sha that
+# <rev> does not reach, and it counts as new.
+#
+# --fold-into=<target> checks that the commits can be folded into
+# <target> by a later autosquash rebase: <target> must be an ancestor of
+# them.  Autosquash moves a fixup! commit up the todo list to its
+# target, and in a --rebase-merges todo only an ancestor is sure to be
+# above it.  A side branch, for one, comes before the main line it is
+# merged into.  Folding across such a merge is a topology change.
+
+set -eu
+
+usage() {
+	echo "usage: git rebase-i-prep [--allow-published] [--allow-fixups | --allow-fixups-from=<rev>]" \
+		"[--fold-into=<target>] <commit>..." >&2
+	echo "   or: git rebase-i-prep --forget" >&2
+	exit 2
+}
+
+gitdir=$(git rev-parse --absolute-git-dir)
+if test "$gitdir" = "$(git rev-parse --path-format=absolute --git-common-dir)"; then
+	ns=refs/rebase-i/main-worktree
+else
+	ns=refs/rebase-i/worktrees/${gitdir##*/}
+fi
+branchfile=$(git rev-parse --git-path rebase-i-branch)
+
+die() {
+	# $1: exit status, rest: message
+	status=$1
+	shift
+	echo "BLOCK   $*" >&2
+	exit "$status"
+}
+
+refuse_in_progress() {
+	for state in rebase-merge rebase-apply; do
+		test ! -d "$(git rev-parse --git-path $state)" ||
+			die 2 "a rebase is in progress; finish it (--continue), or --abort it"
+	done
+}
+
+warn() {
+	echo "WARN    $*"
+}
+
+short() {
+	git rev-parse --short "$1"
+}
+
+subject() {
+	git log -1 --format=%s "$1"
+}
+
+allow_published=0
+allow_fixups=0
+fixups_from=
+fold_into=
+forget=0
+while test $# -gt 0; do
+	case "$1" in
+	--allow-published) allow_published=1 ;;
+	--allow-fixups) allow_fixups=1 ;;
+	--allow-fixups-from=?*) fixups_from=${1#--allow-fixups-from=} ;;
+	--fold-into=?*) fold_into=${1#--fold-into=} ;;
+	--forget) forget=1 ;;
+	--) shift; break ;;
+	-*) usage ;;
+	*) break ;;
+	esac
+	shift
+done
+if test $forget = 1; then
+	test $# -eq 0 && test $allow_published$allow_fixups = 00 &&
+		test -z "$fixups_from$fold_into" || usage
+	refuse_in_progress
+	common=$(git rev-parse --path-format=absolute --git-common-dir)
+	n=0
+	for ref in $(git for-each-ref --format='%(refname)' "$ns/" refs/rebase-i/worktrees/); do
+		case $ref in
+		"$ns"/*) ;;
+		*)
+			# Another worktree's refs: only once its admin dir is gone.
+			id=${ref#refs/rebase-i/worktrees/}
+			test ! -d "$common/worktrees/${id%%/*}" || continue
+			;;
+		esac
+		git update-ref -d "$ref"
+		echo "deleted $ref"
+		n=$((n + 1))
+	done
+	test $n -gt 0 || echo "nothing saved under $ns/"
+	for f in "$branchfile" "$(git rev-parse --git-path rebase-i-rewritten)"; do
+		test ! -f "$f" || rm "$f"
+	done
+	for ref in $(git for-each-ref --format='%(refname)' \
+			refs/rebase-i/orig refs/rebase-i/base refs/rebase-i/heads/); do
+		echo "old     $ref is from version 0.1.5 or older; left in place"
+	done
+	exit 0
+fi
+test $# -ge 1 || usage
+if test -n "$fixups_from"; then
+	rev=$fixups_from
+	fixups_from=$(git rev-parse --verify --quiet "$rev^{commit}") ||
+		die 2 "not a commit: --allow-fixups-from=$rev"
+fi
+
+refuse_in_progress
+for state in MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD; do
+	test ! -f "$(git rev-parse --git-path $state)" ||
+		die 2 "$state exists: a merge, cherry-pick or revert is in progress"
+done
+# Not symbolic-ref --short: it says heads/<b> when a tag <b> exists.
+branchref=$(git symbolic-ref --quiet HEAD) ||
+	die 2 "HEAD is detached; the rebase would update no branch"
+branch=${branchref#refs/heads/}
+head=$(git rev-parse HEAD)
+
+# Targets: resolve, check they are behind HEAD, find the oldest.
+targets=
+for rev; do
+	sha=$(git rev-parse --verify --quiet "$rev^{commit}") ||
+		die 2 "not a commit: $rev"
+	git merge-base --is-ancestor "$sha" HEAD ||
+		die 2 "$rev ($(short "$sha")) is not an ancestor of HEAD"
+	targets="$targets $sha"
+done
+oldest=
+for s in $targets; do
+	ok=1
+	for t in $targets; do
+		git merge-base --is-ancestor "$s" "$t" || ok=0
+	done
+	if test $ok = 1; then
+		oldest=$s
+		break
+	fi
+done
+test -n "$oldest" ||
+	die 2 "the commits are on different lines of a merge; rewrite one line per" \
+		"rebase. For new fixes: commit the fixes for one line, leave the rest" \
+		"unstaged (--autostash keeps them), and repeat for the next line"
+
+# Checking against the oldest commit covers the others, which descend
+# from it.  It also keeps <target> out of the range: the rebase that
+# makes the fixup! rewrites only the commits after <target>.
+if test -n "$fold_into"; then
+	into=$(git rev-parse --verify --quiet "$fold_into^{commit}") ||
+		die 2 "not a commit: --fold-into=$fold_into"
+	test "$into" != "$oldest" ||
+		die 2 "--fold-into=$fold_into is the commit being folded"
+	git merge-base --is-ancestor "$into" "$oldest" ||
+		die 2 "$(short "$into") is not an ancestor of $(short "$oldest"), so autosquash" \
+			"cannot fold into it; folding across a merge is a topology change"
+fi
+
+if base=$(git rev-parse --verify --quiet "$oldest^"); then
+	base_arg=$base
+	range="$base..HEAD"
+else
+	base=
+	base_arg=--root
+	range=HEAD
+fi
+
+echo "branch  $branch at $(short "$head")  $(subject "$head")"
+for s in $targets; do
+	echo "target  $(short "$s")  $(subject "$s")"
+done
+echo "oldest  $(short "$oldest")  $(subject "$oldest")"
+if test -n "$fold_into"; then
+	echo "fold    into $(short "$into")  $(subject "$into")"
+fi
+if test -n "$base"; then
+	echo "base    $(short "$base")  $(subject "$base")"
+else
+	echo "base    none: $(short "$oldest") is a root commit"
+fi
+
+commits=$(git rev-list --count "$range")
+merges=$(git rev-list --merges --count "$range")
+echo "range   $commits commits, $merges merges"
+# --rebase-merges redoes each merge from scratch.  A merge whose
+# remerge-diff is not empty had changes made by hand: a conflict
+# resolution, which conflicts again, or edits of its own, which are lost.
+# diff-tree --quiet says which through its exit code, 1 for a diff; a
+# failure is anything above that, and must not pass for a clean merge.
+for m in $(git rev-list --merges "$range"); do
+	st=0
+	git diff-tree --no-commit-id --remerge-diff --quiet "$m" || st=$?
+	case $st in
+	0) ;;
+	1)
+		warn "merge $(short "$m") \"$(subject "$m")\" has changes made by hand: a conflict" \
+			"resolved by hand stops the rebase again; an edit of the merge's own is lost." \
+			"git show --remerge-diff $(short "$m") shows them"
+		;;
+	*)
+		die 2 "cannot check merge $(short "$m"): git diff-tree --remerge-diff failed" \
+			"with status $st (it needs git 2.36 or later)"
+		;;
+	esac
+done
+
+# Published?
+upstream=$(git rev-parse --verify --quiet --symbolic-full-name '@{upstream}' 2>/dev/null) ||
+	upstream=
+if test -n "$upstream" && git merge-base --is-ancestor "$oldest" "$upstream"; then
+	if test $allow_published = 1; then
+		warn "$(short "$oldest") is already on ${upstream#refs/remotes/}; rewriting it means a force-push"
+	else
+		die 3 "$(short "$oldest") is already on ${upstream#refs/remotes/}: ask the user before rewriting published history"
+	fi
+fi
+remotes=$(git branch -r --contains "$oldest" --format='%(refname:short)' | tr '\n' ' ')
+if test -n "$remotes"; then
+	echo "remote  $(short "$oldest") is on: $remotes"
+fi
+
+# Pending fixups would be folded by autosquash.
+fixup_re='^[0-9a-f]+ (fixup|squash|amend)! '
+pending=$(git log --format='%h %s' "$range" | grep -E "$fixup_re" || true)
+if test -n "$pending"; then
+	echo "$pending" | sed 's/^/        /'
+	# The fixups already there at --allow-fixups-from: the ones in the
+	# range that it reaches, so the ones its merge base with HEAD reaches.
+	older=
+	if test -n "$fixups_from"; then
+		mb=$(git merge-base --all HEAD "$fixups_from" || true)
+		if test -n "$mb"; then
+			# shellcheck disable=SC2086 # one word per merge base
+			older=$(git log --format='%h %s' $mb ${base:+"^$base"} |
+				grep -E "$fixup_re" || true)
+		fi
+	fi
+	if test $allow_fixups = 1; then
+		warn "the fixup!/squash!/amend! commits above are folded in by autosquash"
+	elif test -n "$fixups_from" && test -z "$older"; then
+		echo "fixups  all made after $(short "$fixups_from"); autosquash folds them"
+	elif test -n "$fixups_from"; then
+		echo "$older" | sed 's/^/older   /' >&2
+		die 4 "these fixup!/squash!/amend! commits were there before $(short "$fixups_from"); autosquash would fold them in too. Ask the user, then fold them first or pass --allow-fixups"
+	else
+		die 4 "the range holds fixup!/squash!/amend! commits; autosquash would fold them in. Fold them first, or pass --allow-fixups"
+	fi
+fi
+
+# Notes.
+rangefile=$(git rev-parse --git-path rebase-i-range)
+git rev-list "$range" >"$rangefile"
+notes_total=0
+for ref in $(git for-each-ref --format='%(refname)' refs/notes); do
+	n=$(git notes --ref="$ref" list | cut -d' ' -f2 | grep -c -x -F -f "$rangefile" || true)
+	if test "$n" -gt 0; then
+		echo "notes   $n commits with notes in $ref"
+		notes_total=$((notes_total + n))
+	fi
+done
+if test "$notes_total" -gt 0; then
+	if git config --get-all notes.rewriteRef >/dev/null; then
+		echo "notes   notes.rewriteRef is set: $(git config --get-all notes.rewriteRef | tr '\n' ' ')"
+	else
+		warn "notes.rewriteRef is unset; the rebase must run with -c notes.rewriteRef='refs/notes/*' or the notes are lost"
+	fi
+	if test "$(git config --type=bool --default=true notes.rewrite.rebase)" != true; then
+		warn "notes.rewrite.rebase is false; rebase does not copy notes"
+	fi
+fi
+
+# Signatures.
+signed=0
+while read -r c; do
+	if git cat-file commit "$c" | grep -q '^gpgsig'; then
+		signed=$((signed + 1))
+	fi
+done <"$rangefile"
+rm "$rangefile"
+if test "$signed" -gt 0; then
+	warn "$signed signed commits; every rewritten commit loses its signature unless the rebase passes --gpg-sign"
+fi
+
+# Authors other than the one who commits here.
+me=$(git var GIT_AUTHOR_IDENT | sed 's/ [0-9][0-9]* [-+][0-9][0-9]*$//')
+others=$(git log --format='%an <%ae>' "$range" | sort -u | grep -v -x -F "$me" || true)
+if test -n "$others"; then
+	echo "$others" | sed 's/^/author  /'
+	echo "author  a commit split or amended at a stop keeps its author only with --author and --date"
+fi
+
+# Work tree.
+dirty=$(git status --porcelain --untracked-files=no | wc -l)
+if test "$dirty" -gt 0; then
+	warn "the work tree has $dirty changed paths; --autostash carries them over (staged changes come back unstaged)"
+fi
+
+# Save a way back.  Outside refs/heads/, so --update-refs does not move it.
+for old in $(git for-each-ref --format='%(refname)' "$ns/heads/"); do
+	git update-ref -d "$old"
+done
+rewritten=$(git rev-parse --git-path rebase-i-rewritten)
+test ! -f "$rewritten" || rm "$rewritten"
+echo "$branchref" >"$branchfile"
+git update-ref -m "rebase-i-prep: tip before rewrite" "$ns/orig" "$head"
+echo "saved   $ns/orig = $(short "$head")"
+if test -n "$base"; then
+	git update-ref -m "rebase-i-prep: base of rewrite" "$ns/base" "$base"
+	echo "saved   $ns/base = $(short "$base")"
+else
+	git update-ref -d "$ns/base" 2>/dev/null || true
+fi
+git for-each-ref --format='%(refname:lstrip=2) %(objectname)' refs/heads |
+	while read -r b s; do
+		test "$b" != "$branch" || continue
+		test "$s" != "$base" || continue
+		if test -n "$base"; then
+			git merge-base --is-ancestor "$base" "$s" || continue
+		fi
+		git merge-base --is-ancestor "$s" HEAD || continue
+		git update-ref -m "rebase-i-prep: $b before rewrite" "$ns/heads/$b" "$s"
+		echo "saved   $ns/heads/$b = $(short "$s")  (--update-refs moves $b)"
+	done
+
+# rebase.autoSquash=false: the user's config may turn autosquash on for
+# every rebase, which would fold pending fixups in a drop, move or edit.
+# A recipe that folds passes --autosquash, which overrides it.
+echo "rebase  GIT_SEQUENCE_EDITOR='git rebase-i-todo <action>...' git -c rebase.autoSquash=false -c notes.rewriteRef='refs/notes/*' rebase -i --autostash --rebase-merges --update-refs $base_arg"

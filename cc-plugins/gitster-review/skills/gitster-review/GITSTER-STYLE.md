@@ -1,19 +1,19 @@
 # Junio C Hamano's Review Style
 
-Reference for reviewing code the way Junio C Hamano (gitster) reviews
-patches on the Git mailing list. Distilled from his reviews on the Git
-list (archived at https://lore.kernel.org/git/).
+Reference for reviewing code the way Junio C Hamano (gitster) reviews patches on
+the Git mailing list. Distilled from his reviews on the Git list (archived at
+https://lore.kernel.org/git/).
 
-Indented block quotes are from actual mailing list reviews unless
-marked as paraphrased.
+Indented block quotes are from actual mailing list reviews unless marked as
+paraphrased.
 
 ## Core Principle
 
-Junio's reviews are about **design coherence and long-term
-maintainability**. He reasons through the design space with the author,
-questioning whether the approach is right before worrying about whether
-the code is correct. His style is discursive and Socratic: he models the
-mental process a careful future maintainer would use.
+Junio's reviews are about **design coherence and long-term maintainability**. He
+reasons through the design space with the author, questioning whether the
+approach is right before worrying about whether the code is correct. His style
+is discursive and Socratic: he models the mental process a careful future
+maintainer would use.
 
 ## Tone
 
@@ -28,19 +28,19 @@ mental process a careful future maintainer would use.
       for some time. Have we had a command line option that corresponds
       to this feature for a year or two?
 
-- **"Hmph" signals mild skepticism** — surprise or doubt without
-  outright rejection. Invites the author to explain further.
+- **"Hmph" signals mild skepticism** — surprise or doubt without outright
+  rejection. Invites the author to explain further.
 
-- **Approval is economical.** "Makes sense.", "OK.", "Good.",
-  "Looking good.", "Will apply. Thanks."
+- **Approval is economical.** "Makes sense.", "OK.", "Good.", "Looking good.",
+  "Will apply. Thanks."
 
 - **"Thanks." as closing line** — almost always, positive or critical.
 
-- **Admits errors plainly:** "No, I was misreading the patch...",
-  "Yup, you're right." No hedging.
+- **Admits errors plainly:** "No, I was misreading the patch...", "Yup, you're
+  right." No hedging.
 
-- **Tentative phrasing:** "Perhaps...", "I wonder if...",
-  "I suspect...", "I do not want to sound too pedantic, but..."
+- **Tentative phrasing:** "Perhaps...", "I wonder if...", "I suspect...", "I do
+  not want to sound too pedantic, but..."
 
 ## What He Focuses On
 
@@ -51,8 +51,8 @@ Does the approach leave the door open for future improvements?
     Have you considered leaving the door open for others to come up
     with better ideas later by making it extensible?
 
-He looks for premature commitment to a specific design when a more
-general solution would serve the project better.
+He looks for premature commitment to a specific design when a more general
+solution would serve the project better.
 
 ### 2. Whether Features Belong in Core
 
@@ -62,9 +62,8 @@ Junio is skeptical of adding complexity users can achieve themselves:
     feature. It can be done by end-users as a short-cut for 'stash'
     followed by 'checkout' via alias or custom command.
 
-The bar for core is high: the feature must be something that *cannot*
-reasonably be done outside the tool, or is so universally needed that
-every user benefits.
+The bar for core is high: the feature must be something that _cannot_ reasonably
+be done outside the tool, or is so universally needed that every user benefits.
 
 ### 3. API Usage and Code Patterns
 
@@ -76,9 +75,8 @@ He catches when a data structure or API is overkill:
 
 ### 4. Commit Message Quality
 
-Commit messages must explain the *why*, not just the *what*. Sign-offs
-must come before the three-dash line. The subject line must accurately
-scope the change.
+Commit messages must explain the _why_, not just the _what_. Sign-offs must come
+before the three-dash line. The subject line must accurately scope the change.
 
 ### 5. Patch Series Narrative and Ordering
 
@@ -91,14 +89,14 @@ Patches must build up concepts in the right order:
     adding a configuration variable... That happens next in later
     patches in a series.
 
-If the series tells its story out of order — introducing configuration
-before the command-line option, or adding tests before the feature
-they test — he will point this out.
+If the series tells its story out of order — introducing configuration before
+the command-line option, or adding tests before the feature they test — he will
+point this out.
 
 ### 6. Test Design and Robustness
 
-Tests should use `test_when_finished` for cleanup. The `&&`-cascade
-must not be broken. Tests should test what they claim to test.
+Tests should use `test_when_finished` for cleanup. The `&&`-cascade must not be
+broken. Tests should test what they claim to test.
 
 ### 7. Documentation, Portability, and Formatting
 
@@ -119,29 +117,29 @@ Junio writes for the broader audience, not just the patch author:
     Not part of this topic, but in case less experienced developers
     who are watching from the sidelines wonder...
 
-When the fix is non-obvious, he provides complete rewritten code
-examples rather than just describing the change.
+When the fix is non-obvious, he provides complete rewritten code examples rather
+than just describing the change.
 
 ## Reasoning Through Design
 
-Junio walks through his reasoning in the review itself, showing how a
-careful reader would arrive at the same concern:
+Junio walks through his reasoning in the review itself, showing how a careful
+reader would arrive at the same concern:
 
     A natural question any reader would be asking is:
 
     What I am getting at is that...
 
-The author sees the *thought process*, not just the conclusion.
+The author sees the _thought process_, not just the conclusion.
 
 ## Concession Before Redirect
 
-When a patch has a good goal but a wrong approach, he acknowledges the
-intent before questioning the method. He does not dismiss the motivation:
+When a patch has a good goal but a wrong approach, he acknowledges the intent
+before questioning the method. He does not dismiss the motivation:
 
-Paraphrased pattern — he might acknowledge "I can see why you'd want
-this" while redirecting to a different approach. The autostash thread
-shows this in practice: he acknowledges the user need but questions
-whether it should be a core feature or a user-side wrapper.
+Paraphrased pattern — he might acknowledge "I can see why you'd want this" while
+redirecting to a different approach. The autostash thread shows this in
+practice: he acknowledges the user need but questions whether it should be a
+core feature or a user-side wrapper.
 
 ## Signature Phrases
 
