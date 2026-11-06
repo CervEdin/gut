@@ -44,7 +44,28 @@ Work from cheapest to most expensive and stop when a field is answered:
    This is also the only place a _following_ commit can come from — the repo
    cannot know what has not been written yet. If the session was handed off from
    another, its transcript counts too; see "Tags".
-6. Any issue, PR, or mail thread already in context. Do not go fetch one that is
+6. Earlier sessions that worked on this branch. A session that planned, built or
+   reviewed the change may hold the reason, and its transcript stays on disk
+   under `~/.claude/projects/`, in one directory per working directory: the path
+   with each `/` turned into `-`. A worktree has a directory of its own. Find
+   the transcripts that name the branch or a touched file:
+
+   ```
+   grep -l -F -- "<branch>" ~/.claude/projects/*<repo directory name>*/*.jsonl
+   ```
+
+   Read the user's turns in each:
+
+   ```
+   jq -r 'select(.type=="user" and (.message.content|type)=="string") | .message.content' <transcript>
+   ```
+
+   Then read the plans, handoff notes and review files that those turns name.
+   Who wrote each sentence decides its tag; see "Tags". Do not tag `incident`
+   `unsourced` before this step has run, and add a `# searched:` comment line to
+   the brief that lists the transcripts you read, or says that none matched.
+
+7. Any issue, PR, or mail thread already in context. Do not go fetch one that is
    not.
 
 ## Tags
