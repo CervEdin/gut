@@ -1,12 +1,14 @@
 ---
 name: peff-commit-auto
 description: >-
-  Write a commit message in the style of Jeff King (peff) without interrupting
-  the user — gathers the evidence behind the change, writes only what it can
-  actually source, and records everything it had to assume as git notes rather
-  than asserting it in the message. For committing your own work mid-task while
-  working unattended. When the user asks for a commit message themselves, they
-  should run /peff-commit instead, which interviews them about the gaps.
+  Write or rewrite a commit message in the style of Jeff King (peff) without
+  interrupting the user — gathers the evidence behind the change, writes only
+  what it can actually source, and records everything it had to assume as git
+  notes rather than asserting it in the message. Use it for committing your own
+  work mid-task, and whenever you reword, split, review or revise an existing
+  commit message, yours or another session's, including each round of edits on
+  the user's review of a message. /peff-commit is the user's own entry point,
+  which interviews them about the gaps; a model cannot invoke it.
 disable-model-invocation: false
 ---
 
@@ -19,6 +21,10 @@ Use this when you reached for the skill yourself, mid-task: you have just
 finished some work and want it committed. The user may be away, and stopping an
 unattended run to ask why the change is being made is exactly the friction that
 makes a commit step not worth having.
+
+Revising a message is writing one. When the user reviews commit messages and
+asks for changes, each round is a reword: it runs this process, with the brief,
+not a prose edit of the old text.
 
 The user is probably not watching. When you reach for this mid-task they may be
 away from the keyboard, or working in another session entirely, so a question
