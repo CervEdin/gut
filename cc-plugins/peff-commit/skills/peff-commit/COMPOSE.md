@@ -102,6 +102,11 @@ were gone. Draft with the brief open, one entry at a time. If you want a
 sentence that no entry supports, go back to `commit-brief` and add the entry
 with an honest tag, or leave the sentence out.
 
+An entry can carry the session's shape too. If it answers a question that came
+up during the work ("why not keep the old name?"), it goes in the body only when
+a reader of the diff would ask the same question. Otherwise it answers the
+session, not the change: put it in the notes, or leave it out.
+
 Shape the paragraphs as you draft, not after the checks. A paragraph of more
 than 5 sentences or more than about 80 words on more than one topic is split
 where its topics part, and a sentence or more of someone else's words inside a
@@ -159,6 +164,9 @@ directory.
    (see "Tense" in `PEFF-STYLE.md`), a verb or a number that changed, and a
    claim wider than its entry. Correct the sentence to match the entry, never
    the other way.
+
+   A paragraph whose sentences all cite `change` entries has no point of its
+   own: see "Paragraph Structure" in `PEFF-STYLE.md`.
 
 3. **Diff coverage.** List the changed files with `git diff --cached --stat`, or
    `git show --stat <sha>` when rewording. Append a `coverage:` section to the

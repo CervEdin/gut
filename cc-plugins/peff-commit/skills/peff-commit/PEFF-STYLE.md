@@ -105,6 +105,12 @@ begins. The counts are a reason to look, not a ceiling: one argument where each
 sentence builds on the last, or sentences that each show how the change meets
 one constraint, stays one paragraph however long it is.
 
+A paragraph opens with its point. A run of sentences that each restate a hunk of
+the diff, with none that says what they add up to, is the changelog of "What NOT
+to Do" written as prose. Write the sentence that says what the hunks serve, from
+the brief, and keep only the hunks it needs. If no entry gives that point, the
+hunks are the ground: a sentence, not a paragraph.
+
 A paragraph of one sentence that a split left is a question to ask. If it says
 what the diff says and gives no reason, it is changelog and goes. If it is one
 consequence of an idea the message never states, such as an invariant several
