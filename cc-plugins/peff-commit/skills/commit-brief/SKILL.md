@@ -81,6 +81,9 @@ carry a citation**:
 | `session`   | a direct quote of what was said |
 | `issue`     | identifier or URL               |
 | `asked`     | the question that was answered  |
+| `checked`   | where the reason came from, and |
+|             | the line or command that bears  |
+|             | it out                          |
 | `unsourced` | none — this is the inference    |
 
 If you cannot produce the citation, the tag is wrong and the entry is
@@ -94,18 +97,35 @@ user actually said, and by the time you write the brief they read just as
 settled either way — nothing marks "I decided this three turns ago" apart from
 "this was already true." Quoting your own earlier turn back to yourself is not a
 citation; it's the same inference wearing a timestamp. If the sentence you are
-about to cite came from an assistant turn rather than the user, the entry is
-`unsourced`.
+about to cite came from an assistant turn rather than the user, it is not
+`session`; see below for what it can be.
 
 What counts is who wrote the sentence, not which turn it arrived in. Some text a
 model wrote reaches you as a user turn: a hand-off plan that opens a session
 ("Implement the following plan: ..."), the summary that continues a compacted
 session, a note relayed from another agent, the expanded body of a skill or
-command. None of it is the user's voice, and a plan the user approved is no
+command, an issue or ticket a model filed (look at its author before you tag it
+`issue`). None of it is the user's voice, and a plan the user approved is no
 exception — approving a plan accepts its approach, not every reason it gives.
-"Not optimized, because these cases are rare" in such a plan is a model's call,
-so the entry is `unsourced`. Cite only what the user typed; if you cannot tell
-who wrote a sentence, treat it as not the user.
+Cite as `session` only what the user typed; if you cannot tell who wrote a
+sentence, treat it as not the user.
+
+A model's reason is still worth having: someone reasoned about the change, and a
+message with that reason beats one with none. What decides where it goes is
+whether you checked it. Test the claim against the code, the log or a run of
+something, in a way that could have come out false. If it holds, the entry is
+`checked`, citing both where the reason came from and what bears it out:
+
+```
+incident-1: [checked] (plan in 3f2a9c.jsonl; grep -c load_list src/*.c gives
+  2 of 41 calls) Not optimized, because few callers pass a list.
+```
+
+If you cannot check it, the entry is `unsourced`, and its text names where the
+reason came from, so that a person can confirm it before it reaches a message.
+Check what the reason claims, not what is next to it: a grep that shows the code
+is unoptimized does not show the cases are rare. A reason about what someone
+wanted cannot be checked against code at all; only their own words source it.
 
 Such text is a lead, though, not a dead end. A plan's "the user wants X" usually
 restates something the user did say in the session that wrote the plan, and both
@@ -121,13 +141,14 @@ interview and re-tag afterwards.
 
 - `today` — what the code does now at the change site
 - `incident` — what prompted this change, and why now. Narrower legal tags than
-  the table above: `asked`, `session`, `issue`, or `unsourced` only — never
-  `diff`, `code`, or `blame`. Those three can tell you what the code does and
-  when it started; they cannot tell you why anyone wanted it to. "This mirrors
-  how an existing field already works" is a `code` fact about the change, not a
-  fact about the motive — tagging it `code` and calling `incident` answered is
-  exactly the mistake this rule exists to close. If the only thing you have is a
-  diff or the commit that introduced the touched code, the entry is `unsourced`.
+  the table above: `asked`, `session`, `issue`, `checked`, or `unsourced` only —
+  never `diff`, `code`, or `blame`. Those three can tell you what the code does
+  and when it started; they cannot tell you why anyone wanted it to. "This
+  mirrors how an existing field already works" is a `code` fact about the
+  change, not a fact about the motive — tagging it `code` and calling `incident`
+  answered is exactly the mistake this rule exists to close. If the only thing
+  you have is a diff or the commit that introduced the touched code, the entry
+  is `unsourced`.
 - `change` — what the diff tells the code to do differently, imperative
 - `alternatives` — approaches weighed and rejected, with the reason
 - `series` — what a neighbouring commit on this branch does, by position

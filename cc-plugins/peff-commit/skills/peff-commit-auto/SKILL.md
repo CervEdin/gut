@@ -43,6 +43,15 @@ A body asserting X is a thing they have to notice first.
    retries. Nothing in the diff, the log, or the session says so.
    ```
 
+   A reason from a plan or another agent that `commit-brief` could not check is
+   one of these. Name where it came from, so that the user can confirm it before
+   it goes into the body:
+
+   ```
+   Assumed, not sourced: the review agent says the next commit puts this rule
+   in front of every load. Not checked against the next commit.
+   ```
+
    Do not launder an assumption into the body by hedging it. "I suspect this
    improves performance" is the same invention wearing a disclaimer, and it
    reads as calibration — the reviewer takes it as a real if tentative finding,

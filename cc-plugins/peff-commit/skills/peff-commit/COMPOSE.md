@@ -26,9 +26,10 @@ is any of it a finding: you did not go and learn it, it was in front of you. So
 it earns the body no room.
 
 **The findings** are what you had to go and get: `incident`, `alternatives`,
-`blame`, `issue`, and anything the caller came back with as `asked`. These are
-what make a message long, and they are what to count. `unsourced` entries are
-not findings in either skill — a guess is not something you found out.
+`blame`, `issue`, a model's reason you `checked`, and anything the caller came
+back with as `asked`. These are what make a message long, and they are what to
+count. `unsourced` entries are not findings in either skill — a guess is not
+something you found out.
 
 A `series` entry is not one either. It comes off the branch's own log, and
 nearly every commit on a topic branch has one, so counting it would give nearly
