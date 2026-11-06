@@ -29,6 +29,10 @@ General rules regardless of format:
 - **50 char soft limit**, 72 hard limit for subject lines
 - Lowercase after the colon
 - Imperative mood: "fix", "use", "avoid", not "fixed", "uses", "avoided"
+- A verb phrase that says what the commit does: "take btrfs checkpoints of the
+  database", not "named databases and checkpoints". A noun phrase names a topic,
+  and the reader still has to guess what changed in it. A subject that starts
+  with a verb, such as "revert to a checkpoint", is already one
 - No period at the end
 - If the repo does NOT use Conventional Commits, area prefix matches the file,
   subsystem, or logical component (peff's default)
