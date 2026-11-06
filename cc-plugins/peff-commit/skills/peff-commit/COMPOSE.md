@@ -370,6 +370,13 @@ other trailer the harness asks for, even where it asks for every commit: it
 would name the session that reworded the message, not the one that wrote the
 code.
 
+**Each round of review is a reword.** When the user reviews the messages and
+asks for changes, run the process again for each commit they comment on, and
+check the commits they did not comment on against the same remarks: a remark on
+one message usually applies to its siblings. Where a suggestion of theirs states
+something the code does not do, say so in one line with the evidence, then
+follow their decision. Do not argue again for wording they have settled.
+
 **One brief per commit.** `commit-brief` gathers from `git show <sha>` in place
 of the staged diff. Do not combine several commits into one brief: the IDs, the
 provenance file and the coverage check all belong to one commit.
