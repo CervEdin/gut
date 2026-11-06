@@ -299,6 +299,10 @@ them; say they are the skill's own rule.
   source sets them. A false positive costs little, because the test decides, not
   the size.
 - "Its own why" in the split test. Neither source says each part needs one.
+- In the keep check: say what blame shows, name the tempting change, and ask for
+  a test before keeping a comment that guards against it. The Linux quote above
+  says "tempt"; the rest, and that a test replaces such a comment, are the
+  user's rule.
 - The "Dense paragraphs and inline quotes" step: more than 5 sentences or more
   than about 80 words on more than one topic, the `> ` block quote for a
   person's words, and that its findings are not `Nit:`. The user asked for the

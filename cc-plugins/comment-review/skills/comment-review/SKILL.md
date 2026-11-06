@@ -107,15 +107,47 @@ behind most checks and lists the ones that have none.
 
 5. **Prose comments.** Run the keep check first, then the rest in order. The
    first check that fires gives the verdict.
-   - **Keep check.** Would a competent editor of the current code break
-     something without this comment, and not think to look it up? Invariants,
-     lock and ordering rules, lifetimes, why a race is harmless, hardware or
-     spec quirks, constraints from systems outside this repo, traps that a
-     reasonable cleanup would fall into. If yes: `keep`, and skip the other
-     checks except for these findings: `rewrite` if the comment is wrong,
-     `move-to-log` for a sentence in it that only makes sense next to the diff,
-     a form `Nit:` from the survivor check, and step 9. Do not move the lasting
-     part to the log: whoever tidies the code will not run `blame` first.
+   - **Keep check.** First say what `git blame` on the line shows: the commit
+     that added it, and whether its message gives the reason. Then read the code
+     without the comment. Does it tempt a competent editor into a change that
+     breaks it, because it looks redundant, like a no-op, like a hack or like an
+     arbitrary order, and nothing in the code says otherwise? Name that change.
+     Invariants, lock and ordering rules, lifetimes, why a race is harmless,
+     hardware or spec quirks and constraints from systems outside this repo
+     often hide such a trap. Code that states its purpose does not: a check that
+     fails with an error message, an assertion, a usage line. Nobody removes an
+     explicit refusal without asking why, and blame answers them, so the reason
+     for it is `delete` when the commit message gives it and `move-to-log` when
+     it does not. That holds only while the refusal looks needed. When something
+     else seems to do its job already, such as a call that looks like it fails
+     the same way or a caller that looks like it checks first, removing the
+     refusal is the tempting change. Do not assume that working code gets tidied
+     away at random: if you cannot name the tempting change, the check does not
+     fire.
+     - **A test first.** If the check fires, ask whether a test can guard the
+       code in place of the comment: one that fails when someone makes that
+       change, on the machines that run the tests. A comment warns only whoever
+       reads it; a test stops the change.
+       - A test already fails on that change: `delete`, naming the test.
+       - A test could be written: `replace`, put to the author as "Can we guard
+         this with a test instead of a comment?", with the test, named for the
+         rule it holds. The comment goes once the test exists, with its reason
+         in the commit message.
+       - None of these rules a test out: the other side of a contract is outside
+         the repo (test this side's half, such as that a file is renamed into
+         place only after it is complete); the code drives hardware or another
+         system (a fake clock or device stands in); the code has no seam, such
+         as a hardcoded path (propose the seam with the test); the repo has no
+         tests yet (propose the first).
+       - A test that passes either way does not count, such as one for a Windows
+         quirk that only runs on Linux.
+     - **Keep** only when nothing this repo's code does shows the trap to a
+       test, and say what a test would have to see. Then skip the other checks
+       except for these findings: `rewrite` if the comment is wrong,
+       `move-to-log` for a sentence in it that only makes sense next to the
+       diff, a form `Nit:` from the survivor check, and step 9. Do not move the
+       lasting part to the log: the change it guards against looks safe, so
+       whoever makes it has no reason to run `blame` first.
    - **Wrong or stale**: it does not match the code after the patch. `rewrite`
      or `delete`, to fix before sending. A reader trusts a comment over the
      code, so this is not a `Nit:`, however small the wording change.
@@ -276,14 +308,15 @@ For example, a working note that hides a lasting reason:
 > **On `parse.c:88`:**
 >
 > ```c
-> /* Added this because the parser returns NULL on empty input. */
-> if (!node)
-> 	return 0;
+> /* Added this because the parser points into buf until parse_end(). */
+> parse_end(p);
+> free(buf);
 > ```
 >
-> `rewrite:` working note. "Added this because" is narration and goes; the rest
-> passes the keep check, since a cleanup would drop the NULL check without it.
-> Replacement: `/* The parser returns NULL on empty input. */`
+> `rewrite:` working note. "Added this because" is narration and goes. The rest
+> passes the keep check: blame gives the reason, but freeing `buf` first looks
+> like a harmless reorder, and nothing in the code says otherwise. Replacement:
+> `/* The parser points into buf until parse_end(). */`
 
 The review follows step 9 itself: when it quotes a person (the user, a
 reviewer), the quote goes in a `> ` block quote on its own lines, not inside a
@@ -304,8 +337,9 @@ comment, or where you were unsure; then say what you were unsure of.
   workaround, upstream and spec often mark a comment that passes the keep check.
   When one appears, run the keep check against the code, not the word: "in order
   to" and "pathspec" do not count, and a sentence that only makes sense next to
-  the diff still goes to the log. A wrong deletion costs more than a kept
-  comment; when unsure, `keep`.
+  the diff still goes to the log. When unsure, name the change the comment
+  guards against and say what blame shows; `keep` when that change looks safe
+  without the comment and no test can catch it.
 - **Do not invent the why.** A commit-message paragraph carries only what the
   comment or the diff already says. If the reason is unknown, say so and ask.
 - **Name the check, not the author.** Do not say a comment "sounds like AI".
