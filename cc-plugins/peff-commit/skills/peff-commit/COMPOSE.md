@@ -86,6 +86,13 @@ previous commit", "the next commit". A sha is worth writing only for a commit
 that has reached the mainline. Anything else is one rebase away from a different
 sha, including the commits of the branch you are on.
 
+Read the brief's `# review:` lines before the first sentence. They hold what the
+user said about earlier messages on this branch, found by `commit-brief` in the
+sessions that wrote them, and they are rules for this draft too: a lesson taught
+on one commit of a series applies to every commit after it. Then draft in the
+order that "Body: Narrative Prose" in `PEFF-STYLE.md` gives, and write each
+sentence to the rules under "Sentences" there.
+
 Build the body by rewriting brief entries, in peff's voice, and from nothing
 else. Write it to the peff-commit-draft file —
 `git rev-parse --git-path peff-commit-draft` if you're in a worktree, where

@@ -65,8 +65,18 @@ Work from cheapest to most expensive and stop when a field is answered:
    `unsourced` before this step has run, and add a `# searched:` comment line to
    the brief that lists the transcripts you read, or says that none matched.
 
+   In the same turns, look for what the user said about commit messages on this
+   branch: a draft they corrected, a sentence they rejected, a rule they stated
+   ("lead with the reason", "this explains the diff, not why"). Add each one to
+   the brief as a `# review:` comment line, in the user's words where they are
+   short. The draft follows them, so a lesson taught on one commit is not taught
+   again on the next.
+
 7. Any issue, PR, or mail thread already in context. Do not go fetch one that is
-   not.
+   not. An `issue` entry holds the issue's reason, not the fact that it asks:
+   "checkpoints share the database's disk", not "issue 3f2a158 asks for an
+   offsite copy". The issue id goes in a trailer where the log carries them, not
+   in the sentence. If the issue gives no reason, it does not answer `incident`.
 
 ## Tags
 
@@ -152,7 +162,10 @@ interview and re-tag afterwards.
 - `change` — what the diff tells the code to do differently, imperative
 - `alternatives` — approaches weighed and rejected, with the reason
 - `series` — what a neighbouring commit on this branch does, by position
-- `deferred` — what follows naturally from this but is deliberately not done
+- `deferred` — what follows naturally from this but is deliberately not done.
+  Say which kind: work this change leaves incomplete, which the message names
+  with the reason it waits, or follow-on work such as scheduling a job, which
+  belongs in the tracker
 - `uncertain` — what you do not know: a fact to verify, not a thing to do. Work
   that follows from the change is `deferred`
 
