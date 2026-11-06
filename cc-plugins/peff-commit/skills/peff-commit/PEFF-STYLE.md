@@ -240,6 +240,10 @@ message. If an LLM drafted the commit, say so with its own trailer:
 Generated-by: Claude (claude-opus-5)
 ```
 
+The parentheses hold the model id and nothing more: no branch, session or
+ticket. A rule elsewhere in the project that adds those to its own attribution,
+for issues say, does not carry over to this trailer.
+
 Never fold that fact into `Co-authored-by:` or a human's `Signed-off-by:`. Both
 of those assert something the model didn't do — joint authorship, or a person's
 review and sign-off — and `Generated-by:` says the true thing instead: a model

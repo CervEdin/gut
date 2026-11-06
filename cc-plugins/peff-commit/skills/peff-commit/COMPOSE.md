@@ -77,9 +77,9 @@ imperative mood, no trailing period, 50 characters soft and 72 hard.
 
 Trailers likewise: sign off where the log signs off, carry a `Reviewed-by:` or
 ticket trailer where the log carries one, add nothing where it carries nothing.
-Separately from that, always add a `Generated-by:` trailer naming the model —
-never `Co-authored-by:` and never a human's `Signed-off-by:` on the model's
-behalf. See "Closing" in `PEFF-STYLE.md`.
+Separately from that, always add a `Generated-by:` trailer naming the model, and
+nothing else — never `Co-authored-by:` and never a human's `Signed-off-by:` on
+the model's behalf. See "Closing" in `PEFF-STYLE.md`.
 
 A `series` entry keeps the positional wording it was written with — "the
 previous commit", "the next commit". A sha is worth writing only for a commit
