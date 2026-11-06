@@ -86,7 +86,9 @@ The message is read against the parent commit. The behaviour the patch changes
 is still the behaviour of the code the reader has in front of them, so describe
 it in the present tense: "the trap removes the scratch file but never exits."
 The past tense is only for history — an incident that happened, an earlier
-commit that introduced the code.
+commit that introduced the code. What the commit does takes the imperative:
+"Export DB in the Makefile so that the scripts see the same value", not "The
+Makefile exports DB so ...", which reads as the code before the patch.
 
 ```
 wrong: The backup was queued by the last ExecStartPost=, so a failed sync
@@ -151,6 +153,50 @@ become a list: a list of what changed is the changelog that "What NOT to Do"
 rules out. A numbered list, as "Tone" allows, is for items that are a list on
 their own.
 
+### Sentences
+
+Each sentence gives the reader something the diff does not: a reason, or a
+consequence. Check every sentence against these, in the draft and again in a
+reword:
+
+- **Reason or consequence.** A sentence that names files, functions, flags or
+  targets from the diff and gives no reason narrates the diff: "Add
+  db-checkpoint (LABEL defaults to manual), db-checkpoints and db-drop." The
+  reader has the diff. Attach the reason, or cut the sentence.
+- **A behaviour needs its consequence.** "An empty path counts as unset" leaves
+  the reader asking why it matters. Ask what goes wrong for a reader who does
+  not know it, and write that ("an empty path counts as unset: SQLite would open
+  a temporary database that vanishes on close"). If nothing goes wrong, cut it.
+- **A number carries a decision.** "On the 7.4 GB database it held the write
+  lock for about a minute. Reverts are rare, so that is fine." Lab notes, such
+  as each run's timing, the run before, or a constant's name, go: the reader
+  needs the conclusion ("writers wait until their timeout, or fail").
+- **Nothing the reader cannot see.** A reason that points at something the
+  reader cannot open — a discussion, a plan, an issue, a request, a design that
+  never reached the history ("as discussed", "per issue 3f2a158", "the old rule
+  compared sizes") — is no reason. Write the reason itself (checkpoints share
+  the database's disk, so they do not survive it failing). The pointer does not
+  go in the prose; an issue id can go in a trailer where the log carries them.
+  If you do not know the reason, ask the user for it (for `peff-commit-auto` it
+  is `unsourced`), and write nothing in its place.
+- **A clear referent.** "It", "this" and "that" point to one noun, and the
+  reader can tell which. "It takes the name from the real path" after a sentence
+  about two things: name the thing. A conditional about a version the reader
+  never saw ("Taken before the lock, a write would be in neither") needs that
+  version stated, or it goes.
+- **A real joint.** "And" adds a point of the same kind, "so" gives a
+  consequence, "but" a contrast, "with" means "having". Two separate points
+  joined by "and", "so" or a semicolon are two sentences. Ask of each joint what
+  relation it states; if there is none, split it.
+- **No filler.** Cut a sentence the reader would assume ("A checkpoint is only
+  useful with a way back to it", "the tests pass") and a word that adds nothing
+  ("only" in "only warns", "simply", "now" meaning "after this patch"). Test it:
+  delete the word or sentence; did the reader lose a fact?
+- **The conditions survive.** A sentence that condenses the code, a comment or a
+  docstring keeps the condition ("fails when the checkpoint has no -shm", not
+  "fails without a -shm"). Read the claim against the code, not your memory of
+  it.
+
 ### How Long Should This Be?
 
 Measured over 2000 of peff's commits, body length by size of diff (words,
@@ -209,7 +255,8 @@ another approach, say so and say why you didn't take it.
 When the change has measurable impact, include the numbers. Peff frequently
 embeds benchmark output, object counts, or timing data directly in the commit
 body. The data grounds the reasoning in reality rather than hand-waving about
-performance.
+performance. Each number backs a conclusion the message states; see "A number
+carries a decision" under "Sentences".
 
 ### Emphasis and References
 
@@ -339,3 +386,7 @@ otherwise make things worse. Let's only use them when there's a filter.
 The recursion here is simple enough that we can avoid those questions by
 just converting it to iteration instead.
 ```
+
+These are quoted for how they close. The first opens with the alternative, which
+"Body: Narrative Prose" puts after the choice that beat it, and the third's
+"just" is filler by "Sentences".

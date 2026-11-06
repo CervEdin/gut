@@ -140,7 +140,8 @@ directory.
 2. **Provenance.** Write the provenance file,
    `$(git rev-parse --git-path peff-commit-provenance)`. Start with the subject
    line, then each sentence of the body in order. Write the sentence, then on
-   indented lines the ID and text of each brief entry it came from:
+   indented lines the ID and text of each brief entry it came from, and a
+   `gives:` line with what the sentence tells the reader that the diff does not:
 
    ```
    mbsync.service: run the backup after every sync
@@ -151,7 +152,15 @@ directory.
      today-1: Backup queued via ExecStartPost=, after the scorer and
        notmuch new.
      incident-1: User noticed backups stall when syncs fail.
+     gives: a failed sync skips the backup
    ```
+
+   The subject needs no `gives:` line. If the only `gives:` you can write is the
+   sentence again, or a list of names from the diff, the sentence narrates the
+   diff: attach its reason or consequence, or cut it. Then check each sentence
+   against the rest of "Sentences" in `PEFF-STYLE.md`, and write `fixed:` under
+   any sentence you changed, saying what was wrong ("fixed: 'it' could mean the
+   checkpoint").
 
    A sentence with no entry, or only an `unsourced` one, gets `NONE` and comes
    out of the draft. Leave the `NONE` record in the file, so the report shows
