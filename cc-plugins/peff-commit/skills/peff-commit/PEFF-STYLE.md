@@ -43,15 +43,42 @@ General rules regardless of format:
 ## Body: Narrative Prose
 
 The body reads like a debugging story or design explanation. It is NOT a
-changelog entry. Peff walks the reader through the mechanism:
+changelog entry. Its parts come in this order, and each part leads with its
+point:
 
-1. **Start with what the code does** — describe the current behavior or code
-   path, in the present tense ("We mmap() a loose object file, storing the
-   result in..."; see Tense below)
-2. **Show how that leads to the problem** — trace the causal chain ("But if we
-   hit an error, we jump to a label which does X, and X is wrong because...")
-3. **State the fix** — often a short final paragraph ("Use Y instead", "Apply
-   the same fix here", "Drop the stale assignment")
+1. **The motive** — what the code does and why that is a problem, in the present
+   tense ("We mmap() a loose object file, storing the result in..."; see Tense
+   below). Trace the causal chain ("But if we hit an error, we jump to a label
+   which does X, and X is wrong because..."). Do not open with "Today" or
+   "Currently": the present tense says that already
+2. **The fix, in one sentence** — "Fix this by ...", "Use Y instead", "Teach
+   db_store to copy the main database to a remote location". It can be a
+   paragraph of its own. For a small fix, stop here
+3. **Each choice the fix makes, what and then why** — a paragraph for each
+   choice a reader would question: what the code does, then the reason
+4. **The alternative, after the choice that beat it** — as a conditional: "Had
+   we copied the live database instead, the copy might never finish: SQLite's
+   backup starts over each time another session commits." The point comes first,
+   and a caveat or the rejected alternative follows it in the same paragraph
+5. **Work left undone, only where this change leaves itself incomplete** — a
+   `TODO:` paragraph that says what waits and why ("to keep the conflicts with
+   the next topic small"). Follow-on work the change does not need, such as
+   scheduling a job or choosing a host, goes to the tracker, not the message
+
+Leading with the alternative or the caveat is the usual way to get this wrong.
+The reader holds a clause before they know what it qualifies, and its pronouns
+attach to the wrong noun:
+
+```
+wrong: The copy comes from a new checkpoint, not from SQLite's backup of
+       the live database: that backup starts over each time another
+       connection commits, and may never finish.
+right: Copy from a new checkpoint. Had we used SQLite's backup of the
+       live database, the copy might never finish: the backup starts
+       over each time another connection commits.
+```
+
+A reader of the wrong version took the checkpoint to be what never finishes.
 
 ### Tense
 
@@ -88,12 +115,11 @@ the brief, whose `today` entries are already in the present tense.
 
 ### Paragraph Structure
 
-When there is enough to say, the shape is: the problem first and in most detail,
-context or history in the middle if it is needed, the fix last in a sentence or
-two.
+When there is enough to say, the motive gets the most detail, and context or
+history goes between it and the fix if it is needed.
 
-Read that as a description of a message whose facts were all available, not as a
-template to fill. The number of paragraphs follows the number of things you
+Read the order as a description of a message whose facts were all available, not
+as a template to fill. The number of paragraphs follows the number of things you
 actually went and found out — see "How Long Should This Be?" below. Saying what
 the code does today is not one of them. Where you write it, write it because the
 message has to stand without the diff beside it, not because a paragraph wants
@@ -170,6 +196,10 @@ Examples from real patches:
 > bother here. It would be redundant with the call in
 > for_each_bitmapped_object(), and the can_filter helper function is static
 > local in the bitmap code.
+
+Both are quoted for what they weigh, not for their order: each opens with the
+alternative, where "Body: Narrative Prose" puts it after the choice that beat
+it.
 
 You don't need to manufacture alternatives — but when you genuinely considered
 another approach, say so and say why you didn't take it.
