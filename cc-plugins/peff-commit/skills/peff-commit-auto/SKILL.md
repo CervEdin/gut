@@ -63,9 +63,11 @@ A body asserting X is a thing they have to notice first.
    reads as calibration — the reviewer takes it as a real if tentative finding,
    which is precisely the failure.
 
-   Do not go looking for a different reason to say instead. If `incident` is
-   unsourced, the message simply does not state why the change was made. That is
-   an accurate message.
+   Do not go looking for a different reason to say instead. Once `commit-brief`
+   has searched the earlier sessions on the branch and found nothing, an
+   `unsourced` `incident` means the message does not state why the change was
+   made. That is an accurate message. Before that search has run, it means the
+   search is not done.
 
 3. **Compose, check, commit.** Follow `../peff-commit/COMPOSE.md`: budget, draft
    from the brief, check (brief lint, the provenance file with its coverage
