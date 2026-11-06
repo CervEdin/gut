@@ -77,9 +77,10 @@ imperative mood, no trailing period, 50 characters soft and 72 hard.
 
 Trailers likewise: sign off where the log signs off, carry a `Reviewed-by:` or
 ticket trailer where the log carries one, add nothing where it carries nothing.
-Separately from that, always add a `Generated-by:` trailer naming the model, and
-nothing else — never `Co-authored-by:` and never a human's `Signed-off-by:` on
-the model's behalf. See "Closing" in `PEFF-STYLE.md`.
+Separately from that, when you write a new message, add a `Generated-by:`
+trailer naming the model, and nothing else — never `Co-authored-by:` and never a
+human's `Signed-off-by:` on the model's behalf. See "Closing" in
+`PEFF-STYLE.md`.
 
 A `series` entry keeps the positional wording it was written with — "the
 previous commit", "the next commit". A sha is worth writing only for a commit
@@ -362,6 +363,12 @@ already exist, run it once per commit, with these changes.
 Which skill runs it: `peff-commit` has `disable-model-invocation: true`, so an
 agent cannot invoke it. An agent rewording its own commits uses
 `peff-commit-auto`. When the user wants the reword, they run `/peff-commit`.
+
+**Keep the trailers.** The commit keeps the trailers it has. Add `Generated-by:`
+only if it is missing and the new text is a model's. Add no session link or
+other trailer the harness asks for, even where it asks for every commit: it
+would name the session that reworded the message, not the one that wrote the
+code.
 
 **One brief per commit.** `commit-brief` gathers from `git show <sha>` in place
 of the staged diff. Do not combine several commits into one brief: the IDs, the
