@@ -157,6 +157,22 @@ behind most checks and lists the ones that have none.
      the code as it stands. "Now" meaning "at this point in the function" does
      not count. `move-to-log`. If the commit message already says it, the
      verdict is `delete` instead; report and count it only as `delete`.
+   - **Cites what the reader cannot see**: a reason that points at something the
+     reader cannot open — a discussion, a plan, an issue, a request, a design
+     that never reached the history ("as discussed", "per issue 3f2a158", "the
+     old rule compared sizes") — is no reason. Write the reason itself
+     (checkpoints share the database's disk, so they do not survive it failing).
+     If it still holds for the code as it stands, `rewrite` the comment to state
+     it. If it only explains the change, `move-to-log`, with the reason written
+     out. The pointer does not go in the comment or in the commit-message prose;
+     an issue id can go in a trailer where the log carries them. If you do not
+     know the reason, ask the author for it, and write nothing in its place, in
+     the comment or the commit message.
+   - **No consequence**: it states a behaviour, and "an empty path counts as
+     unset" leaves the reader asking why it matters. Ask what goes wrong for a
+     reader who does not know it, and `rewrite` with that ("an empty path counts
+     as unset: SQLite would open a temporary database that vanishes on close"),
+     then run the keep check on the result. If nothing goes wrong, `delete`.
    - **Restates**: it repeats the name, the signature, the path, or what the
      language does, or it takes longer to read than the code it describes.
      `delete`.
@@ -176,9 +192,10 @@ behind most checks and lists the ones that have none.
      definition, or at one site if the definition is outside this repo; at most
      a one-line pointer elsewhere; `delete` the rest.
    - **Survivor**: `keep`. Check its form against the file's own convention: the
-     constraint in the first line, no narration ("we then loop"), no "I", "we"
-     only where the file already uses it, no clause that restates the sentence,
-     no volatile section numbers. Form findings are `rewrite` with `Nit:`.
+     constraint in the first line, the point first and a caveat or the rejected
+     alternative after it, no narration ("we then loop"), no "I", "we" only
+     where the file already uses it, no clause that restates the sentence, no
+     volatile section numbers. Form findings are `rewrite` with `Nit:`.
 
 6. **API docs.**
    - The first sentence gives the gist to a reader who stops there.
@@ -341,7 +358,10 @@ comment, or where you were unsure; then say what you were unsure of.
   guards against and say what blame shows; `keep` when that change looks safe
   without the comment and no test can catch it.
 - **Do not invent the why.** A commit-message paragraph carries only what the
-  comment or the diff already says. If the reason is unknown, say so and ask.
+  comment or the diff already says. If the reason is unknown, say so and ask. A
+  sentence that condenses the code, a comment or a docstring keeps the condition
+  ("fails when the checkpoint has no -shm", not "fails without a -shm"). Read
+  the claim against the code, not your memory of it.
 - **Name the check, not the author.** Do not say a comment "sounds like AI".
 - **Review the commit message only for step 9.** Otherwise read it only to
   choose between `delete` and `move-to-log`, and for the split check in step 2.

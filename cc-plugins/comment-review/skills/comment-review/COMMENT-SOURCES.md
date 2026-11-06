@@ -308,6 +308,10 @@ them; say they are the skill's own rule.
   person's words, and that its findings are not `Nit:`. The user asked for the
   step; the thresholds are the skill's own.
 - The "Working note" step, including its `TODO`/`NEEDSWORK` advice.
+- The "Cites what the reader cannot see" check, including that the pointer stays
+  out of the commit message too. It is the user's rule.
+- The "No consequence" check, and that it runs before "Restates". It is the
+  user's rule.
 - The "Directives" step.
 - The "Touched docs" rules other than common case first: an example where one
   helps, removed behaviour removed, active voice and short sentences.
