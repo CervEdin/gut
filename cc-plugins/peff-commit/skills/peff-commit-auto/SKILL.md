@@ -86,4 +86,5 @@ A body asserting X is a thing they have to notice first.
 
 4. **Report**, leading with the **Assumed, not sourced** section. That section
    is why this skill is allowed to run without asking: it moves the interview
-   after the commit instead of deleting it.
+   after the commit instead of deleting it. It lists reasons to verify, not
+   things to do; those go under **To decide** (see §6 of `COMPOSE.md`).

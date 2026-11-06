@@ -267,6 +267,10 @@ Notes carry what the message cannot: alternatives not taken, caveats, scope
 decisions, uncertainties — and, in `peff-commit-auto`, every `unsourced` entry
 from the brief, marked plainly as an assumption.
 
+Keep the two kinds apart. An assumption or an uncertainty is a claim, which the
+reader verifies. A scope decision or a piece of work left over (fix X, drop Y)
+is not a claim; the reader decides it. They go in separate paragraphs.
+
 Format them exactly like commit body prose, because `git notes` stores them
 verbatim and they are read in a terminal: 72 characters per line soft, 120 hard,
 no markdown, no bullet lists, paragraphs separated by a blank line. A dense
@@ -305,8 +309,9 @@ section is missing, and the user can see that.
 When the brief holds `unsourced` entries, lead with them under **Assumed, not
 sourced** before the sha, one line each. That section is the point of the whole
 exercise — it is where a misread change becomes visible while `--amend` is still
-cheap. Close with `git commit --amend` to fix the message, `git notes edit` for
-the notes.
+cheap. It holds claims only. Work to do or to drop goes after it, under **To
+decide**, so that the user is not asked to verify a to-do. Close with
+`git commit --amend` to fix the message, `git notes edit` for the notes.
 
 ## Rewording existing commits
 

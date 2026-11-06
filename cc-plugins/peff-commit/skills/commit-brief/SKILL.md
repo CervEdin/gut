@@ -153,7 +153,8 @@ interview and re-tag afterwards.
 - `alternatives` — approaches weighed and rejected, with the reason
 - `series` — what a neighbouring commit on this branch does, by position
 - `deferred` — what follows naturally from this but is deliberately not done
-- `uncertain` — what you do not know
+- `uncertain` — what you do not know: a fact to verify, not a thing to do. Work
+  that follows from the change is `deferred`
 
 Only `change` is guaranteed answerable; it comes off the diff. `today` usually
 follows from the code. `incident` is the field that is most often `unsourced`,
