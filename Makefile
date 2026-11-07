@@ -3,6 +3,7 @@ VERSION=0.0.1
 files=$(wildcard *.sh *.sed)
 shell_files=$(wildcard *.sh)
 md_files:=$(shell git ls-files -co --exclude-standard '*.md')
+py_files:=$(shell git ls-files -co --exclude-standard '*.py')
 programs=$(addprefix bin/, $(files))
 shell_programs=$(addprefix bin/, $(shell_files))
 INSTALL_DIR=${HOME}/bin
@@ -92,8 +93,8 @@ format-markdown: $(md_files)
 ## E304 - Remove blank line following function decorator.
 ## E305 - Expected 2 blank lines after end of function or class.
 ## E306 - Expected 1 blank line before a nested definition.
-format-python: **/*.py
-	autopep8 -i --select=E301,E302,E303,E304,E305,E306 $^
+format-python: $(py_files)
+	[ -z "$^" ] || autopep8 -i --select=E301,E302,E303,E304,E305,E306 $^
 
 .PHONY: lint
 ## Run linter on files in project
