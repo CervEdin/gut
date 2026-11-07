@@ -1,0 +1,5 @@
+#!/bin/sh
+# A merge can bring in files that were never formatted.  Format the
+# whole tree and leave the result in the worktree to be committed.
+make format || echo "post-merge: make format failed" >&2
+git diff --name-only
