@@ -299,7 +299,19 @@ them; say they are the skill's own rule.
   source sets them. A false positive costs little, because the test decides, not
   the size.
 - "Its own why" in the split test. Neither source says each part needs one.
+- In the keep check: say what blame shows, name the tempting change, and ask for
+  a test before keeping a comment that guards against it. The Linux quote above
+  says "tempt"; the rest, and that a test replaces such a comment, are the
+  user's rule.
+- The "Dense paragraphs and inline quotes" step: more than 5 sentences or more
+  than about 80 words on more than one topic, the `> ` block quote for a
+  person's words, and that its findings are not `Nit:`. The user asked for the
+  step; the thresholds are the skill's own.
 - The "Working note" step, including its `TODO`/`NEEDSWORK` advice.
+- The "Cites what the reader cannot see" check, including that the pointer stays
+  out of the commit message too. It is the user's rule.
+- The "No consequence" check, and that it runs before "Restates". It is the
+  user's rule.
 - The "Directives" step.
 - The "Touched docs" rules other than common case first: an example where one
   helps, removed behaviour removed, active voice and short sentences.
