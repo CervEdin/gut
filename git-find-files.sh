@@ -15,7 +15,7 @@ eval "$(echo "$usage" | git rev-parse --parseopt -- "$@" || echo exit $?)"
 shift
 
 for b in $(git for-each-ref --format="%(refname)"); do
-	files=$(git ls-tree -r --name-only $b | grep "${@:-.}" )
+	files=$(git ls-tree -r --name-only "$b" | grep "${@:-.}" )
 	if [ -n "$files" ]; then
 		echo "$files" | while IFS= read -r file; do
 			ad="$(git log -1 --format="%as" "$b" -- "$file")"
