@@ -96,8 +96,8 @@ question of your time to avoid guessing.
 
 3. **Compose, check, commit.** Follow `COMPOSE.md` in this directory: budget,
    draft from the brief, check (brief lint, the provenance file with its
-   coverage section, budget, line length, slop score), commit, notes, report.
-   `PEFF-STYLE.md` carries the voice.
+   coverage section, budget and paragraphs, commit references, line length, slop
+   score), commit, notes, report. `PEFF-STYLE.md` carries the voice.
 
    To rewrite the messages of existing commits rather than commit staged work,
    follow "Rewording existing commits" in `COMPOSE.md`. It changes how the brief

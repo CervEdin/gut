@@ -44,8 +44,39 @@ Work from cheapest to most expensive and stop when a field is answered:
    This is also the only place a _following_ commit can come from — the repo
    cannot know what has not been written yet. If the session was handed off from
    another, its transcript counts too; see "Tags".
-6. Any issue, PR, or mail thread already in context. Do not go fetch one that is
-   not.
+6. Earlier sessions that worked on this branch. A session that planned, built or
+   reviewed the change may hold the reason, and its transcript stays on disk
+   under `~/.claude/projects/`, in one directory per working directory: the path
+   with each `/` turned into `-`. A worktree has a directory of its own. Find
+   the transcripts that name the branch or a touched file:
+
+   ```
+   grep -l -F -- "<branch>" ~/.claude/projects/*<repo directory name>*/*.jsonl
+   ```
+
+   Read the user's turns in each:
+
+   ```
+   jq -r 'select(.type=="user" and (.message.content|type)=="string") | .message.content' <transcript>
+   ```
+
+   Then read the plans, handoff notes and review files that those turns name.
+   Who wrote each sentence decides its tag; see "Tags". Do not tag `incident`
+   `unsourced` before this step has run, and add a `# searched:` comment line to
+   the brief that lists the transcripts you read, or says that none matched.
+
+   In the same turns, look for what the user said about commit messages on this
+   branch: a draft they corrected, a sentence they rejected, a rule they stated
+   ("lead with the reason", "this explains the diff, not why"). Add each one to
+   the brief as a `# review:` comment line, in the user's words where they are
+   short. The draft follows them, so a lesson taught on one commit is not taught
+   again on the next.
+
+7. Any issue, PR, or mail thread already in context. Do not go fetch one that is
+   not. An `issue` entry holds the issue's reason, not the fact that it asks:
+   "checkpoints share the database's disk", not "issue 3f2a158 asks for an
+   offsite copy". The issue id goes in a trailer where the log carries them, not
+   in the sentence. If the issue gives no reason, it does not answer `incident`.
 
 ## Tags
 
@@ -60,6 +91,9 @@ carry a citation**:
 | `session`   | a direct quote of what was said |
 | `issue`     | identifier or URL               |
 | `asked`     | the question that was answered  |
+| `checked`   | where the reason came from, and |
+|             | the line or command that bears  |
+|             | it out                          |
 | `unsourced` | none — this is the inference    |
 
 If you cannot produce the citation, the tag is wrong and the entry is
@@ -73,18 +107,35 @@ user actually said, and by the time you write the brief they read just as
 settled either way — nothing marks "I decided this three turns ago" apart from
 "this was already true." Quoting your own earlier turn back to yourself is not a
 citation; it's the same inference wearing a timestamp. If the sentence you are
-about to cite came from an assistant turn rather than the user, the entry is
-`unsourced`.
+about to cite came from an assistant turn rather than the user, it is not
+`session`; see below for what it can be.
 
 What counts is who wrote the sentence, not which turn it arrived in. Some text a
 model wrote reaches you as a user turn: a hand-off plan that opens a session
 ("Implement the following plan: ..."), the summary that continues a compacted
 session, a note relayed from another agent, the expanded body of a skill or
-command. None of it is the user's voice, and a plan the user approved is no
+command, an issue or ticket a model filed (look at its author before you tag it
+`issue`). None of it is the user's voice, and a plan the user approved is no
 exception — approving a plan accepts its approach, not every reason it gives.
-"Not optimized, because these cases are rare" in such a plan is a model's call,
-so the entry is `unsourced`. Cite only what the user typed; if you cannot tell
-who wrote a sentence, treat it as not the user.
+Cite as `session` only what the user typed; if you cannot tell who wrote a
+sentence, treat it as not the user.
+
+A model's reason is still worth having: someone reasoned about the change, and a
+message with that reason beats one with none. What decides where it goes is
+whether you checked it. Test the claim against the code, the log or a run of
+something, in a way that could have come out false. If it holds, the entry is
+`checked`, citing both where the reason came from and what bears it out:
+
+```
+incident-1: [checked] (plan in 3f2a9c.jsonl; grep -c load_list src/*.c gives
+  2 of 41 calls) Not optimized, because few callers pass a list.
+```
+
+If you cannot check it, the entry is `unsourced`, and its text names where the
+reason came from, so that a person can confirm it before it reaches a message.
+Check what the reason claims, not what is next to it: a grep that shows the code
+is unoptimized does not show the cases are rare. A reason about what someone
+wanted cannot be checked against code at all; only their own words source it.
 
 Such text is a lead, though, not a dead end. A plan's "the user wants X" usually
 restates something the user did say in the session that wrote the plan, and both
@@ -100,18 +151,23 @@ interview and re-tag afterwards.
 
 - `today` — what the code does now at the change site
 - `incident` — what prompted this change, and why now. Narrower legal tags than
-  the table above: `asked`, `session`, `issue`, or `unsourced` only — never
-  `diff`, `code`, or `blame`. Those three can tell you what the code does and
-  when it started; they cannot tell you why anyone wanted it to. "This mirrors
-  how an existing field already works" is a `code` fact about the change, not a
-  fact about the motive — tagging it `code` and calling `incident` answered is
-  exactly the mistake this rule exists to close. If the only thing you have is a
-  diff or the commit that introduced the touched code, the entry is `unsourced`.
+  the table above: `asked`, `session`, `issue`, `checked`, or `unsourced` only —
+  never `diff`, `code`, or `blame`. Those three can tell you what the code does
+  and when it started; they cannot tell you why anyone wanted it to. "This
+  mirrors how an existing field already works" is a `code` fact about the
+  change, not a fact about the motive — tagging it `code` and calling `incident`
+  answered is exactly the mistake this rule exists to close. If the only thing
+  you have is a diff or the commit that introduced the touched code, the entry
+  is `unsourced`.
 - `change` — what the diff tells the code to do differently, imperative
 - `alternatives` — approaches weighed and rejected, with the reason
 - `series` — what a neighbouring commit on this branch does, by position
-- `deferred` — what follows naturally from this but is deliberately not done
-- `uncertain` — what you do not know
+- `deferred` — what follows naturally from this but is deliberately not done.
+  Say which kind: work this change leaves incomplete, which the message names
+  with the reason it waits, or follow-on work such as scheduling a job, which
+  belongs in the tracker
+- `uncertain` — what you do not know: a fact to verify, not a thing to do. Work
+  that follows from the change is `deferred`
 
 Only `change` is guaranteed answerable; it comes off the diff. `today` usually
 follows from the code. `incident` is the field that is most often `unsourced`,

@@ -26,9 +26,10 @@ is any of it a finding: you did not go and learn it, it was in front of you. So
 it earns the body no room.
 
 **The findings** are what you had to go and get: `incident`, `alternatives`,
-`blame`, `issue`, and anything the caller came back with as `asked`. These are
-what make a message long, and they are what to count. `unsourced` entries are
-not findings in either skill — a guess is not something you found out.
+`blame`, `issue`, a model's reason you `checked`, and anything the caller came
+back with as `asked`. These are what make a message long, and they are what to
+count. `unsourced` entries are not findings in either skill — a guess is not
+something you found out.
 
 A `series` entry is not one either. It comes off the branch's own log, and
 nearly every commit on a topic branch has one, so counting it would give nearly
@@ -55,6 +56,9 @@ well over is a signal to check the prose, not a violation to trim — a single
 subtle mechanism can genuinely want a hundred words, and cutting it to fit a
 number loses something that was actually sourced.
 
+A split by topic (see "Paragraph Structure" in `PEFF-STYLE.md`) can add a
+paragraph or a list to that count. The findings still set the word range.
+
 **No findings means the ground and nothing else** — however much of it the
 change actually wants, which is often a sentence or two and sometimes nothing at
 all. That is a finished, correct result and not a degraded one: 12% of peff's
@@ -73,14 +77,22 @@ imperative mood, no trailing period, 50 characters soft and 72 hard.
 
 Trailers likewise: sign off where the log signs off, carry a `Reviewed-by:` or
 ticket trailer where the log carries one, add nothing where it carries nothing.
-Separately from that, always add a `Generated-by:` trailer naming the model —
-never `Co-authored-by:` and never a human's `Signed-off-by:` on the model's
-behalf. See "Closing" in `PEFF-STYLE.md`.
+Separately from that, when you write a new message, add a `Generated-by:`
+trailer naming the model, and nothing else — never `Co-authored-by:` and never a
+human's `Signed-off-by:` on the model's behalf. See "Closing" in
+`PEFF-STYLE.md`.
 
 A `series` entry keeps the positional wording it was written with — "the
 previous commit", "the next commit". A sha is worth writing only for a commit
 that has reached the mainline. Anything else is one rebase away from a different
 sha, including the commits of the branch you are on.
+
+Read the brief's `# review:` lines before the first sentence. They hold what the
+user said about earlier messages on this branch, found by `commit-brief` in the
+sessions that wrote them, and they are rules for this draft too: a lesson taught
+on one commit of a series applies to every commit after it. Then draft in the
+order that "Body: Narrative Prose" in `PEFF-STYLE.md` gives, and write each
+sentence to the rules under "Sentences" there.
 
 Build the body by rewriting brief entries, in peff's voice, and from nothing
 else. Write it to the peff-commit-draft file —
@@ -97,6 +109,20 @@ file"). It describes code the reader still has in front of them as though it
 were gone. Draft with the brief open, one entry at a time. If you want a
 sentence that no entry supports, go back to `commit-brief` and add the entry
 with an honest tag, or leave the sentence out.
+
+An entry can carry the session's shape too. If it answers a question that came
+up during the work ("why not keep the old name?"), it goes in the body only when
+a reader of the diff would ask the same question. Otherwise it answers the
+session, not the change: put it in the notes, or leave it out.
+
+Shape the paragraphs as you draft, not after the checks. A paragraph of more
+than 5 sentences or more than about 80 words on more than one topic is split
+where its topics part, and a sentence or more of someone else's words inside a
+sentence goes into a `> ` block of its own; the user's words become the author's
+own, with the quote in the notes. See "Paragraph Structure" and "Emphasis and
+References" in `PEFF-STYLE.md`. Then reread the message as a reader would. Each
+paragraph of one sentence that a split left gets the questions in "Paragraph
+Structure": drop it, write the idea it serves, or put it back.
 
 ## 3. Check
 
@@ -122,7 +148,8 @@ directory.
 2. **Provenance.** Write the provenance file,
    `$(git rev-parse --git-path peff-commit-provenance)`. Start with the subject
    line, then each sentence of the body in order. Write the sentence, then on
-   indented lines the ID and text of each brief entry it came from:
+   indented lines the ID and text of each brief entry it came from, and a
+   `gives:` line with what the sentence tells the reader that the diff does not:
 
    ```
    mbsync.service: run the backup after every sync
@@ -133,7 +160,15 @@ directory.
      today-1: Backup queued via ExecStartPost=, after the scorer and
        notmuch new.
      incident-1: User noticed backups stall when syncs fail.
+     gives: a failed sync skips the backup
    ```
+
+   The subject needs no `gives:` line. If the only `gives:` you can write is the
+   sentence again, or a list of names from the diff, the sentence narrates the
+   diff: attach its reason or consequence, or cut it. Then check each sentence
+   against the rest of "Sentences" in `PEFF-STYLE.md`, and write `fixed:` under
+   any sentence you changed, saying what was wrong ("fixed: 'it' could mean the
+   checkpoint").
 
    A sentence with no entry, or only an `unsourced` one, gets `NONE` and comes
    out of the draft. Leave the `NONE` record in the file, so the report shows
@@ -146,6 +181,9 @@ directory.
    (see "Tense" in `PEFF-STYLE.md`), a verb or a number that changed, and a
    claim wider than its entry. Correct the sentence to match the entry, never
    the other way.
+
+   A paragraph whose sentences all cite `change` entries has no point of its
+   own: see "Paragraph Structure" in `PEFF-STYLE.md`.
 
 3. **Diff coverage.** List the changed files with `git diff --cached --stat`, or
    `git show --stat <sha>` when rewording. Append a `coverage:` section to the
@@ -178,6 +216,17 @@ directory.
    the line has to say why: what the extra words explain that a shorter body
    could not. The range is a guideline, and the line is how an overrun reaches
    the report instead of being waved through in your head.
+
+   Then append a `paragraphs:` line with the sentences, words and topics of each
+   paragraph of the body and notes:
+
+   ```
+   paragraphs: 1: 3 sentences, 52 words, 1 topic; 2: 7 sentences, 104 words, 2 topics
+   ```
+
+   A paragraph over the limits with more than one topic goes back to §2 to be
+   split. So does each paragraph of one sentence that a split left, for the
+   questions in "Paragraph Structure". Checks 2 and 4 run again on the result.
 
 5. **Commit references.** Every sha in the draft is on the mainline.
    `git rev-list origin/HEAD..HEAD` lists the ones that are not: those get
@@ -235,9 +284,15 @@ Notes carry what the message cannot: alternatives not taken, caveats, scope
 decisions, uncertainties — and, in `peff-commit-auto`, every `unsourced` entry
 from the brief, marked plainly as an assumption.
 
+Keep the two kinds apart. An assumption or an uncertainty is a claim, which the
+reader verifies. A scope decision or a piece of work left over (fix X, drop Y)
+is not a claim; the reader decides it. They go in separate paragraphs.
+
 Format them exactly like commit body prose, because `git notes` stores them
 verbatim and they are read in a terminal: 72 characters per line soft, 120 hard,
-no markdown, no bullet lists, paragraphs separated by a blank line.
+no markdown, no bullet lists, paragraphs separated by a blank line. A dense
+paragraph is split into paragraphs only. A person's words, the user's included,
+go in a mail-style `> ` quote: see "Emphasis and References" in `PEFF-STYLE.md`.
 
 No hook fires on `git notes add`, so nothing else catches a long line. Check
 first:
@@ -262,7 +317,7 @@ Notes:
 
 Provenance:
 
-    (the provenance file, including its coverage: and budget: lines)
+    (the provenance file, including its coverage:, budget: and paragraphs: lines)
 ```
 
 The provenance file goes in the report whole. If a check was skipped, its
@@ -271,8 +326,34 @@ section is missing, and the user can see that.
 When the brief holds `unsourced` entries, lead with them under **Assumed, not
 sourced** before the sha, one line each. That section is the point of the whole
 exercise — it is where a misread change becomes visible while `--amend` is still
-cheap. Close with `git commit --amend` to fix the message, `git notes edit` for
-the notes.
+cheap. It holds claims only. Work to do or to drop goes after it, under **To
+decide**, so that the user is not asked to verify a to-do. Close with
+`git commit --amend` to fix the message, `git notes edit` for the notes.
+
+## Cold read, before review
+
+This is not a check on every commit. Run it when the messages are about to be
+reviewed: before a series is sent or pushed for review, or when the user asks
+for it. Run it once over the series.
+
+You know the session, so you cannot read the messages as someone who does not.
+Hand them to a subagent that knows only what a reader of the log will:
+`git log -p --no-notes <range>`. No brief, notes, transcript or conclusions of
+yours. Ask it:
+
+```
+You are reading these commits in `git log -p` a year from now. For each
+commit, list each sentence of the message that you do not understand, that
+refers to something you cannot see, whose "it" or "this" you cannot
+resolve, that states a behaviour without saying why it matters, or that
+the diff does not bear out. Quote the sentence and say what is missing.
+Report only what you found; an empty list is a good result.
+```
+
+A smaller model is fine for this, and it makes the reader colder. Check each
+finding against the code before you act on it: the reader has no context, so
+some findings are wrong. Fix the ones that hold as a reword (below), and report
+each finding with `fixed:` or `rejected:` and the evidence.
 
 ## Rewording existing commits
 
@@ -282,6 +363,19 @@ already exist, run it once per commit, with these changes.
 Which skill runs it: `peff-commit` has `disable-model-invocation: true`, so an
 agent cannot invoke it. An agent rewording its own commits uses
 `peff-commit-auto`. When the user wants the reword, they run `/peff-commit`.
+
+**Keep the trailers.** The commit keeps the trailers it has. Add `Generated-by:`
+only if it is missing and the new text is a model's. Add no session link or
+other trailer the harness asks for, even where it asks for every commit: it
+would name the session that reworded the message, not the one that wrote the
+code.
+
+**Each round of review is a reword.** When the user reviews the messages and
+asks for changes, run the process again for each commit they comment on, and
+check the commits they did not comment on against the same remarks: a remark on
+one message usually applies to its siblings. Where a suggestion of theirs states
+something the code does not do, say so in one line with the evidence, then
+follow their decision. Do not argue again for wording they have settled.
 
 **One brief per commit.** `commit-brief` gathers from `git show <sha>` in place
 of the staged diff. Do not combine several commits into one brief: the IDs, the

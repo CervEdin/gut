@@ -29,6 +29,10 @@ General rules regardless of format:
 - **50 char soft limit**, 72 hard limit for subject lines
 - Lowercase after the colon
 - Imperative mood: "fix", "use", "avoid", not "fixed", "uses", "avoided"
+- A verb phrase that says what the commit does: "take btrfs checkpoints of the
+  database", not "named databases and checkpoints". A noun phrase names a topic,
+  and the reader still has to guess what changed in it. A subject that starts
+  with a verb, such as "revert to a checkpoint", is already one
 - No period at the end
 - If the repo does NOT use Conventional Commits, area prefix matches the file,
   subsystem, or logical component (peff's default)
@@ -39,15 +43,42 @@ General rules regardless of format:
 ## Body: Narrative Prose
 
 The body reads like a debugging story or design explanation. It is NOT a
-changelog entry. Peff walks the reader through the mechanism:
+changelog entry. Its parts come in this order, and each part leads with its
+point:
 
-1. **Start with what the code does** — describe the current behavior or code
-   path, in the present tense ("We mmap() a loose object file, storing the
-   result in..."; see Tense below)
-2. **Show how that leads to the problem** — trace the causal chain ("But if we
-   hit an error, we jump to a label which does X, and X is wrong because...")
-3. **State the fix** — often a short final paragraph ("Use Y instead", "Apply
-   the same fix here", "Drop the stale assignment")
+1. **The motive** — what the code does and why that is a problem, in the present
+   tense ("We mmap() a loose object file, storing the result in..."; see Tense
+   below). Trace the causal chain ("But if we hit an error, we jump to a label
+   which does X, and X is wrong because..."). Do not open with "Today" or
+   "Currently": the present tense says that already
+2. **The fix, in one sentence** — "Fix this by ...", "Use Y instead", "Teach
+   db_store to copy the main database to a remote location". It can be a
+   paragraph of its own. For a small fix, stop here
+3. **Each choice the fix makes, what and then why** — a paragraph for each
+   choice a reader would question: what the code does, then the reason
+4. **The alternative, after the choice that beat it** — as a conditional: "Had
+   we copied the live database instead, the copy might never finish: SQLite's
+   backup starts over each time another session commits." The point comes first,
+   and a caveat or the rejected alternative follows it in the same paragraph
+5. **Work left undone, only where this change leaves itself incomplete** — a
+   `TODO:` paragraph that says what waits and why ("to keep the conflicts with
+   the next topic small"). Follow-on work the change does not need, such as
+   scheduling a job or choosing a host, goes to the tracker, not the message
+
+Leading with the alternative or the caveat is the usual way to get this wrong.
+The reader holds a clause before they know what it qualifies, and its pronouns
+attach to the wrong noun:
+
+```
+wrong: The copy comes from a new checkpoint, not from SQLite's backup of
+       the live database: that backup starts over each time another
+       connection commits, and may never finish.
+right: Copy from a new checkpoint. Had we used SQLite's backup of the
+       live database, the copy might never finish: the backup starts
+       over each time another connection commits.
+```
+
+A reader of the wrong version took the checkpoint to be what never finishes.
 
 ### Tense
 
@@ -55,7 +86,9 @@ The message is read against the parent commit. The behaviour the patch changes
 is still the behaviour of the code the reader has in front of them, so describe
 it in the present tense: "the trap removes the scratch file but never exits."
 The past tense is only for history — an incident that happened, an earlier
-commit that introduced the code.
+commit that introduced the code. What the commit does takes the imperative:
+"Export DB in the Makefile so that the scripts see the same value", not "The
+Makefile exports DB so ...", which reads as the code before the patch.
 
 ```
 wrong: The backup was queued by the last ExecStartPost=, so a failed sync
@@ -84,16 +117,85 @@ the brief, whose `today` entries are already in the present tense.
 
 ### Paragraph Structure
 
-When there is enough to say, the shape is: the problem first and in most detail,
-context or history in the middle if it is needed, the fix last in a sentence or
-two.
+When there is enough to say, the motive gets the most detail, and context or
+history goes between it and the fix if it is needed.
 
-Read that as a description of a message whose facts were all available, not as a
-template to fill. The number of paragraphs follows the number of things you
+Read the order as a description of a message whose facts were all available, not
+as a template to fill. The number of paragraphs follows the number of things you
 actually went and found out — see "How Long Should This Be?" below. Saying what
 the code does today is not one of them. Where you write it, write it because the
 message has to stand without the diff beside it, not because a paragraph wants
 filling.
+
+One paragraph, one topic. A paragraph of more than 5 sentences or more than
+about 80 words that covers more than one topic is a block nobody reads: the
+reader who needs one fact has to read all of it to find it. A topic is a part
+that a reader can look for on its own: what the code does, what happens during
+an operation, what happens after it, what a person must do, what it cannot do or
+fix, or what was tried. Split such a paragraph where one topic ends and the next
+begins. The counts are a reason to look, not a ceiling: one argument where each
+sentence builds on the last, or sentences that each show how the change meets
+one constraint, stays one paragraph however long it is.
+
+A paragraph opens with its point. A run of sentences that each restate a hunk of
+the diff, with none that says what they add up to, is the changelog of "What NOT
+to Do" written as prose. Write the sentence that says what the hunks serve, from
+the brief, and keep only the hunks it needs. If no entry gives that point, the
+hunks are the ground: a sentence, not a paragraph.
+
+A paragraph of one sentence that a split left is a question to ask. If it says
+what the diff says and gives no reason, it is changelog and goes. If it is one
+consequence of an idea the message never states, such as an invariant several
+writers must keep, find that idea in the code or the brief and make it the topic
+sentence of a paragraph that holds its consequences. If it belonged to the
+paragraph it was cut from, put it back. Short paragraphs in the same form do not
+become a list: a list of what changed is the changelog that "What NOT to Do"
+rules out. A numbered list, as "Tone" allows, is for items that are a list on
+their own.
+
+### Sentences
+
+Each sentence gives the reader something the diff does not: a reason, or a
+consequence. Check every sentence against these, in the draft and again in a
+reword:
+
+- **Reason or consequence.** A sentence that names files, functions, flags or
+  targets from the diff and gives no reason narrates the diff: "Add
+  db-checkpoint (LABEL defaults to manual), db-checkpoints and db-drop." The
+  reader has the diff. Attach the reason, or cut the sentence.
+- **A behaviour needs its consequence.** "An empty path counts as unset" leaves
+  the reader asking why it matters. Ask what goes wrong for a reader who does
+  not know it, and write that ("an empty path counts as unset: SQLite would open
+  a temporary database that vanishes on close"). If nothing goes wrong, cut it.
+- **A number carries a decision.** "On the 7.4 GB database it held the write
+  lock for about a minute. Reverts are rare, so that is fine." Lab notes, such
+  as each run's timing, the run before, or a constant's name, go: the reader
+  needs the conclusion ("writers wait until their timeout, or fail").
+- **Nothing the reader cannot see.** A reason that points at something the
+  reader cannot open — a discussion, a plan, an issue, a request, a design that
+  never reached the history ("as discussed", "per issue 3f2a158", "the old rule
+  compared sizes") — is no reason. Write the reason itself (checkpoints share
+  the database's disk, so they do not survive it failing). The pointer does not
+  go in the prose; an issue id can go in a trailer where the log carries them.
+  If you do not know the reason, ask the user for it (for `peff-commit-auto` it
+  is `unsourced`), and write nothing in its place.
+- **A clear referent.** "It", "this" and "that" point to one noun, and the
+  reader can tell which. "It takes the name from the real path" after a sentence
+  about two things: name the thing. A conditional about a version the reader
+  never saw ("Taken before the lock, a write would be in neither") needs that
+  version stated, or it goes.
+- **A real joint.** "And" adds a point of the same kind, "so" gives a
+  consequence, "but" a contrast, "with" means "having". Two separate points
+  joined by "and", "so" or a semicolon are two sentences. Ask of each joint what
+  relation it states; if there is none, split it.
+- **No filler.** Cut a sentence the reader would assume ("A checkpoint is only
+  useful with a way back to it", "the tests pass") and a word that adds nothing
+  ("only" in "only warns", "simply", "now" meaning "after this patch"). Test it:
+  delete the word or sentence; did the reader lose a fact?
+- **The conditions survive.** A sentence that condenses the code, a comment or a
+  docstring keeps the condition ("fails when the checkpoint has no -shm", not
+  "fails without a -shm"). Read the claim against the code, not your memory of
+  it.
 
 ### How Long Should This Be?
 
@@ -141,6 +243,10 @@ Examples from real patches:
 > for_each_bitmapped_object(), and the can_filter helper function is static
 > local in the bitmap code.
 
+Both are quoted for what they weigh, not for their order: each opens with the
+alternative, where "Body: Narrative Prose" puts it after the choice that beat
+it.
+
 You don't need to manufacture alternatives — but when you genuinely considered
 another approach, say so and say why you didn't take it.
 
@@ -149,7 +255,8 @@ another approach, say so and say why you didn't take it.
 When the change has measurable impact, include the numbers. Peff frequently
 embeds benchmark output, object counts, or timing data directly in the commit
 body. The data grounds the reasoning in reality rather than hand-waving about
-performance.
+performance. Each number backs a conclusion the message states; see "A number
+carries a decision" under "Sentences".
 
 ### Emphasis and References
 
@@ -162,6 +269,17 @@ performance.
   next commit"), because a rebase will have changed its sha
 - References related discussion: "This was caught during review of ..."
 - Credits others when their report or review led to the fix
+
+One rule here is this skill's, not peff's. Quote a sentence or more of someone
+else's words (a reviewer, a bug report) in a block of its own, with each line
+starting `> ` as mail quotes do, after a line that names who said it. A quote in
+mid-sentence buries both the words and the point. A quoted term, message or
+command ("database is locked"), a few words, and text from a spec or standard
+stay inline.
+
+The user is not someone else: the commit is authored as them. Do not quote them
+in the message or write "the user said"; say what they said as the author's own
+reasoning. Their words, quoted, go in the notes.
 
 ## What NOT to Do
 
@@ -203,6 +321,10 @@ message. If an LLM drafted the commit, say so with its own trailer:
 Generated-by: Claude (claude-opus-5)
 ```
 
+The parentheses hold the model id and nothing more: no branch, session or
+ticket. A rule elsewhere in the project that adds those to its own attribution,
+for issues say, does not carry over to this trailer.
+
 Never fold that fact into `Co-authored-by:` or a human's `Signed-off-by:`. Both
 of those assert something the model didn't do — joint authorship, or a person's
 review and sign-off — and `Generated-by:` says the true thing instead: a model
@@ -222,7 +344,9 @@ what you were thinking.
 **Formatting:** notes are stored verbatim by `git notes` and read in a terminal,
 so format them exactly like commit body prose: aim for 72 characters per line
 (soft limit), hard limit 120. No markdown, no bullet lists masquerading as
-prose. Paragraphs separated by a single blank line.
+prose. Paragraphs separated by a single blank line. A dense paragraph is split
+into paragraphs only, with no list. A person's words, the user's included, go in
+a mail-style `> ` quote (see "Emphasis and References").
 
 Use notes for:
 
@@ -262,3 +386,7 @@ otherwise make things worse. Let's only use them when there's a filter.
 The recursion here is simple enough that we can avoid those questions by
 just converting it to iteration instead.
 ```
+
+These are quoted for how they close. The first opens with the alternative, which
+"Body: Narrative Prose" puts after the choice that beat it, and the third's
+"just" is filler by "Sentences".
