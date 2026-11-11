@@ -281,10 +281,10 @@ output, a long identifier — and is still inside the 120-character hard limit.
 ## 5. Notes
 
 Notes carry what the message cannot, and what it says without confirmation:
-alternatives not taken, caveats, scope decisions, uncertainties — and, in
-`peff-commit-auto`, every `unsourced` entry from the brief, marked plainly as an
-assumption. Every `relayed` entry the message uses gets a note too, marked as
-not confirmed.
+alternatives not taken, caveats, scope decisions, uncertainties, a cost the
+message takes no stance on — and, in `peff-commit-auto`, every `unsourced` entry
+from the brief, marked plainly as an assumption. Every `relayed` entry the
+message uses gets a note too, marked as not confirmed.
 
 Keep three kinds apart, each in paragraphs of its own. An assumption or an
 uncertainty is a claim, which the reader verifies. A relayed claim is already in

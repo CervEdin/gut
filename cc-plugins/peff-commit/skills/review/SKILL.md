@@ -89,6 +89,9 @@ each note the answers it can take:
 
 - a **Relayed, not confirmed** note: confirmed (drop the note), wrong (take the
   claim out of the message), or keep
+- a note about a cost the message takes no stance on: say what the change gives
+  up and what you found for and against it, and ask the user for the stance. The
+  answer becomes the message's "I think ... because ..." sentence
 - any other note: into the message, drop, or keep
 
 An answer that corrects a claim goes into the message in the corrected form.

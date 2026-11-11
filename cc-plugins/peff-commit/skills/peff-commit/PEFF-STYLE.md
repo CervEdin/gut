@@ -167,6 +167,10 @@ reword:
   the reader asking why it matters. Ask what goes wrong for a reader who does
   not know it, and write that ("an empty path counts as unset: SQLite would open
   a temporary database that vanishes on close"). If nothing goes wrong, cut it.
+  A reason can be as vague as a behaviour: "the version matters" leaves the
+  reader asking which version, and what happens. Write what happens: "when the
+  lockfile pins a newer compiler than CI installs, the CI build fails". Each
+  sentence says one thing a reader can check.
 - **A number carries a decision.** "On the 7.4 GB database it held the write
   lock for about a minute. Reverts are rare, so that is fine." Lab notes, such
   as each run's timing, the run before, or a constant's name, go: the reader
@@ -190,8 +194,23 @@ reword:
   relation it states; if there is none, split it.
 - **No filler.** Cut a sentence the reader would assume ("A checkpoint is only
   useful with a way back to it", "the tests pass") and a word that adds nothing
-  ("only" in "only warns", "simply", "now" meaning "after this patch"). Test it:
-  delete the word or sentence; did the reader lose a fact?
+  ("only" in "only warns", "simply", "now" meaning "after this patch"). Cut an
+  outcome that CI or the diff already shows, too: a lint, test or build that
+  passes (see §5 of `COMPOSE.md`), or a file left untouched that nothing would
+  have touched. Test it: delete the word or sentence; did the reader lose a
+  fact?
+- **Only what this commit does.** A sentence about a symptom must not read as if
+  this commit fixes it. "That drift is why the generated parser differs between
+  branches", in a commit that does not regenerate it, tells the reader that it
+  does. Say what the commit changes, and state the symptom as context or not at
+  all.
+- **A stance where there is a cost.** Where the change gives something up, say
+  in a sentence why that is acceptable: "A new patch release no longer reaches
+  CI by itself. I think that is the lesser evil, because ...". Without it the
+  reader cannot tell a cost you weighed from one you missed. Write the stance
+  only when its reason has a source. Otherwise put the cost in the notes, saying
+  what the change gives up and that the reason is missing, so that
+  `peff-commit:review` can ask for it.
 - **The conditions survive.** A sentence that condenses the code, a comment or a
   docstring keeps the condition ("fails when the checkpoint has no -shm", not
   "fails without a -shm"). Read the claim against the code, not your memory of
