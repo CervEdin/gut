@@ -281,20 +281,23 @@ carries a decision" under "Sentences".
 
 - Uses _italics-style_ emphasis sparingly for subtle distinctions (rendered in
   email as underscores: "dispatched _from_")
-- References other commits by abbreviated sha and subject: "1f3fd68e06
-  (odb/source: make read_object_stream() pluggable, 2026-03-05)" — but only for
-  a commit that has reached the mainline. Anything short of that, the commits of
-  your own branch included, is named by position ("the previous commit", "the
-  next commit"), because a rebase will have changed its sha
+- References other commits by abbreviated sha, subject and date, as
+  `git show -s --format=reference <sha>` prints them: "1f3fd68e06 (odb/source:
+  make read_object_stream() pluggable, 2026-03-05)". Never a bare sha: the
+  reader needs the subject to know what it was. Keep the reference inside a line
+  that flows, not on a line of its own. Only a commit that has reached the
+  mainline gets one. Anything short of that, the commits of your own branch
+  included, is named by position ("the previous commit", "the next commit"),
+  because a rebase will have changed its sha
 - References related discussion: "This was caught during review of ..."
 - Credits others when their report or review led to the fix
 
-One rule here is this skill's, not peff's. Quote a sentence or more of someone
-else's words (a reviewer, a bug report) in a block of its own, with each line
-starting `> ` as mail quotes do, after a line that names who said it. A quote in
-mid-sentence buries both the words and the point. A quoted term, message or
-command ("database is locked"), a few words, and text from a spec or standard
-stay inline.
+Two rules here are this skill's, not peff's: never a bare sha, and this one.
+Quote a sentence or more of someone else's words (a reviewer, a bug report) in a
+block of its own, with each line starting `> ` as mail quotes do, after a line
+that names who said it. A quote in mid-sentence buries both the words and the
+point. A quoted term, message or command ("database is locked"), a few words,
+and text from a spec or standard stay inline.
 
 The user is not someone else: the commit is authored as them. Do not quote them
 in the message or write "the user said"; say what they said as the author's own
