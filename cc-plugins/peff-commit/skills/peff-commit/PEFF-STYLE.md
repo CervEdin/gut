@@ -290,14 +290,17 @@ carries a decision" under "Sentences".
   included, is named by position ("the previous commit", "the next commit"),
   because a rebase will have changed its sha
 - References related discussion: "This was caught during review of ..."
+- Links to a source that stays put, not one that will have changed by the time
+  the link is read (e.g. a specific release, not the page of all releases)
 - Credits others when their report or review led to the fix
 
-Two rules here are this skill's, not peff's: never a bare sha, and this one.
-Quote a sentence or more of someone else's words (a reviewer, a bug report) in a
-block of its own, with each line starting `> ` as mail quotes do, after a line
-that names who said it. A quote in mid-sentence buries both the words and the
-point. A quoted term, message or command ("database is locked"), a few words,
-and text from a spec or standard stay inline.
+Some rules here are this skill's, not peff's: never a bare sha, the link that
+stays put, and this one. Quote a sentence or more of someone else's words (a
+reviewer, a bug report) in a block of its own, with each line starting `> ` as
+mail quotes do, after a line that names who said it. A quote in mid-sentence
+buries both the words and the point. A quoted term, message or command
+("database is locked"), a few words, and text from a spec or standard stay
+inline.
 
 The user is not someone else: the commit is authored as them. Do not quote them
 in the message or write "the user said"; say what they said as the author's own
