@@ -69,6 +69,16 @@ A body asserting X is a thing they have to notice first.
    made. That is an accurate message. Before that search has run, it means the
    search is not done.
 
+   A `relayed` entry is not quarantined. It is the user's claim, and only the
+   passing-on is a model's, so the message uses it where it needs it, like any
+   other finding. The notes still record that nobody in this session heard the
+   user say it, in a paragraph of its own:
+
+   ```
+   Relayed, not confirmed: libfoo is upgraded to 3.2.1 for its security fixes.
+   The review session passed it on as the user's words.
+   ```
+
 3. **Compose, check, commit.** Follow `../peff-commit/COMPOSE.md`: budget, draft
    from the brief, check (brief lint, the provenance file with its coverage
    section, budget and paragraphs, commit references, line length, slop score),

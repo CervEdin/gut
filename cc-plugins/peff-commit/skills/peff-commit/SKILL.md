@@ -79,6 +79,9 @@ question of your time to avoid guessing.
    click rather than an essay — unlike `incident`, a wrong guess here just gets
    corrected via "Other," not silently accepted as a motive.
 
+   A `relayed` entry takes no slot: its note asks the user to confirm it (§5 of
+   `COMPOSE.md`).
+
    The trigger is the tag in the file, not your sense of whether the motivation
    feels recoverable. That judgment is what this skill used to make, and it made
    it wrong nearly every time: a transcript almost always contains something

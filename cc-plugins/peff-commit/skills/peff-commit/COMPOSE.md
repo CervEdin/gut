@@ -280,13 +280,16 @@ output, a long identifier — and is still inside the 120-character hard limit.
 
 ## 5. Notes
 
-Notes carry what the message cannot: alternatives not taken, caveats, scope
-decisions, uncertainties — and, in `peff-commit-auto`, every `unsourced` entry
-from the brief, marked plainly as an assumption.
+Notes carry what the message cannot, and what it says without confirmation:
+alternatives not taken, caveats, scope decisions, uncertainties — and, in
+`peff-commit-auto`, every `unsourced` entry from the brief, marked plainly as an
+assumption. Every `relayed` entry the message uses gets a note too, marked as
+not confirmed.
 
-Keep the two kinds apart. An assumption or an uncertainty is a claim, which the
-reader verifies. A scope decision or a piece of work left over (fix X, drop Y)
-is not a claim; the reader decides it. They go in separate paragraphs.
+Keep three kinds apart, each in paragraphs of its own. An assumption or an
+uncertainty is a claim, which the reader verifies. A relayed claim is already in
+the message; the reader confirms that it is theirs. A scope decision or a piece
+of work left over (fix X, drop Y) is not a claim; the reader decides it.
 
 Format them exactly like commit body prose, because `git notes` stores them
 verbatim and they are read in a terminal: 72 characters per line soft, 120 hard,
