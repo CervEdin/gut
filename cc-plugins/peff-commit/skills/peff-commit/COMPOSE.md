@@ -390,55 +390,24 @@ follow their decision. Do not argue again for wording they have settled.
 of the staged diff. Do not combine several commits into one brief: the IDs, the
 provenance file and the coverage check all belong to one commit.
 
-**Newest first.** Rewording a commit rewrites all of its descendants, and they
-get new shas. Its ancestors do not change. If you start with the newest commit,
-the shas of the older commits you have not reworded yet stay valid.
+**Fold the new messages in with one rebase, in place of §4.** Each rewrite of
+history gives every later commit a new sha, so do not rewrite once per commit.
+Commit each new message as a `--fixup=reword` commit, which names its target,
+then fold them all in with one autosquash rebase, which copies the notes when
+`notes.rewriteRef` is set. The `git-rebase-i` skill's Reword recipe does this
+with `git reword` and checks the notes afterwards. Follow it.
 
-**Save the old shas before the first reword.** Rewording loses notes (see
-below), and the old shas are how you get them back:
-
-```
-base=$(git rev-parse <oldest sha>^)
-git rev-list --reverse $base..HEAD >"$(git rev-parse --git-path peff-reword-old)"
-```
-
-**Reword in place of §4.** For each commit, after the checks pass:
+Without that plugin, start each draft with the line `amend! <sha of the target>`
+and a blank line. Autosquash folds `amend! <subject>` into the first commit with
+that subject, and two commits in a range can share one. Then run:
 
 ```
-GIT_EDITOR="cp $(git rev-parse --git-path peff-commit-draft)" git history reword <sha>
+GIT_EDITOR="cp $(git rev-parse --git-path peff-commit-draft)" git commit --fixup=reword:<sha>
+GIT_SEQUENCE_EDITOR=: git -c notes.rewriteRef='refs/notes/*' rebase -i --autosquash <oldest sha>^
 ```
 
-Where `git history` is missing, use an interactive rebase that starts at the
-commit, so the commit is the first line of the todo list:
-
-```
-GIT_SEQUENCE_EDITOR="sed -i '1s/^[a-z]*/reword/'" \
-GIT_EDITOR="cp $(git rev-parse --git-path peff-commit-draft)" git rebase -i <sha>^
-```
-
-The sed replaces any command word, not only `pick`: with
-`rebase.abbreviateCommands` set, the todo list says `p`.
-
-**Carry the notes over.** `git history reword` drops the notes of the reworded
-commit and of every descendant, whatever `notes.rewriteRef` says. `git rebase`
-keeps them only when `notes.rewriteRef` is set. After the last reword, pair the
-old shas with the new ones by position and copy each note that did not come
-across:
-
-```
-git rev-list --reverse $base..HEAD |
-paste -d' ' "$(git rev-parse --git-path peff-reword-old)" - |
-while read old new; do
-	git notes list $old >/dev/null 2>&1 &&
-	! git notes list $new >/dev/null 2>&1 &&
-	git notes copy $old $new
-done
-```
-
-Pairing by position works because a reword never adds or drops a commit, but
-only on a linear range. This copies the default notes ref. Repeat with
-`git notes --ref=<ref>` for each other ref that `git for-each-ref refs/notes`
-shows. Then use `git notes add -f` to update the notes of the reworded commits
-(§5).
+The fixup commits change no existing commit, so the shas of the targets stay
+valid until the rebase. `git log` shows each new message before it runs. Then
+use `git notes add -f` to update the notes of the reworded commits (§5).
 
 The report (§6) covers each reworded commit, with its new sha.
