@@ -96,10 +96,14 @@ carry a citation**:
 |             | it out                          |
 | `unsourced` | none — this is the inference    |
 
+`asked` never appears in a brief this skill writes; it exists for callers that
+interview and re-tag afterwards.
+
 If you cannot produce the citation, the tag is wrong and the entry is
 `unsourced`. This is the whole mechanism: a tag you cannot back is a guess
 wearing a label. `session` in particular is not "the conversation was broadly
-about this" — it is a sentence the user wrote, not one you wrote yourself.
+about this" — it is a sentence the user wrote, or a reason they accepted as it
+was offered (see "A reason the user accepted" below).
 
 A long session accumulates your own plans, running commentary, and mid-task
 calls ("let's rename this because X") in the same context window as anything the
@@ -108,7 +112,8 @@ settled either way — nothing marks "I decided this three turns ago" apart from
 "this was already true." Quoting your own earlier turn back to yourself is not a
 citation; it's the same inference wearing a timestamp. If the sentence you are
 about to cite came from an assistant turn rather than the user, it is not
-`session`; see below for what it can be.
+`session` unless the user accepted it; see "A model's reason" below for what it
+can be.
 
 What counts is who wrote the sentence, not which turn it arrived in. Some text a
 model wrote reaches you as a user turn: a hand-off plan that opens a session
@@ -117,8 +122,10 @@ session, a note relayed from another agent, the expanded body of a skill or
 command, an issue or ticket a model filed (look at its author before you tag it
 `issue`). None of it is the user's voice, and a plan the user approved is no
 exception — approving a plan accepts its approach, not every reason it gives.
-Cite as `session` only what the user typed; if you cannot tell who wrote a
-sentence, treat it as not the user.
+Cite as `session` only what the user typed, or a reason they accepted; if you
+cannot tell who wrote a sentence, treat it as not the user.
+
+### A model's reason
 
 A model's reason is still worth having: someone reasoned about the change, and a
 message with that reason beats one with none. What decides where it goes is
@@ -144,8 +151,26 @@ the full transcript at: ..."). Read it and quote the user from there. The entry
 is `unsourced` only when their words are not in it, or nothing names a
 transcript.
 
-`asked` never appears in a brief this skill writes; it exists for callers that
-interview and re-tag afterwards.
+### A reason the user accepted
+
+A reason offered with a change is different once the user accepts the change
+with the reason in front of them: they chose by it. A model, a skill or a tool
+proposed the change and said why, and the user took it. The entry is `session`,
+and the citation quotes both turns, the offer with its reason and the
+acceptance:
+
+```
+incident-1: [session] (offered: "Trim project CLAUDE.md — Cut Architecture +
+  Code Style, keep 2 gotcha lines; saves ~730 est. tokens/session"; picked:
+  "Trim project CLAUDE.md") The trim saves about 730 tokens in every session
+  that loads the file.
+```
+
+The entry says what the offer said, not a better reason found later. Silence is
+not acceptance: a change the model made and gave a reason for, which the user
+never answered, is a model's reason like any other, `checked` or `unsourced`. So
+is a reason worked out after the user took a change that was offered without
+one. Approving a plan still accepts only its approach.
 
 ## Fields
 
