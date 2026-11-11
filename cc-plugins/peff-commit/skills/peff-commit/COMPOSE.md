@@ -339,30 +339,12 @@ cheap. It holds claims only. Work to do or to drop goes after it, under **To
 decide**, so that the user is not asked to verify a to-do. Close with
 `git commit --amend` to fix the message, `git notes edit` for the notes.
 
-## Cold read, before review
+## Review, before sending
 
-This is not a check on every commit. Run it when the messages are about to be
-reviewed: before a series is sent or pushed for review, or when the user asks
-for it. Run it once over the series.
-
-You know the session, so you cannot read the messages as someone who does not.
-Hand them to a subagent that knows only what a reader of the log will:
-`git log -p --no-notes <range>`. No brief, notes, transcript or conclusions of
-yours. Ask it:
-
-```
-You are reading these commits in `git log -p` a year from now. For each
-commit, list each sentence of the message that you do not understand, that
-refers to something you cannot see, whose "it" or "this" you cannot
-resolve, that states a behaviour without saying why it matters, or that
-the diff does not bear out. Quote the sentence and say what is missing.
-Report only what you found; an empty list is a good result.
-```
-
-A smaller model is fine for this, and it makes the reader colder. Check each
-finding against the code before you act on it: the reader has no context, so
-some findings are wrong. Fix the ones that hold as a reword (below), and report
-each finding with `fixed:` or `rejected:` and the evidence.
+This is not a check on every commit. Before a series is sent or pushed for
+review, or when the user asks, run `peff-commit:review` over it, with the user
+present: a cold read of the messages by a reader with no context, and a walk
+through the notes.
 
 ## Rewording existing commits
 
