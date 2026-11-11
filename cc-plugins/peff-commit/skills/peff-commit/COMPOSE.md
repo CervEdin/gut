@@ -291,7 +291,13 @@ uncertainty is a claim, which the reader verifies. A relayed claim is already in
 the message; the reader confirms that it is theirs. A scope decision or a piece
 of work left over (fix X, drop Y) is not a claim; the reader decides it.
 
-Format them exactly like commit body prose, because `git notes` stores them
+Write a note only when a reviewer can act on it: check a claim, decide a scope,
+weigh an alternative. Leave out filler: why a formatter reflowed a line, or that
+a lint, the tests or the build pass. Once a commit is on the mainline, its
+checks can be assumed to have passed when it merged, and after an amend or a
+rebase the claim may no longer hold.
+
+Format notes exactly like commit body prose, because `git notes` stores them
 verbatim and they are read in a terminal: 72 characters per line soft, 120 hard,
 no markdown, no bullet lists, paragraphs separated by a blank line. A dense
 paragraph is split into paragraphs only. A person's words, the user's included,
