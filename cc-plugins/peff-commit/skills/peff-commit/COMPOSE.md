@@ -368,6 +368,12 @@ one message usually applies to its siblings. Where a suggestion of theirs states
 something the code does not do, say so in one line with the evidence, then
 follow their decision. Do not argue again for wording they have settled.
 
+**Hold each round to the budget.** When the fix for a remark would push the body
+past the word range in §1, check first whether all of the addition is needed,
+whether it can be said more directly, and what the message already says that can
+go, other than wording the user settled. Only then add. Moving the extra words
+into the notes is not a fix: the length is still there, in another place.
+
 **One brief per commit.** `commit-brief` gathers from `git show <sha>` in place
 of the staged diff. Do not combine several commits into one brief: the IDs, the
 provenance file and the coverage check all belong to one commit.
