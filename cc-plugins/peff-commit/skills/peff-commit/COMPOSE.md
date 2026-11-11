@@ -299,9 +299,10 @@ rebase the claim may no longer hold.
 
 Format notes exactly like commit body prose, because `git notes` stores them
 verbatim and they are read in a terminal: 72 characters per line soft, 120 hard,
-no markdown, no bullet lists, paragraphs separated by a blank line. A dense
-paragraph is split into paragraphs only. A person's words, the user's included,
-go in a mail-style `> ` quote: see "Emphasis and References" in `PEFF-STYLE.md`.
+no markdown, paragraphs separated by a blank line. A dense paragraph is split
+into paragraphs, or into a list where its items are one (see "Tone" in
+`PEFF-STYLE.md`). A person's words, the user's included, go in a mail-style `> `
+quote: see "Emphasis and References" in `PEFF-STYLE.md`.
 
 No hook fires on `git notes add`, so nothing else catches a long line. Check
 first:

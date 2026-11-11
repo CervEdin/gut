@@ -110,9 +110,9 @@ the brief, whose `today` entries are already in the present tense.
   hedge reports real uncertainty; do not hedge for politeness or effect
 - **Humble about scope** — "not urgent, but since we're here we might as well
   fix it", "probably not worth as many words as I wrote"
-- **Prose paragraphs preferred** — but numbered lists are fine when enumerating
-  genuinely distinct items (e.g., "two independent reasons this is broken: 1.
-  ... 2. ...")
+- **A list for what is a list** — steps in order, parallel examples, independent
+  reasons ("two independent reasons this is broken: 1. ... 2. ..."). Write them
+  as a numbered or dashed list, not strung together as sentences in a paragraph
 - **No markdown headers** in the commit body
 
 ### Paragraph Structure
@@ -149,9 +149,8 @@ consequence of an idea the message never states, such as an invariant several
 writers must keep, find that idea in the code or the brief and make it the topic
 sentence of a paragraph that holds its consequences. If it belonged to the
 paragraph it was cut from, put it back. Short paragraphs in the same form do not
-become a list: a list of what changed is the changelog that "What NOT to Do"
-rules out. A numbered list, as "Tone" allows, is for items that are a list on
-their own.
+become a list of what changed: that is the changelog "What NOT to Do" rules out.
+Items that are a list on their own go in one, as "Tone" says.
 
 ### Sentences
 
@@ -308,7 +307,8 @@ reasoning. Their words, quoted, go in the notes.
 
 ## What NOT to Do
 
-- No bullet-point changelogs ("- changed X", "- added Y")
+- No bullet-point changelogs ("- changed X", "- added Y"). A list of steps or of
+  parallel items is not one; see "Tone"
 - No "This commit does X" self-referential framing
 - No JIRA ticket numbers in the subject (put in footer if needed)
 - No emoji
@@ -368,10 +368,10 @@ what you were thinking.
 
 **Formatting:** notes are stored verbatim by `git notes` and read in a terminal,
 so format them exactly like commit body prose: aim for 72 characters per line
-(soft limit), hard limit 120. No markdown, no bullet lists masquerading as
-prose. Paragraphs separated by a single blank line. A dense paragraph is split
-into paragraphs only, with no list. A person's words, the user's included, go in
-a mail-style `> ` quote (see "Emphasis and References").
+(soft limit), hard limit 120. No markdown. Paragraphs separated by a single
+blank line. A dense paragraph is split into paragraphs, or into a list where its
+items are one (see "Tone"). A person's words, the user's included, go in a
+mail-style `> ` quote (see "Emphasis and References").
 
 Use notes for:
 

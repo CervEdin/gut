@@ -41,12 +41,23 @@ yours. Ask it:
 
 ```
 You are reading these commits in `git log -p` a year from now. For each
-commit, list each sentence of the message that you do not understand, that
-refers to something you cannot see, whose "it" or "this" you cannot
-resolve, that states a behaviour without saying why it matters, that gives
-a reason without saying what it buys, or that the diff does not bear out.
-Quote the sentence and say what is missing. Report only what you found; an
-empty list is a good result.
+commit, list each sentence of the message that:
+
+- you do not understand
+- refers to something you cannot see, or whose "it" or "this" you
+  cannot resolve
+- states a behaviour without saying why it matters
+- gives a reason without saying what it buys
+- the diff does not bear out
+
+And each paragraph that:
+
+- is a list written as sentences: steps in order, or parallel items
+  strung together
+
+Quote the sentence, or the first sentence of the paragraph, and say
+what is missing. Report only what you found; an empty list is a good
+result.
 ```
 
 A smaller model is fine for this, and it makes the reader colder. Check each
