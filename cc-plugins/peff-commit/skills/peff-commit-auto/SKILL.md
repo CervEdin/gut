@@ -100,3 +100,7 @@ A body asserting X is a thing they have to notice first.
    is why this skill is allowed to run without asking: it moves the interview
    after the commit instead of deleting it. It lists reasons to verify, not
    things to do; those go under **To decide** (see §6 of `COMPOSE.md`).
+
+   After the last commit of a series, or of a reword run, end the report by
+   suggesting `/peff-commit:review` over the series, to go through the notes
+   with the user.
