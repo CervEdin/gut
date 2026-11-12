@@ -303,10 +303,11 @@ them; say they are the skill's own rule.
   a test before keeping a comment that guards against it. The Linux quote above
   says "tempt"; the rest, and that a test replaces such a comment, are the
   user's rule.
-- The "Dense paragraphs and inline quotes" step: more than 5 sentences or more
-  than about 80 words on more than one topic, the `> ` block quote for a
-  person's words, and that its findings are not `Nit:`. The user asked for the
-  step; the thresholds are the skill's own.
+- The "Dense paragraphs and inline quotes" step: in a commit message, a split at
+  every change of topic, with the sentence and word counts as a reason to look;
+  in a comment, the counts as a threshold; the `> ` block quote for a person's
+  words, and that its findings are not `Nit:`. The user asked for the step; the
+  counts are the skill's own.
 - The "Working note" step, including its `TODO`/`NEEDSWORK` advice.
 - The "Cites what the reader cannot see" check, including that the pointer stays
   out of the commit message too. It is the user's rule.

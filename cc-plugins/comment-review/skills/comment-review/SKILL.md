@@ -231,15 +231,16 @@ behind most checks and lists the ones that have none.
    paragraph of the commit message. A paragraph is a run of lines with no blank
    line between them. A line that holds only the comment marker (` *`, `//`,
    `#`) counts as blank, and a list item ends the paragraph.
-   - **Dense**: the paragraph has more than 5 sentences or more than about 80
-     words, _and_ it covers more than one topic. A topic is a part that a reader
-     can look for on its own: what the code does, what happens during an
-     operation, what happens after it, what a person must do, what it cannot do
-     or fix, or what was tried. One argument where each sentence builds on the
-     last stays one paragraph, however long. Three sentences on three topics
-     stay too. The counts are a reason to look, not a ceiling: a paragraph over
-     them that is one argument, such as sentences that each show how the change
-     meets one constraint, is not dense.
+   - **Dense**: in the commit message, the paragraph covers more than one topic,
+     however short it is, and more than 5 sentences or about 80 words is a
+     reason to look for a second topic. In a comment, only a paragraph past
+     those counts that covers more than one topic is dense. A topic is a part
+     that a reader can look for on its own: what the code does, what the change
+     does, how it does it or at what cost, what happens during an operation,
+     what happens after it, what a person must do, what it cannot do or fix, or
+     what was tried. One argument where each sentence builds on the last, or
+     sentences that each show how the change meets one constraint, stays one
+     paragraph.
    - **Inline quote of a person**: a sentence or more of someone else's words (a
      reviewer, a bug report) inside a sentence of the text. It goes on its own
      lines as a `> ` block quote, after a line that names who said it. A quoted
@@ -249,8 +250,8 @@ behind most checks and lists the ones that have none.
      in its message, quoted or not, read as the author quoting themselves.
      `rewrite`: say it as the author's own reasoning, in the message's voice,
      and move the quote to the notes if it is worth keeping.
-   - Verdict: `rewrite`, without `Nit:`: a reader skips such a paragraph, so
-     what it says is lost.
+   - Verdict: `rewrite`, without `Nit:`: a reader who needs one fact should not
+     have to read another topic to find it.
    - Replacement: the paragraph split where one topic ends and the next begins,
      so that each part says one thing and keeps its reason. Use a bold lead-in
      where the file uses them. A list is only for items that are a list on their
@@ -260,13 +261,14 @@ behind most checks and lists the ones that have none.
    - Then reread the replacement as a whole, as a reader would. A paragraph of
      one sentence that the split left is a question, not a shape to fix:
      - It says what the diff says and gives no reason. It is changelog: drop it.
+       In a commit message, the one sentence that states the fix stays.
      - It is one consequence of an idea that the text never states, such as an
        invariant that several writers must keep. Find the idea in the code, its
        comments or the commit message, and write it as the topic sentence of a
        paragraph that holds its consequences. If nothing states it, say so and
        ask; do not invent it.
-     - It belonged to the paragraph it was cut from: undo that part of the
-       split.
+     - It is on the same topic as the paragraph it was cut from: undo that part
+       of the split. A one-sentence paragraph on a topic of its own stays.
    - End each step 9 finding with this line for whoever applies it: "Rewrite the
      paragraph, then reread the whole comment (or message) as a reader before
      committing." The replacement shows one shape. Whoever applies it rewrites
