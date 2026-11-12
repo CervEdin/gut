@@ -31,7 +31,7 @@ question of your time to avoid guessing.
 ## Process
 
 1. **Gather.** Invoke the `commit-brief` skill. It writes `.git/commit-brief`
-   and reports which entries came back `unsourced`.
+   and reports which entries came back `unsourced` or `relayed`.
 
 2. **Interview.** Ask when the brief holds an `unsourced` entry, or when the
    `series` test below fires — one batched `AskUserQuestion`, never one question

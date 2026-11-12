@@ -39,7 +39,7 @@ A body asserting X is a thing they have to notice first.
 ## Process
 
 1. **Gather.** Invoke the `commit-brief` skill. It writes `.git/commit-brief`
-   and reports which entries came back `unsourced`.
+   and reports which entries came back `unsourced` or `relayed`.
 
 2. **Quarantine.** Every `unsourced` entry stays out of the commit body, without
    exception, and goes into the notes marked as an assumption:

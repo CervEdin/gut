@@ -23,9 +23,10 @@ FIELDS = (
     "uncertain",
 )
 TAGS = (
-    "diff", "code", "blame", "session", "issue", "asked", "checked", "unsourced"
+    "diff", "code", "blame", "session", "issue", "asked", "checked", "relayed",
+    "unsourced",
 )
-INCIDENT_TAGS = ("asked", "session", "issue", "checked", "unsourced")
+INCIDENT_TAGS = ("asked", "session", "issue", "checked", "relayed", "unsourced")
 
 ENTRY = re.compile(
     r"^(%s)-(\d+): \[(%s)\](.*)$" % ("|".join(FIELDS), "|".join(TAGS)), re.S

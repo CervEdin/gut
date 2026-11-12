@@ -94,6 +94,8 @@ carry a citation**:
 | `checked`   | where the reason came from, and |
 |             | the line or command that bears  |
 |             | it out                          |
+| `relayed`   | who passed it on, and the words |
+|             | as they arrived                 |
 | `unsourced` | none — this is the inference    |
 
 `asked` never appears in a brief this skill writes; it exists for callers that
@@ -120,7 +122,8 @@ model wrote reaches you as a user turn: a hand-off plan that opens a session
 ("Implement the following plan: ..."), the summary that continues a compacted
 session, a note relayed from another agent, the expanded body of a skill or
 command, an issue or ticket a model filed (look at its author before you tag it
-`issue`). None of it is the user's voice, and a plan the user approved is no
+`issue`). None of it is the user's voice, though it may pass their words on (see
+"A claim relayed from the user" below), and a plan the user approved is no
 exception — approving a plan accepts its approach, not every reason it gives.
 Cite as `session` only what the user typed, or a reason they accepted; if you
 cannot tell who wrote a sentence, treat it as not the user.
@@ -144,12 +147,28 @@ Check what the reason claims, not what is next to it: a grep that shows the code
 is unoptimized does not show the cases are rare. A reason about what someone
 wanted cannot be checked against code at all; only their own words source it.
 
-Such text is a lead, though, not a dead end. A plan's "the user wants X" usually
-restates something the user did say in the session that wrote the plan, and both
-a plan hand-off and a compaction summary name that session's transcript ("read
-the full transcript at: ..."). Read it and quote the user from there. The entry
-is `unsourced` only when their words are not in it, or nothing names a
-transcript.
+### A claim relayed from the user
+
+Text a model wrote can still pass the user's words on. A plan's "the user wants
+X" usually restates something the user did say in the session that wrote the
+plan, and both a plan hand-off and a compaction summary name that session's
+transcript ("read the full transcript at: ..."). Read it and quote the user from
+there; the entry is `session`.
+
+When their words are not in it, or nothing names a transcript, look at what the
+text says about the claim. If it attributes the claim to the user, by quoting
+them or by saying they said it ("Sam says the upgrade is for the security
+fixes"), the claim is theirs and only the passing-on is a model's. The entry is
+`relayed`, citing who passed it on and the words as they arrived:
+
+```
+incident-1: [relayed] (review session's note: "Sam: not needed for the
+  failing build, we upgrade libfoo to 3.2.1 for its security fixes")
+  Upgraded for the security fixes in libfoo 3.2.1.
+```
+
+A plan's or an agent's own reasoning is not `relayed`, however confident it
+sounds: it is `checked` or `unsourced`, as above.
 
 ### A reason the user accepted
 
@@ -176,14 +195,14 @@ one. Approving a plan still accepts only its approach.
 
 - `today` — what the code does now at the change site
 - `incident` — what prompted this change, and why now. Narrower legal tags than
-  the table above: `asked`, `session`, `issue`, `checked`, or `unsourced` only —
-  never `diff`, `code`, or `blame`. Those three can tell you what the code does
-  and when it started; they cannot tell you why anyone wanted it to. "This
-  mirrors how an existing field already works" is a `code` fact about the
-  change, not a fact about the motive — tagging it `code` and calling `incident`
-  answered is exactly the mistake this rule exists to close. If the only thing
-  you have is a diff or the commit that introduced the touched code, the entry
-  is `unsourced`.
+  the table above: `asked`, `session`, `issue`, `checked`, `relayed`, or
+  `unsourced` only — never `diff`, `code`, or `blame`. Those three can tell you
+  what the code does and when it started; they cannot tell you why anyone wanted
+  it to. "This mirrors how an existing field already works" is a `code` fact
+  about the change, not a fact about the motive — tagging it `code` and calling
+  `incident` answered is exactly the mistake this rule exists to close. If the
+  only thing you have is a diff or the commit that introduced the touched code,
+  the entry is `unsourced`.
 - `change` — what the diff tells the code to do differently, imperative
 - `alternatives` — approaches weighed and rejected, with the reason
 - `series` — what a neighbouring commit on this branch does, by position
@@ -266,6 +285,6 @@ It prints `line N: reason` for each malformed entry and exits non-zero. Fix the
 file and run it again until it passes; do not report a brief it rejects. On a
 pass it prints the entry count by tag.
 
-Then report to the caller, in two lines: the count of entries by tag, and the
-`unsourced` entries in full. The caller needs to see the gaps without opening
-the file.
+Then report to the caller: the count of entries by tag, and the `unsourced` and
+`relayed` entries in full. The caller needs to see the gaps without opening the
+file.
