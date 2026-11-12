@@ -91,9 +91,9 @@ A body asserting X is a thing they have to notice first.
    you reword your own commits; `peff-commit` cannot be invoked by a model.
 
    With `incident` quarantined the finding count is usually low, so the budget
-   is usually one paragraph or none. Let it be short. Saying what the code does
-   today and what changes, and stopping there, is the correct output for a
-   change whose reason is not recorded anywhere; 12% of peff's real commit
+   is usually ~60 words or the ground alone. Let it be short. Saying what the
+   code does today and what changes, and stopping there, is the correct output
+   for a change whose reason is not recorded anywhere; 12% of peff's real commit
    bodies are under 40 words.
 
 4. **Report**, leading with the **Assumed, not sourced** section. That section

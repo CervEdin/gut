@@ -121,21 +121,21 @@ When there is enough to say, the motive gets the most detail, and context or
 history goes between it and the fix if it is needed.
 
 Read the order as a description of a message whose facts were all available, not
-as a template to fill. The number of paragraphs follows the number of things you
-actually went and found out — see "How Long Should This Be?" below. Saying what
-the code does today is not one of them. Where you write it, write it because the
-message has to stand without the diff beside it, not because a paragraph wants
-filling.
+as a template to fill. The length follows the number of things you actually went
+and found out — see "How Long Should This Be?" below. Saying what the code does
+today is not one of them; the number of paragraphs follows the topics, below.
+Where you write it, write it because the message has to stand without the diff
+beside it, not because a paragraph wants filling.
 
-One paragraph, one topic. A paragraph of more than 5 sentences or more than
-about 80 words that covers more than one topic is a block nobody reads: the
-reader who needs one fact has to read all of it to find it. A topic is a part
-that a reader can look for on its own: what the code does, what happens during
+One paragraph, one topic. Split where the topic changes, however short the
+paragraph: a reader who needs one fact should not have to read another topic to
+find it. A topic is a part that a reader can look for on its own: what the code
+does, what the change does, how it does it or at what cost, what happens during
 an operation, what happens after it, what a person must do, what it cannot do or
-fix, or what was tried. Split such a paragraph where one topic ends and the next
-begins. The counts are a reason to look, not a ceiling: one argument where each
+fix, or what was tried. A paragraph of more than 5 sentences or more than about
+80 words is a reason to look for a second topic. One argument where each
 sentence builds on the last, or sentences that each show how the change meets
-one constraint, stays one paragraph however long it is.
+one constraint, stays one paragraph.
 
 A paragraph opens with its point. A run of sentences that each restate a hunk of
 the diff, with none that says what they add up to, is the changelog of "What NOT
@@ -144,13 +144,15 @@ the brief, and keep only the hunks it needs. If no entry gives that point, the
 hunks are the ground: a sentence, not a paragraph.
 
 A paragraph of one sentence that a split left is a question to ask. If it says
-what the diff says and gives no reason, it is changelog and goes. If it is one
+what the diff says and gives no reason, it is changelog and goes. The one
+sentence that states the fix is the exception: it stays. If the paragraph is one
 consequence of an idea the message never states, such as an invariant several
 writers must keep, find that idea in the code or the brief and make it the topic
-sentence of a paragraph that holds its consequences. If it belonged to the
-paragraph it was cut from, put it back. Short paragraphs in the same form do not
-become a list of what changed: that is the changelog "What NOT to Do" rules out.
-Items that are a list on their own go in one, as "Tone" says.
+sentence of a paragraph that holds its consequences. If it is on the same topic
+as the paragraph it was cut from, put it back. A one-sentence paragraph on a
+topic of its own stays. Short paragraphs in the same form do not become a list
+of what changed: that is the changelog "What NOT to Do" rules out. Items that
+are a list on their own go in one, as "Tone" says.
 
 ### Sentences
 

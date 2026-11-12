@@ -33,7 +33,7 @@ in either skill — a guess is not something you found out.
 
 A `series` entry is not one either. It comes off the branch's own log, and
 nearly every commit on a topic branch has one, so counting it would give nearly
-every commit an extra paragraph. Write it where it helps, like the ground, and
+every commit a larger word range. Write it where it helps, like the ground, and
 fit it in the room the findings earned.
 
 Counting and placement are two different decisions. `uncertain` entries and
@@ -43,21 +43,18 @@ Count only the findings the body is actually going to say.
 
 Count the findings:
 
-| findings | body           | usual range |
-| -------- | -------------- | ----------- |
-| 0        | the ground     | ~25 words   |
-| 1-2      | one paragraph  | ~60 words   |
-| 3-4      | two paragraphs | ~140 words  |
-| 5+       | three or more  | ~250 words  |
+| findings | usual range |
+| -------- | ----------- |
+| 0        | ~25 words   |
+| 1-2      | ~60 words   |
+| 3-4      | ~140 words  |
+| 5+       | ~250 words  |
 
-The paragraph count is the rule; the word ranges describe what that many
-paragraphs usually come to. Coming in far under one is normal and good. Going
-well over is a signal to check the prose, not a violation to trim — a single
-subtle mechanism can genuinely want a hundred words, and cutting it to fit a
-number loses something that was actually sourced.
-
-A split by topic (see "Paragraph Structure" in `PEFF-STYLE.md`) can add a
-paragraph or a list to that count. The findings still set the word range.
+The word range is a guide; the number of paragraphs follows the topics (see
+"Paragraph Structure" in `PEFF-STYLE.md`). Coming in far under one is normal and
+good. Going well over is a signal to check the prose, not a violation to trim —
+a single subtle mechanism can genuinely want a hundred words, and cutting it to
+fit a number loses something that was actually sourced.
 
 **No findings means the ground and nothing else** — however much of it the
 change actually wants, which is often a sentence or two and sometimes nothing at
@@ -115,14 +112,15 @@ up during the work ("why not keep the old name?"), it goes in the body only when
 a reader of the diff would ask the same question. Otherwise it answers the
 session, not the change: put it in the notes, or leave it out.
 
-Shape the paragraphs as you draft, not after the checks. A paragraph of more
-than 5 sentences or more than about 80 words on more than one topic is split
-where its topics part, and a sentence or more of someone else's words inside a
-sentence goes into a `> ` block of its own; the user's words become the author's
-own, with the quote in the notes. See "Paragraph Structure" and "Emphasis and
-References" in `PEFF-STYLE.md`. Then reread the message as a reader would. Each
-paragraph of one sentence that a split left gets the questions in "Paragraph
-Structure": drop it, write the idea it serves, or put it back.
+Shape the paragraphs as you draft, not after the checks. A paragraph on more
+than one topic is split where its topics part, however short it is, and a
+sentence or more of someone else's words inside a sentence goes into a `> `
+block of its own; the user's words become the author's own, with the quote in
+the notes. See "Paragraph Structure" and "Emphasis and References" in
+`PEFF-STYLE.md`. Then reread the message as a reader would. Each paragraph of
+one sentence that a split left gets the questions in "Paragraph Structure": drop
+it, write the idea it serves, or put it back if it is on the same topic as the
+paragraph it came from.
 
 ## 3. Check
 
@@ -224,8 +222,8 @@ directory.
    paragraphs: 1: 3 sentences, 52 words, 1 topic; 2: 7 sentences, 104 words, 2 topics
    ```
 
-   A paragraph over the limits with more than one topic goes back to §2 to be
-   split. So does each paragraph of one sentence that a split left, for the
+   A paragraph with more than one topic goes back to §2 to be split, whatever
+   its length. So does each paragraph of one sentence that a split left, for the
    questions in "Paragraph Structure". Checks 2 and 4 run again on the result.
 
 5. **Commit references.** Every sha in the draft is on the mainline.
