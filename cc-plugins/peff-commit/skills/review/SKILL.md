@@ -43,15 +43,20 @@ yours. Ask it:
 You are reading these commits in `git log -p` a year from now. For each
 commit, list each sentence of the message that:
 
-- you do not understand
+- you do not understand or have to read twice
 - refers to something you cannot see, or whose "it" or "this" you
   cannot resolve
+- uses a term that neither the message nor the diff explains
 - states a behaviour without saying why it matters
 - gives a reason without saying what it buys
 - the diff does not bear out
+- announces, frames or sums up instead of saying something
 
 And each paragraph that:
 
+- covers more than one topic (one argument where each sentence builds
+  on the last is one topic)
+- adds a point without saying how it ties to the one before
 - is a list written as sentences: steps in order, or parallel items
   strung together
 
@@ -75,6 +80,17 @@ A thin reason, such as "saves ~730 tokens per session", often has a fuller one
 behind it that the session that made the change knew. Where you can find it in
 the change's transcript or work it out from the code, write it as a sentence for
 the message and show it to the user with the finding.
+
+Read each message yourself, too, for what the cold reader cannot judge: first
+person used as the message's voice. That is an "I" or "we" for a view the reader
+already takes to be the author's ("I would rather go through the notes"), or a
+sentence that narrates the session ("I picked it", "we changed Y to Z"). A
+commit message is read as the author's account a year later, and that a commit
+expresses its author's opinions is assumed. First person stays where it marks a
+statement as an opinion or a guess rather than a fact ("I suspect", "I punted on
+it for now"), or as something the author ran into, and "we" for what the code or
+the project does stays too. Show it to the user as a finding with a rewording;
+it is not a rule.
 
 ## 2. Notes
 
