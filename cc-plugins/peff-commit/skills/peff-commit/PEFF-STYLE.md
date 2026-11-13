@@ -110,9 +110,9 @@ the brief, whose `today` entries are already in the present tense.
   hedge reports real uncertainty; do not hedge for politeness or effect
 - **Humble about scope** — "not urgent, but since we're here we might as well
   fix it", "probably not worth as many words as I wrote"
-- **Prose paragraphs preferred** — but numbered lists are fine when enumerating
-  genuinely distinct items (e.g., "two independent reasons this is broken: 1.
-  ... 2. ...")
+- **A list for what is a list** — steps in order, parallel examples, independent
+  reasons ("two independent reasons this is broken: 1. ... 2. ..."). Write them
+  as a numbered or dashed list, not strung together as sentences in a paragraph
 - **No markdown headers** in the commit body
 
 ### Paragraph Structure
@@ -121,21 +121,21 @@ When there is enough to say, the motive gets the most detail, and context or
 history goes between it and the fix if it is needed.
 
 Read the order as a description of a message whose facts were all available, not
-as a template to fill. The number of paragraphs follows the number of things you
-actually went and found out — see "How Long Should This Be?" below. Saying what
-the code does today is not one of them. Where you write it, write it because the
-message has to stand without the diff beside it, not because a paragraph wants
-filling.
+as a template to fill. The length follows the number of things you actually went
+and found out — see "How Long Should This Be?" below. Saying what the code does
+today is not one of them; the number of paragraphs follows the topics, below.
+Where you write it, write it because the message has to stand without the diff
+beside it, not because a paragraph wants filling.
 
-One paragraph, one topic. A paragraph of more than 5 sentences or more than
-about 80 words that covers more than one topic is a block nobody reads: the
-reader who needs one fact has to read all of it to find it. A topic is a part
-that a reader can look for on its own: what the code does, what happens during
+One paragraph, one topic. Split where the topic changes, however short the
+paragraph: a reader who needs one fact should not have to read another topic to
+find it. A topic is a part that a reader can look for on its own: what the code
+does, what the change does, how it does it or at what cost, what happens during
 an operation, what happens after it, what a person must do, what it cannot do or
-fix, or what was tried. Split such a paragraph where one topic ends and the next
-begins. The counts are a reason to look, not a ceiling: one argument where each
+fix, or what was tried. A paragraph of more than 5 sentences or more than about
+80 words is a reason to look for a second topic. One argument where each
 sentence builds on the last, or sentences that each show how the change meets
-one constraint, stays one paragraph however long it is.
+one constraint, stays one paragraph.
 
 A paragraph opens with its point. A run of sentences that each restate a hunk of
 the diff, with none that says what they add up to, is the changelog of "What NOT
@@ -144,14 +144,15 @@ the brief, and keep only the hunks it needs. If no entry gives that point, the
 hunks are the ground: a sentence, not a paragraph.
 
 A paragraph of one sentence that a split left is a question to ask. If it says
-what the diff says and gives no reason, it is changelog and goes. If it is one
+what the diff says and gives no reason, it is changelog and goes. The one
+sentence that states the fix is the exception: it stays. If the paragraph is one
 consequence of an idea the message never states, such as an invariant several
 writers must keep, find that idea in the code or the brief and make it the topic
-sentence of a paragraph that holds its consequences. If it belonged to the
-paragraph it was cut from, put it back. Short paragraphs in the same form do not
-become a list: a list of what changed is the changelog that "What NOT to Do"
-rules out. A numbered list, as "Tone" allows, is for items that are a list on
-their own.
+sentence of a paragraph that holds its consequences. If it is on the same topic
+as the paragraph it was cut from, put it back. A one-sentence paragraph on a
+topic of its own stays. Short paragraphs in the same form do not become a list
+of what changed: that is the changelog "What NOT to Do" rules out. Items that
+are a list on their own go in one, as "Tone" says.
 
 ### Sentences
 
@@ -167,6 +168,10 @@ reword:
   the reader asking why it matters. Ask what goes wrong for a reader who does
   not know it, and write that ("an empty path counts as unset: SQLite would open
   a temporary database that vanishes on close"). If nothing goes wrong, cut it.
+  A reason can be as vague as a behaviour: "the version matters" leaves the
+  reader asking which version, and what happens. Write what happens: "when the
+  lockfile pins a newer compiler than CI installs, the CI build fails". Each
+  sentence says one thing a reader can check.
 - **A number carries a decision.** "On the 7.4 GB database it held the write
   lock for about a minute. Reverts are rare, so that is fine." Lab notes, such
   as each run's timing, the run before, or a constant's name, go: the reader
@@ -190,8 +195,23 @@ reword:
   relation it states; if there is none, split it.
 - **No filler.** Cut a sentence the reader would assume ("A checkpoint is only
   useful with a way back to it", "the tests pass") and a word that adds nothing
-  ("only" in "only warns", "simply", "now" meaning "after this patch"). Test it:
-  delete the word or sentence; did the reader lose a fact?
+  ("only" in "only warns", "simply", "now" meaning "after this patch"). Cut an
+  outcome that CI or the diff already shows, too: a lint, test or build that
+  passes (see §5 of `COMPOSE.md`), or a file left untouched that nothing would
+  have touched. Test it: delete the word or sentence; did the reader lose a
+  fact?
+- **Only what this commit does.** A sentence about a symptom must not read as if
+  this commit fixes it. "That drift is why the generated parser differs between
+  branches", in a commit that does not regenerate it, tells the reader that it
+  does. Say what the commit changes, and state the symptom as context or not at
+  all.
+- **A stance where there is a cost.** Where the change gives something up, say
+  in a sentence why that is acceptable: "A new patch release no longer reaches
+  CI by itself. I think that is the lesser evil, because ...". Without it the
+  reader cannot tell a cost you weighed from one you missed. Write the stance
+  only when its reason has a source. Otherwise put the cost in the notes, saying
+  what the change gives up and that the reason is missing, so that
+  `peff-commit:review` can ask for it.
 - **The conditions survive.** A sentence that condenses the code, a comment or a
   docstring keeps the condition ("fails when the checkpoint has no -shm", not
   "fails without a -shm"). Read the claim against the code, not your memory of
@@ -262,20 +282,26 @@ carries a decision" under "Sentences".
 
 - Uses _italics-style_ emphasis sparingly for subtle distinctions (rendered in
   email as underscores: "dispatched _from_")
-- References other commits by abbreviated sha and subject: "1f3fd68e06
-  (odb/source: make read_object_stream() pluggable, 2026-03-05)" — but only for
-  a commit that has reached the mainline. Anything short of that, the commits of
-  your own branch included, is named by position ("the previous commit", "the
-  next commit"), because a rebase will have changed its sha
+- References other commits by abbreviated sha, subject and date, as
+  `git show -s --format=reference <sha>` prints them: "1f3fd68e06 (odb/source:
+  make read_object_stream() pluggable, 2026-03-05)". Never a bare sha: the
+  reader needs the subject to know what it was. Keep the reference inside a line
+  that flows, not on a line of its own. Only a commit that has reached the
+  mainline gets one. Anything short of that, the commits of your own branch
+  included, is named by position ("the previous commit", "the next commit"),
+  because a rebase will have changed its sha
 - References related discussion: "This was caught during review of ..."
+- Links to a source that stays put, not one that will have changed by the time
+  the link is read (e.g. a specific release, not the page of all releases)
 - Credits others when their report or review led to the fix
 
-One rule here is this skill's, not peff's. Quote a sentence or more of someone
-else's words (a reviewer, a bug report) in a block of its own, with each line
-starting `> ` as mail quotes do, after a line that names who said it. A quote in
-mid-sentence buries both the words and the point. A quoted term, message or
-command ("database is locked"), a few words, and text from a spec or standard
-stay inline.
+Some rules here are this skill's, not peff's: never a bare sha, the link that
+stays put, and this one. Quote a sentence or more of someone else's words (a
+reviewer, a bug report) in a block of its own, with each line starting `> ` as
+mail quotes do, after a line that names who said it. A quote in mid-sentence
+buries both the words and the point. A quoted term, message or command
+("database is locked"), a few words, and text from a spec or standard stay
+inline.
 
 The user is not someone else: the commit is authored as them. Do not quote them
 in the message or write "the user said"; say what they said as the author's own
@@ -283,7 +309,8 @@ reasoning. Their words, quoted, go in the notes.
 
 ## What NOT to Do
 
-- No bullet-point changelogs ("- changed X", "- added Y")
+- No bullet-point changelogs ("- changed X", "- added Y"). A list of steps or of
+  parallel items is not one; see "Tone"
 - No "This commit does X" self-referential framing
 - No JIRA ticket numbers in the subject (put in footer if needed)
 - No emoji
@@ -343,10 +370,10 @@ what you were thinking.
 
 **Formatting:** notes are stored verbatim by `git notes` and read in a terminal,
 so format them exactly like commit body prose: aim for 72 characters per line
-(soft limit), hard limit 120. No markdown, no bullet lists masquerading as
-prose. Paragraphs separated by a single blank line. A dense paragraph is split
-into paragraphs only, with no list. A person's words, the user's included, go in
-a mail-style `> ` quote (see "Emphasis and References").
+(soft limit), hard limit 120. No markdown. Paragraphs separated by a single
+blank line. A dense paragraph is split into paragraphs, or into a list where its
+items are one (see "Tone"). A person's words, the user's included, go in a
+mail-style `> ` quote (see "Emphasis and References").
 
 Use notes for:
 

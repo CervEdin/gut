@@ -39,7 +39,7 @@ A body asserting X is a thing they have to notice first.
 ## Process
 
 1. **Gather.** Invoke the `commit-brief` skill. It writes `.git/commit-brief`
-   and reports which entries came back `unsourced`.
+   and reports which entries came back `unsourced` or `relayed`.
 
 2. **Quarantine.** Every `unsourced` entry stays out of the commit body, without
    exception, and goes into the notes marked as an assumption:
@@ -69,6 +69,16 @@ A body asserting X is a thing they have to notice first.
    made. That is an accurate message. Before that search has run, it means the
    search is not done.
 
+   A `relayed` entry is not quarantined. It is the user's claim, and only the
+   passing-on is a model's, so the message uses it where it needs it, like any
+   other finding. The notes still record that nobody in this session heard the
+   user say it, in a paragraph of its own:
+
+   ```
+   Relayed, not confirmed: libfoo is upgraded to 3.2.1 for its security fixes.
+   The review session passed it on as the user's words.
+   ```
+
 3. **Compose, check, commit.** Follow `../peff-commit/COMPOSE.md`: budget, draft
    from the brief, check (brief lint, the provenance file with its coverage
    section, budget and paragraphs, commit references, line length, slop score),
@@ -81,12 +91,16 @@ A body asserting X is a thing they have to notice first.
    you reword your own commits; `peff-commit` cannot be invoked by a model.
 
    With `incident` quarantined the finding count is usually low, so the budget
-   is usually one paragraph or none. Let it be short. Saying what the code does
-   today and what changes, and stopping there, is the correct output for a
-   change whose reason is not recorded anywhere; 12% of peff's real commit
+   is usually ~60 words or the ground alone. Let it be short. Saying what the
+   code does today and what changes, and stopping there, is the correct output
+   for a change whose reason is not recorded anywhere; 12% of peff's real commit
    bodies are under 40 words.
 
 4. **Report**, leading with the **Assumed, not sourced** section. That section
    is why this skill is allowed to run without asking: it moves the interview
    after the commit instead of deleting it. It lists reasons to verify, not
    things to do; those go under **To decide** (see §6 of `COMPOSE.md`).
+
+   After the last commit of a series, or of a reword run, end the report by
+   suggesting `/peff-commit:review` over the series, to go through the notes
+   with the user.

@@ -26,14 +26,14 @@ is any of it a finding: you did not go and learn it, it was in front of you. So
 it earns the body no room.
 
 **The findings** are what you had to go and get: `incident`, `alternatives`,
-`blame`, `issue`, a model's reason you `checked`, and anything the caller came
-back with as `asked`. These are what make a message long, and they are what to
-count. `unsourced` entries are not findings in either skill — a guess is not
-something you found out.
+`blame`, `issue`, a model's reason you `checked`, a claim `relayed` as the
+user's, and anything the caller came back with as `asked`. These are what make a
+message long, and they are what to count. `unsourced` entries are not findings
+in either skill — a guess is not something you found out.
 
 A `series` entry is not one either. It comes off the branch's own log, and
 nearly every commit on a topic branch has one, so counting it would give nearly
-every commit an extra paragraph. Write it where it helps, like the ground, and
+every commit a larger word range. Write it where it helps, like the ground, and
 fit it in the room the findings earned.
 
 Counting and placement are two different decisions. `uncertain` entries and
@@ -43,21 +43,18 @@ Count only the findings the body is actually going to say.
 
 Count the findings:
 
-| findings | body           | usual range |
-| -------- | -------------- | ----------- |
-| 0        | the ground     | ~25 words   |
-| 1-2      | one paragraph  | ~60 words   |
-| 3-4      | two paragraphs | ~140 words  |
-| 5+       | three or more  | ~250 words  |
+| findings | usual range |
+| -------- | ----------- |
+| 0        | ~25 words   |
+| 1-2      | ~60 words   |
+| 3-4      | ~140 words  |
+| 5+       | ~250 words  |
 
-The paragraph count is the rule; the word ranges describe what that many
-paragraphs usually come to. Coming in far under one is normal and good. Going
-well over is a signal to check the prose, not a violation to trim — a single
-subtle mechanism can genuinely want a hundred words, and cutting it to fit a
-number loses something that was actually sourced.
-
-A split by topic (see "Paragraph Structure" in `PEFF-STYLE.md`) can add a
-paragraph or a list to that count. The findings still set the word range.
+The word range is a guide; the number of paragraphs follows the topics (see
+"Paragraph Structure" in `PEFF-STYLE.md`). Coming in far under one is normal and
+good. Going well over is a signal to check the prose, not a violation to trim —
+a single subtle mechanism can genuinely want a hundred words, and cutting it to
+fit a number loses something that was actually sourced.
 
 **No findings means the ground and nothing else** — however much of it the
 change actually wants, which is often a sentence or two and sometimes nothing at
@@ -115,14 +112,15 @@ up during the work ("why not keep the old name?"), it goes in the body only when
 a reader of the diff would ask the same question. Otherwise it answers the
 session, not the change: put it in the notes, or leave it out.
 
-Shape the paragraphs as you draft, not after the checks. A paragraph of more
-than 5 sentences or more than about 80 words on more than one topic is split
-where its topics part, and a sentence or more of someone else's words inside a
-sentence goes into a `> ` block of its own; the user's words become the author's
-own, with the quote in the notes. See "Paragraph Structure" and "Emphasis and
-References" in `PEFF-STYLE.md`. Then reread the message as a reader would. Each
-paragraph of one sentence that a split left gets the questions in "Paragraph
-Structure": drop it, write the idea it serves, or put it back.
+Shape the paragraphs as you draft, not after the checks. A paragraph on more
+than one topic is split where its topics part, however short it is, and a
+sentence or more of someone else's words inside a sentence goes into a `> `
+block of its own; the user's words become the author's own, with the quote in
+the notes. See "Paragraph Structure" and "Emphasis and References" in
+`PEFF-STYLE.md`. Then reread the message as a reader would. Each paragraph of
+one sentence that a split left gets the questions in "Paragraph Structure": drop
+it, write the idea it serves, or put it back if it is on the same topic as the
+paragraph it came from.
 
 ## 3. Check
 
@@ -224,8 +222,8 @@ directory.
    paragraphs: 1: 3 sentences, 52 words, 1 topic; 2: 7 sentences, 104 words, 2 topics
    ```
 
-   A paragraph over the limits with more than one topic goes back to §2 to be
-   split. So does each paragraph of one sentence that a split left, for the
+   A paragraph with more than one topic goes back to §2 to be split, whatever
+   its length. So does each paragraph of one sentence that a split left, for the
    questions in "Paragraph Structure". Checks 2 and 4 run again on the result.
 
 5. **Commit references.** Every sha in the draft is on the mainline.
@@ -280,19 +278,29 @@ output, a long identifier — and is still inside the 120-character hard limit.
 
 ## 5. Notes
 
-Notes carry what the message cannot: alternatives not taken, caveats, scope
-decisions, uncertainties — and, in `peff-commit-auto`, every `unsourced` entry
-from the brief, marked plainly as an assumption.
+Notes carry what the message cannot, and what it says without confirmation:
+alternatives not taken, caveats, scope decisions, uncertainties, a cost the
+message takes no stance on — and, in `peff-commit-auto`, every `unsourced` entry
+from the brief, marked plainly as an assumption. Every `relayed` entry the
+message uses gets a note too, marked as not confirmed.
 
-Keep the two kinds apart. An assumption or an uncertainty is a claim, which the
-reader verifies. A scope decision or a piece of work left over (fix X, drop Y)
-is not a claim; the reader decides it. They go in separate paragraphs.
+Keep three kinds apart, each in paragraphs of its own. An assumption or an
+uncertainty is a claim, which the reader verifies. A relayed claim is already in
+the message; the reader confirms that it is theirs. A scope decision or a piece
+of work left over (fix X, drop Y) is not a claim; the reader decides it.
 
-Format them exactly like commit body prose, because `git notes` stores them
+Write a note only when a reviewer can act on it: check a claim, decide a scope,
+weigh an alternative. Leave out filler: why a formatter reflowed a line, or that
+a lint, the tests or the build pass. Once a commit is on the mainline, its
+checks can be assumed to have passed when it merged, and after an amend or a
+rebase the claim may no longer hold.
+
+Format notes exactly like commit body prose, because `git notes` stores them
 verbatim and they are read in a terminal: 72 characters per line soft, 120 hard,
-no markdown, no bullet lists, paragraphs separated by a blank line. A dense
-paragraph is split into paragraphs only. A person's words, the user's included,
-go in a mail-style `> ` quote: see "Emphasis and References" in `PEFF-STYLE.md`.
+no markdown, paragraphs separated by a blank line. A dense paragraph is split
+into paragraphs, or into a list where its items are one (see "Tone" in
+`PEFF-STYLE.md`). A person's words, the user's included, go in a mail-style `> `
+quote: see "Emphasis and References" in `PEFF-STYLE.md`.
 
 No hook fires on `git notes add`, so nothing else catches a long line. Check
 first:
@@ -330,30 +338,12 @@ cheap. It holds claims only. Work to do or to drop goes after it, under **To
 decide**, so that the user is not asked to verify a to-do. Close with
 `git commit --amend` to fix the message, `git notes edit` for the notes.
 
-## Cold read, before review
+## Review, before sending
 
-This is not a check on every commit. Run it when the messages are about to be
-reviewed: before a series is sent or pushed for review, or when the user asks
-for it. Run it once over the series.
-
-You know the session, so you cannot read the messages as someone who does not.
-Hand them to a subagent that knows only what a reader of the log will:
-`git log -p --no-notes <range>`. No brief, notes, transcript or conclusions of
-yours. Ask it:
-
-```
-You are reading these commits in `git log -p` a year from now. For each
-commit, list each sentence of the message that you do not understand, that
-refers to something you cannot see, whose "it" or "this" you cannot
-resolve, that states a behaviour without saying why it matters, or that
-the diff does not bear out. Quote the sentence and say what is missing.
-Report only what you found; an empty list is a good result.
-```
-
-A smaller model is fine for this, and it makes the reader colder. Check each
-finding against the code before you act on it: the reader has no context, so
-some findings are wrong. Fix the ones that hold as a reword (below), and report
-each finding with `fixed:` or `rejected:` and the evidence.
+This is not a check on every commit. Before a series is sent or pushed for
+review, or when the user asks, run `peff-commit:review` over it, with the user
+present: a cold read of the messages by a reader with no context, and a walk
+through the notes.
 
 ## Rewording existing commits
 
@@ -377,59 +367,34 @@ one message usually applies to its siblings. Where a suggestion of theirs states
 something the code does not do, say so in one line with the evidence, then
 follow their decision. Do not argue again for wording they have settled.
 
+**Hold each round to the budget.** When the fix for a remark would push the body
+past the word range in §1, check first whether all of the addition is needed,
+whether it can be said more directly, and what the message already says that can
+go, other than wording the user settled. Only then add. Moving the extra words
+into the notes is not a fix: the length is still there, in another place.
+
 **One brief per commit.** `commit-brief` gathers from `git show <sha>` in place
 of the staged diff. Do not combine several commits into one brief: the IDs, the
 provenance file and the coverage check all belong to one commit.
 
-**Newest first.** Rewording a commit rewrites all of its descendants, and they
-get new shas. Its ancestors do not change. If you start with the newest commit,
-the shas of the older commits you have not reworded yet stay valid.
+**Fold the new messages in with one rebase, in place of §4.** Each rewrite of
+history gives every later commit a new sha, so do not rewrite once per commit.
+Commit each new message as a `--fixup=reword` commit, which names its target,
+then fold them all in with one autosquash rebase, which copies the notes when
+`notes.rewriteRef` is set. The `git-rebase-i` skill's Reword recipe does this
+with `git reword` and checks the notes afterwards. Follow it.
 
-**Save the old shas before the first reword.** Rewording loses notes (see
-below), and the old shas are how you get them back:
-
-```
-base=$(git rev-parse <oldest sha>^)
-git rev-list --reverse $base..HEAD >"$(git rev-parse --git-path peff-reword-old)"
-```
-
-**Reword in place of §4.** For each commit, after the checks pass:
+Without that plugin, start each draft with the line `amend! <sha of the target>`
+and a blank line. Autosquash folds `amend! <subject>` into the first commit with
+that subject, and two commits in a range can share one. Then run:
 
 ```
-GIT_EDITOR="cp $(git rev-parse --git-path peff-commit-draft)" git history reword <sha>
+GIT_EDITOR="cp $(git rev-parse --git-path peff-commit-draft)" git commit --fixup=reword:<sha>
+GIT_SEQUENCE_EDITOR=: git -c notes.rewriteRef='refs/notes/*' rebase -i --autosquash <oldest sha>^
 ```
 
-Where `git history` is missing, use an interactive rebase that starts at the
-commit, so the commit is the first line of the todo list:
-
-```
-GIT_SEQUENCE_EDITOR="sed -i '1s/^[a-z]*/reword/'" \
-GIT_EDITOR="cp $(git rev-parse --git-path peff-commit-draft)" git rebase -i <sha>^
-```
-
-The sed replaces any command word, not only `pick`: with
-`rebase.abbreviateCommands` set, the todo list says `p`.
-
-**Carry the notes over.** `git history reword` drops the notes of the reworded
-commit and of every descendant, whatever `notes.rewriteRef` says. `git rebase`
-keeps them only when `notes.rewriteRef` is set. After the last reword, pair the
-old shas with the new ones by position and copy each note that did not come
-across:
-
-```
-git rev-list --reverse $base..HEAD |
-paste -d' ' "$(git rev-parse --git-path peff-reword-old)" - |
-while read old new; do
-	git notes list $old >/dev/null 2>&1 &&
-	! git notes list $new >/dev/null 2>&1 &&
-	git notes copy $old $new
-done
-```
-
-Pairing by position works because a reword never adds or drops a commit, but
-only on a linear range. This copies the default notes ref. Repeat with
-`git notes --ref=<ref>` for each other ref that `git for-each-ref refs/notes`
-shows. Then use `git notes add -f` to update the notes of the reworded commits
-(§5).
+The fixup commits change no existing commit, so the shas of the targets stay
+valid until the rebase. `git log` shows each new message before it runs. Then
+use `git notes add -f` to update the notes of the reworded commits (§5).
 
 The report (§6) covers each reworded commit, with its new sha.
