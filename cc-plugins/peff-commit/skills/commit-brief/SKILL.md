@@ -54,10 +54,10 @@ Work from cheapest to most expensive and stop when a field is answered:
    grep -l -F -- "<branch>" ~/.claude/projects/*<repo directory name>*/*.jsonl
    ```
 
-   Read the user's turns in each:
+   Read the user's turns in each, with their answers to AskUserQuestion:
 
    ```
-   jq -r 'select(.type=="user" and (.message.content|type)=="string") | .message.content' <transcript>
+   jq -r 'select(.type=="user") | if (.message.content|type)=="string" then .message.content else (.toolUseResult|objects|.answers|objects|to_entries[]|"answered: \"\(.key)\" = \"\(.value)\"") end' <transcript>
    ```
 
    Then read the plans, handoff notes and review files that those turns name.
