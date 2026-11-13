@@ -73,6 +73,11 @@
       "description": "Resolve merge conflicts in the working tree during an active merge, rebase, or cherry-pick"
     },
     {
+      "name": "review-panel",
+      "source": "./cc-plugins/review-panel",
+      "description": "Run the persona reviews in parallel as independent agents, then verify each defect they claim against the code"
+    },
+    {
       "name": "sunshine-review",
       "source": "./cc-plugins/sunshine-review",
       "description": "Channel Eric Sunshine to review code with meticulous, line-level precision — catching what others skim past"

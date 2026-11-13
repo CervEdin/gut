@@ -1,0 +1,5 @@
+{
+  "name": "review-panel",
+  "description": "Run the persona reviews in parallel as independent agents, then verify each defect they claim against the code",
+  "version": "0.1.0"
+}
