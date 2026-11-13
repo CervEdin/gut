@@ -124,9 +124,11 @@ session, a note relayed from another agent, the expanded body of a skill or
 command, an issue or ticket a model filed (look at its author before you tag it
 `issue`). None of it is the user's voice, though it may pass their words on (see
 "A claim relayed from the user" below), and a plan the user approved is no
-exception — approving a plan accepts its approach, not every reason it gives.
-Cite as `session` only what the user typed, or a reason they accepted; if you
-cannot tell who wrote a sentence, treat it as not the user.
+exception — approving a plan means "go ahead", not that the user read it or
+agrees with it. A decision in the plan, its approach included, is the user's
+only where a turn of theirs covers it. Cite as `session` only what the user
+typed, or a reason they accepted; if you cannot tell who wrote a sentence, treat
+it as not the user.
 
 ### A model's reason
 
@@ -189,7 +191,7 @@ The entry says what the offer said, not a better reason found later. Silence is
 not acceptance: a change the model made and gave a reason for, which the user
 never answered, is a model's reason like any other, `checked` or `unsourced`. So
 is a reason worked out after the user took a change that was offered without
-one. Approving a plan still accepts only its approach.
+one. Approving a plan accepts none of its reasons.
 
 ## Fields
 
