@@ -1,5 +1,5 @@
 {
   "name": "review-panel",
-  "description": "Run the persona reviews in parallel as independent agents, then verify each defect they claim against the code",
+  "description": "Run the persona reviews and intent-review in parallel as independent agents, then verify each defect against the code and each intent finding against the transcripts",
   "version": "0.1.0"
 }
