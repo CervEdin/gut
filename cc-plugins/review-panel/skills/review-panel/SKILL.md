@@ -183,6 +183,10 @@ one line how many agents start and the model and effort of each.
    Keep the finders' full reports in this context. When asked about a finding,
    answer from the report of the persona that raised it.
 
+   When the target is a range and the user has gone through the findings, run
+   `peff-commit:review` on it in this context. It reads the commit messages as a
+   stranger would and goes through their notes with the user.
+
 ## Important
 
 - **One target for all.** Each finder and verifier gets the same target from
