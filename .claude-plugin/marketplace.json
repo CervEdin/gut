@@ -38,6 +38,11 @@
       "description": "Channel Junio C Hamano to review code for design coherence, series narrative, and long-term maintainability"
     },
     {
+      "name": "intent-review",
+      "source": "./cc-plugins/intent-review",
+      "description": "Review a diff against what the user said in the sessions that wrote it: unasked decisions, misread answers, dropped requests"
+    },
+    {
       "name": "interactive-staging",
       "source": "./cc-plugins/interactive-staging",
       "description": "Selectively stage changes into discrete commits using git plumbing"
@@ -66,6 +71,11 @@
       "name": "resolve-merge-conflicts",
       "source": "./cc-plugins/resolve-merge-conflicts",
       "description": "Resolve merge conflicts in the working tree during an active merge, rebase, or cherry-pick"
+    },
+    {
+      "name": "review-panel",
+      "source": "./cc-plugins/review-panel",
+      "description": "Run the persona reviews and intent-review in parallel as independent agents, then verify each defect against the code and each intent finding against the transcripts"
     },
     {
       "name": "sunshine-review",

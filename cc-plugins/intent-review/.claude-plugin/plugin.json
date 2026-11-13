@@ -1,0 +1,5 @@
+{
+  "name": "intent-review",
+  "description": "Review a diff against what the user said in the sessions that wrote it: unasked decisions, misread answers, dropped requests",
+  "version": "0.1.0"
+}
