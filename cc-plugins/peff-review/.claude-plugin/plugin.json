@@ -1,0 +1,5 @@
+{
+  "name": "peff-review",
+  "description": "Channel Jeff King (peff) to review code for simplicity, edge cases, and correctness — with working code alternatives",
+  "version": "0.1.0"
+}

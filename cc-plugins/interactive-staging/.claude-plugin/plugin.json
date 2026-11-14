@@ -1,0 +1,5 @@
+{
+  "name": "interactive-staging",
+  "description": "Split changes into separate, discrete commits without editing the working tree back and forth",
+  "version": "0.1.7"
+}

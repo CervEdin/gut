@@ -1,0 +1,292 @@
+---
+name: commit-brief
+description: >-
+  Gather the evidence behind a change and record it as a sourced brief before
+  any commit message is written — what the code does today, what prompted the
+  change, what it does differently, what alternatives were weighed, what was
+  deliberately left out. Every claim is tagged with where it came from, so
+  anything the model merely inferred is visible as an inference. Use it before
+  writing a commit message, a PR description, or a patch series cover letter.
+disable-model-invocation: false
+---
+
+# commit-brief
+
+Collect what is actually known about a change, and record where each piece came
+from. This runs before any prose exists. It writes evidence, not sentences.
+
+The point is the source tags. A commit message that invents a motivation reads
+exactly like one that reports a real motivation, so the invention is invisible
+once it is prose. Tagging each claim at the moment it is collected — while it is
+still obvious whether it was read or assumed — is what keeps the distinction
+alive long enough for the message to respect it.
+
+This skill never asks the user anything. It gathers what is there and marks what
+is missing. Whoever calls it decides what to do about the gaps.
+
+## Gather
+
+Work from cheapest to most expensive and stop when a field is answered:
+
+1. `git diff --cached` (or `git diff` if nothing is staged). This always answers
+   `change`, and usually `today`. When rewording an existing commit, use
+   `git show <sha>`, one brief per commit; see "Rewording existing commits" in
+   `../peff-commit/COMPOSE.md`.
+2. The source around each hunk — enough to say what the code does now, not just
+   what the patch touches.
+3. `git log -10 --no-merges` on the repo, and `git blame`/`git log -L` on the
+   touched lines. Commits that introduced the code being changed often carry the
+   reason it looked that way.
+4. The rest of this branch: `git log --oneline @{upstream}..HEAD`, or
+   `main..HEAD` where there is no upstream. These are the commits a `series`
+   entry can point back to; anything older is ordinary history.
+5. The conversation so far. What did the user actually say about this change?
+   This is also the only place a _following_ commit can come from — the repo
+   cannot know what has not been written yet. If the session was handed off from
+   another, its transcript counts too; see "Tags".
+6. Earlier sessions that worked on this branch. A session that planned, built or
+   reviewed the change may hold the reason, and its transcript stays on disk
+   under `~/.claude/projects/`, in one directory per working directory: the path
+   with each `/` turned into `-`. A worktree has a directory of its own. Find
+   the transcripts that name the branch or a touched file:
+
+   ```
+   grep -l -F -- "<branch>" ~/.claude/projects/*<repo directory name>*/*.jsonl
+   ```
+
+   Read the user's turns in each, with their answers to AskUserQuestion:
+
+   ```
+   jq -r 'select(.type=="user") | if (.message.content|type)=="string" then .message.content else (.toolUseResult|objects|.answers|objects|to_entries[]|"answered: \"\(.key)\" = \"\(.value)\"") end' <transcript>
+   ```
+
+   Then read the plans, handoff notes and review files that those turns name.
+   Who wrote each sentence decides its tag; see "Tags". Do not tag `incident`
+   `unsourced` before this step has run, and add a `# searched:` comment line to
+   the brief that lists the transcripts you read, or says that none matched.
+
+   In the same turns, look for what the user said about commit messages on this
+   branch: a draft they corrected, a sentence they rejected, a rule they stated
+   ("lead with the reason", "this explains the diff, not why"). Add each one to
+   the brief as a `# review:` comment line, in the user's words where they are
+   short. The draft follows them, so a lesson taught on one commit is not taught
+   again on the next.
+
+7. Any issue, PR, or mail thread already in context. Do not go fetch one that is
+   not. An `issue` entry holds the issue's reason, not the fact that it asks:
+   "checkpoints share the database's disk", not "issue 3f2a158 asks for an
+   offsite copy". The issue id goes in a trailer where the log carries them, not
+   in the sentence. If the issue gives no reason, it does not answer `incident`.
+
+## Tags
+
+Every entry carries exactly one tag, and **every tag except `unsourced` must
+carry a citation**:
+
+| tag         | citation required               |
+| ----------- | ------------------------------- |
+| `diff`      | `path` or `path:line`           |
+| `code`      | `path:line`                     |
+| `blame`     | abbreviated sha                 |
+| `session`   | a direct quote of what was said |
+| `issue`     | identifier or URL               |
+| `asked`     | the question that was answered  |
+| `checked`   | where the reason came from, and |
+|             | the line or command that bears  |
+|             | it out                          |
+| `relayed`   | who passed it on, and the words |
+|             | as they arrived                 |
+| `unsourced` | none — this is the inference    |
+
+`asked` never appears in a brief this skill writes; it exists for callers that
+interview and re-tag afterwards.
+
+If you cannot produce the citation, the tag is wrong and the entry is
+`unsourced`. This is the whole mechanism: a tag you cannot back is a guess
+wearing a label. `session` in particular is not "the conversation was broadly
+about this" — it is a sentence the user wrote, or a reason they accepted as it
+was offered (see "A reason the user accepted" below).
+
+A long session accumulates your own plans, running commentary, and mid-task
+calls ("let's rename this because X") in the same context window as anything the
+user actually said, and by the time you write the brief they read just as
+settled either way — nothing marks "I decided this three turns ago" apart from
+"this was already true." Quoting your own earlier turn back to yourself is not a
+citation; it's the same inference wearing a timestamp. If the sentence you are
+about to cite came from an assistant turn rather than the user, it is not
+`session` unless the user accepted it; see "A model's reason" below for what it
+can be.
+
+What counts is who wrote the sentence, not which turn it arrived in. Some text a
+model wrote reaches you as a user turn: a hand-off plan that opens a session
+("Implement the following plan: ..."), the summary that continues a compacted
+session, a note relayed from another agent, the expanded body of a skill or
+command, an issue or ticket a model filed (look at its author before you tag it
+`issue`). None of it is the user's voice, though it may pass their words on (see
+"A claim relayed from the user" below), and a plan the user approved is no
+exception — approving a plan means "go ahead", not that the user read it or
+agrees with it. A decision in the plan, its approach included, is the user's
+only where a turn of theirs covers it. Cite as `session` only what the user
+typed, or a reason they accepted; if you cannot tell who wrote a sentence, treat
+it as not the user.
+
+### A model's reason
+
+A model's reason is still worth having: someone reasoned about the change, and a
+message with that reason beats one with none. What decides where it goes is
+whether you checked it. Test the claim against the code, the log or a run of
+something, in a way that could have come out false. If it holds, the entry is
+`checked`, citing both where the reason came from and what bears it out:
+
+```
+incident-1: [checked] (plan in 3f2a9c.jsonl; grep -c load_list src/*.c gives
+  2 of 41 calls) Not optimized, because few callers pass a list.
+```
+
+If you cannot check it, the entry is `unsourced`, and its text names where the
+reason came from, so that a person can confirm it before it reaches a message.
+Check what the reason claims, not what is next to it: a grep that shows the code
+is unoptimized does not show the cases are rare. A reason about what someone
+wanted cannot be checked against code at all; only their own words source it.
+
+### A claim relayed from the user
+
+Text a model wrote can still pass the user's words on. A plan's "the user wants
+X" usually restates something the user did say in the session that wrote the
+plan, and both a plan hand-off and a compaction summary name that session's
+transcript ("read the full transcript at: ..."). Read it and quote the user from
+there; the entry is `session`.
+
+When their words are not in it, or nothing names a transcript, look at what the
+text says about the claim. If it attributes the claim to the user, by quoting
+them or by saying they said it ("Sam says the upgrade is for the security
+fixes"), the claim is theirs and only the passing-on is a model's. The entry is
+`relayed`, citing who passed it on and the words as they arrived:
+
+```
+incident-1: [relayed] (review session's note: "Sam: not needed for the
+  failing build, we upgrade libfoo to 3.2.1 for its security fixes")
+  Upgraded for the security fixes in libfoo 3.2.1.
+```
+
+A plan's or an agent's own reasoning is not `relayed`, however confident it
+sounds: it is `checked` or `unsourced`, as above.
+
+### A reason the user accepted
+
+A reason offered with a change is different once the user accepts the change
+with the reason in front of them: they chose by it. A model, a skill or a tool
+proposed the change and said why, and the user took it. The entry is `session`,
+and the citation quotes both turns, the offer with its reason and the
+acceptance:
+
+```
+incident-1: [session] (offered: "Trim project CLAUDE.md — Cut Architecture +
+  Code Style, keep 2 gotcha lines; saves ~730 est. tokens/session"; picked:
+  "Trim project CLAUDE.md") The trim saves about 730 tokens in every session
+  that loads the file.
+```
+
+The entry says what the offer said, not a better reason found later. Silence is
+not acceptance: a change the model made and gave a reason for, which the user
+never answered, is a model's reason like any other, `checked` or `unsourced`. So
+is a reason worked out after the user took a change that was offered without
+one. Approving a plan accepts none of its reasons.
+
+## Fields
+
+- `today` — what the code does now at the change site
+- `incident` — what prompted this change, and why now. Narrower legal tags than
+  the table above: `asked`, `session`, `issue`, `checked`, `relayed`, or
+  `unsourced` only — never `diff`, `code`, or `blame`. Those three can tell you
+  what the code does and when it started; they cannot tell you why anyone wanted
+  it to. "This mirrors how an existing field already works" is a `code` fact
+  about the change, not a fact about the motive — tagging it `code` and calling
+  `incident` answered is exactly the mistake this rule exists to close. If the
+  only thing you have is a diff or the commit that introduced the touched code,
+  the entry is `unsourced`.
+- `change` — what the diff tells the code to do differently, imperative
+- `alternatives` — approaches weighed and rejected, with the reason
+- `series` — what a neighbouring commit on this branch does, by position
+- `deferred` — what follows naturally from this but is deliberately not done.
+  Say which kind: work this change leaves incomplete, which the message names
+  with the reason it waits, or follow-on work such as scheduling a job, which
+  belongs in the tracker
+- `uncertain` — what you do not know: a fact to verify, not a thing to do. Work
+  that follows from the change is `deferred`
+
+Only `change` is guaranteed answerable; it comes off the diff. `today` usually
+follows from the code. `incident` is the field that is most often `unsourced`,
+because the reason for a change frequently exists nowhere in the repository.
+That is a fact about the change, not a failure of the search — record it and
+move on.
+
+**Omit a field entirely rather than filling it.** An absent `alternatives` means
+none were weighed, which is the ordinary case; an `alternatives` entry invented
+to look thorough is worse than nothing, because it will be repeated downstream
+as though someone had actually considered it. The same goes for `deferred`.
+
+`series` is for work that spans commits: a preparation whose payoff lands in the
+next one, a fix that only reads as a fix because the previous one moved the
+code. Write it by position — "the previous commit", "the next commit" — and
+never by sha. A topic gets rebased before anyone else sees it, so every sha in
+it is provisional while the position holds.
+
+The citation is a separate question from the text. A commit already on the
+branch is evidence you can go and read, so cite it however you found it; a sha
+in the citation is fine, because the citation never reaches the message — only a
+sha on the mainline is fit to be written into one. A commit that does not exist
+yet is not in the repository at all, so it is `session` with the sentence that
+promised it, or it is `unsourced`.
+
+## Output
+
+Write the brief to the commit-brief file. `.git` is a plain directory in an
+ordinary checkout, but a _file_ pointing elsewhere inside a worktree, so
+`.git/commit-brief` only works by accident there; resolve the real path with
+`git rev-parse --git-path commit-brief` and write to that instead. It is
+untracked by construction, the same way the `peff-commit-draft` file
+(`git rev-parse --git-path peff-commit-draft`) is.
+
+One entry per line, `field-N: [tag] (citation) text`, continuation lines
+indented two spaces. The ID is the field name and a number that counts up per
+field — `today-1`, `today-2`, `incident-1` — and it is how `COMPOSE.md` traces
+each sentence of the message back to the entry it came from. Lines starting with
+`#` are comments.
+
+```
+today-1: [code] (odb/loose.c:412) We mmap the object file and keep the result
+  in `map`, unmapping it at the `out` label.
+incident-1: [session] ("this segfaults on a truncated pack") Reported against
+  a pack truncated mid-write.
+change-1: [diff] (odb/loose.c) Clear `map` after unmapping so the error path
+  cannot unmap it a second time.
+series-1: [session] ("then do the same for the v2 reader") The next commit
+  applies the same fix to the v2 reader.
+uncertain-1: [unsourced] Whether the v2 reader has the same pattern; not
+  checked.
+```
+
+A gap goes under the field it belongs to, tagged `[unsourced]`. There is no
+`unsourced` field. This form is wrong, because it loses which question the gap
+leaves open:
+
+```
+unsourced: Why Drafts was orphaned comes from my IMAP checks.
+```
+
+Write it as `incident-2: [unsourced] Why Drafts was orphaned ...` instead.
+
+Then lint the file:
+
+```
+python3 <dir holding this file>/scripts/lint_brief.py "$(git rev-parse --git-path commit-brief)"
+```
+
+It prints `line N: reason` for each malformed entry and exits non-zero. Fix the
+file and run it again until it passes; do not report a brief it rejects. On a
+pass it prints the entry count by tag.
+
+Then report to the caller: the count of entries by tag, and the `unsourced` and
+`relayed` entries in full. The caller needs to see the gaps without opening the
+file.
