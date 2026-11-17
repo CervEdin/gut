@@ -80,13 +80,14 @@ A body asserting X is a thing they have to notice first.
    ```
 
 3. **Compose, check, commit.** Follow `../peff-commit/COMPOSE.md`: budget, draft
-   from the brief, check (brief lint, the provenance file with its coverage
-   section, budget and paragraphs, commit references, line length, slop score),
-   commit, notes, report. `COMPOSE.md` and `PEFF-STYLE.md` live in the
-   `peff-commit` skill directory alongside this one. The checks run these
-   scripts:
+   from the brief, check (brief lint, the provenance file with its coverage,
+   budget, paragraphs and style sections, provenance lint, commit references,
+   line length, slop score), commit, notes, report. `COMPOSE.md` and
+   `PEFF-STYLE.md` live in the `peff-commit` skill directory alongside this one.
+   The checks run these scripts:
 
    - `${CLAUDE_SKILL_DIR}/../commit-brief/scripts/lint_brief.py`
+   - `${CLAUDE_SKILL_DIR}/../peff-commit/scripts/lint_provenance.py`
    - `${CLAUDE_SKILL_DIR}/../peff-commit/scripts/slop_score.py`
 
    Before drafting, read `../peff-commit/PEFF-STYLE.md` in full with Read, not

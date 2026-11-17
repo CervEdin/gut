@@ -163,10 +163,19 @@ part of that path.
 
    The subject needs no `gives:` line. If the only `gives:` you can write is the
    sentence again, or a list of names from the diff, the sentence narrates the
-   diff: attach its reason or consequence, or cut it. Then check each sentence
-   against the rest of "Sentences" in `PEFF-STYLE.md`, and write `fixed:` under
-   any sentence you changed, saying what was wrong ("fixed: 'it' could mean the
-   checkpoint").
+   diff: attach its reason or consequence, or cut it.
+
+   Then check each sentence against every rule under "Sentences" in
+   `PEFF-STYLE.md`. Write `fixed:` under any sentence you changed, saying what
+   was wrong ("fixed: 'it' could mean the checkpoint"). Record the result in a
+   `style:` section of the provenance file, with one line per rule, named
+   exactly as its bold name there, followed by `ok` or the sentence it fixed:
+
+   ```
+   style:
+     Reason or consequence: ok
+     A real joint: fixed sentence 3, "and" joined two points
+   ```
 
    A sentence with no entry, or only an `unsourced` one, gets `NONE` and comes
    out of the draft. Leave the `NONE` record in the file, so the report shows
@@ -226,7 +235,17 @@ part of that path.
    its length. So does each paragraph of one sentence that a split left, for the
    questions in "Paragraph Structure". Checks 2 and 4 run again on the result.
 
-5. **Commit references.** Every sha in the draft is on the mainline.
+5. **Provenance lint.**
+
+   ```
+   python3 <path>/lint_provenance.py "$(git rev-parse --git-path peff-commit-provenance)"
+   ```
+
+   It checks that the `coverage:`, `budget:`, `paragraphs:` and `style:`
+   sections are there, and that `style:` names every rule under "Sentences",
+   which it reads from `PEFF-STYLE.md` each run. Fix the file until it passes.
+
+6. **Commit references.** Every sha in the draft is on the mainline.
    `git rev-list origin/HEAD..HEAD` lists the ones that are not: those get
    rewritten, so a sha naming one of them is a name for nothing.
 
@@ -242,8 +261,8 @@ part of that path.
    `main`. Rewrite anything it reports as "the previous commit", or however else
    the commit sits relative to this one.
 
-6. **Line length.** 72 characters soft, 120 hard, body and notes alike.
-7. **Slop score.**
+7. **Line length.** 72 characters soft, 120 hard, body and notes alike.
+8. **Slop score.**
 
    ```
    python3 <path>/slop_score.py "$(git rev-parse --git-path peff-commit-draft)"
@@ -325,7 +344,7 @@ Notes:
 
 Provenance:
 
-    (the provenance file, including its coverage:, budget: and paragraphs: lines)
+    (the provenance file, including its coverage:, budget:, paragraphs: and style: sections)
 ```
 
 The provenance file goes in the report whole. If a check was skipped, its
