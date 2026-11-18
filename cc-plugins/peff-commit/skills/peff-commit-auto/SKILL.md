@@ -80,11 +80,19 @@ A body asserting X is a thing they have to notice first.
    ```
 
 3. **Compose, check, commit.** Follow `../peff-commit/COMPOSE.md`: budget, draft
-   from the brief, check (brief lint, the provenance file with its coverage
-   section, budget and paragraphs, commit references, line length, slop score),
-   commit, notes, report. `../peff-commit/PEFF-STYLE.md` carries the voice, and
-   the scorer is at `../peff-commit/scripts/slop_score.py` — all three live in
-   the `peff-commit` skill directory alongside this one.
+   from the brief, check (brief lint, the provenance file with its coverage,
+   budget, paragraphs and style sections, provenance lint, commit references,
+   line length, slop score), commit, notes, report. `COMPOSE.md` and
+   `PEFF-STYLE.md` live in the `peff-commit` skill directory alongside this one.
+   The checks run these scripts:
+
+   - `${CLAUDE_SKILL_DIR}/../commit-brief/scripts/lint_brief.py`
+   - `${CLAUDE_SKILL_DIR}/../peff-commit/scripts/lint_provenance.py`
+   - `${CLAUDE_SKILL_DIR}/../peff-commit/scripts/slop_score.py`
+
+   Before drafting, read `../peff-commit/PEFF-STYLE.md` in full with Read, not
+   with grep or head. §2 of `COMPOSE.md` drafts to its rules, and §3 there
+   checks every sentence against its "Sentences" list.
 
    To rewrite the messages of existing commits, follow "Rewording existing
    commits" in `../peff-commit/COMPOSE.md`. This skill is the one to use when
