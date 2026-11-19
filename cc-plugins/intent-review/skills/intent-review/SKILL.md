@@ -36,8 +36,8 @@ pass its report on unchanged.
    repository, on the range from step 1:
 
    ```
-   python3 <dir holding this file>/scripts/find_sessions.py <range>
-   python3 <dir holding this file>/scripts/find_sessions.py --staged
+   python3 ${CLAUDE_SKILL_DIR}/scripts/find_sessions.py <range>
+   python3 ${CLAUDE_SKILL_DIR}/scripts/find_sessions.py --staged
    ```
 
    The script reads every transcript under `~/.claude/projects`, since a session
@@ -62,7 +62,7 @@ pass its report on unchanged.
    transcript, oldest first:
 
    ```
-   python3 <dir holding this file>/scripts/user_turns.py <transcript>...
+   python3 ${CLAUDE_SKILL_DIR}/scripts/user_turns.py <transcript>...
    ```
 
    It prints each turn with its line number in the file, labelled `user`,
