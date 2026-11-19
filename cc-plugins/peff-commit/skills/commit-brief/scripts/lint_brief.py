@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 """Check a commit-brief file against the format in commit-brief/SKILL.md.
 
-Usage: lint_brief.py [path]
+Usage: lint_brief.py <path>
 
-With no path, lints $(git rev-parse --git-path commit-brief). Prints one
-"line N: reason" per problem and exits 1 if there are any; otherwise prints
-the entry count by tag and exits 0.
+Prints one "line N: reason" per problem and exits 1 if there are any;
+otherwise prints the entry count by tag and exits 0.
 """
 
 import re
-import subprocess
 import sys
 from collections import Counter
 
@@ -135,16 +133,10 @@ def lint(lines):
 
 
 def main(argv):
-    if len(argv) > 2:
+    if len(argv) != 2:
         print(__doc__.strip(), file=sys.stderr)
         return 2
-    if len(argv) == 2:
-        path = argv[1]
-    else:
-        path = subprocess.run(
-            ["git", "rev-parse", "--git-path", "commit-brief"],
-            capture_output=True, text=True, check=True,
-        ).stdout.strip()
+    path = argv[1]
     try:
         with open(path) as f:
             lines = f.readlines()
