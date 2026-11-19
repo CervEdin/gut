@@ -280,7 +280,7 @@ Write it as `incident-2: [unsourced] Why Drafts was orphaned ...` instead.
 Then lint the file:
 
 ```
-python3 <dir holding this file>/scripts/lint_brief.py "$(git rev-parse --git-path commit-brief)"
+python3 ${CLAUDE_SKILL_DIR}/scripts/lint_brief.py "$(git rev-parse --git-path commit-brief)"
 ```
 
 It prints `line N: reason` for each malformed entry and exits non-zero. Fix the
