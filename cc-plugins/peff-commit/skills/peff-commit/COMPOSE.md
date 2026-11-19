@@ -130,14 +130,14 @@ invention; the rest catch format and presentation.
 Each check leaves output behind: a tool's output, or a section of the provenance
 file below. A check that is only done in your head is easy to skip without
 noticing, and the checks that were skipped in practice were the ones that
-printed nothing. Paths in this document are relative to `COMPOSE.md` itself, not
-to the skill reading it — `peff-commit-auto` reads this from a sibling
-directory.
+printed nothing. Some checks run a script, and step 3 of the SKILL.md that sent
+you here gives its full path. In the commands below, `<path>` is the directory
+part of that path.
 
 1. **Brief lint.**
 
    ```
-   python3 <dir holding this file>/../commit-brief/scripts/lint_brief.py "$(git rev-parse --git-path commit-brief)"
+   python3 <path>/lint_brief.py "$(git rev-parse --git-path commit-brief)"
    ```
 
    `commit-brief` already ran it, but the interview in `peff-commit` adds
@@ -246,7 +246,7 @@ directory.
 7. **Slop score.**
 
    ```
-   python3 <dir holding this file>/scripts/slop_score.py "$(git rev-parse --git-path peff-commit-draft)"
+   python3 <path>/slop_score.py "$(git rev-parse --git-path peff-commit-draft)"
    ```
 
    It needs `textstat` and says so in one line if it is missing. That is not

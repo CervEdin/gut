@@ -100,7 +100,10 @@ question of your time to avoid guessing.
 3. **Compose, check, commit.** Follow `COMPOSE.md` in this directory: budget,
    draft from the brief, check (brief lint, the provenance file with its
    coverage section, budget and paragraphs, commit references, line length, slop
-   score), commit, notes, report.
+   score), commit, notes, report. The checks run these scripts:
+
+   - `${CLAUDE_SKILL_DIR}/../commit-brief/scripts/lint_brief.py`
+   - `${CLAUDE_SKILL_DIR}/scripts/slop_score.py`
 
    Before drafting, read `PEFF-STYLE.md` in this directory in full with Read,
    not with grep or head. §2 of `COMPOSE.md` drafts to its rules, and §3 there
